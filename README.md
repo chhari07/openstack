@@ -25,7 +25,7 @@ brings those highlights back later, so what you read stays with you.
 | | |
 |---|---|
 | **Today** | Top story, swipeable rows of more stories, PDFs you're reading and recent notes, a focus card and the daily review |
-| **News** | 11 topics (Top, India, World, Tech, AI, Dev, Business, Science, Sports, Entertainment, Health) from BBC, The Hindu, Times of India, Indian Express, Al Jazeera, Mint, The Guardian, Hacker News and dev.to. Flash cards or a list, and a clean reader mode |
+| **News** | 11 topics (Top, India, World, Tech, AI, Dev, Business, Science, Sports, Entertainment, Health) from BBC, The Hindu, Times of India, Indian Express, Al Jazeera, Mint, The Guardian, Hacker News and dev.to. Flash cards or a list, pull to refresh (the Stack logo stacks itself while it loads), and a clean reader mode |
 | **Highlights & notes** | Select text: Highlight, + Note or Share. A Keep-style editor with titles, checklists, colours, pin, autosave, share, and delete with Undo |
 | **Library & PDF reader** | Coloured shelves, pdf.js reader with highlights and page notes, reading time left, every PDF on the phone (Android) |
 | **Focus session** | Pick a PDF or article, 15–60 min timer, music, quick notes, then a summary (pages, highlights, notes) with a streak |

@@ -187,10 +187,11 @@ function parseRss(xml: string, source: string): Story[] {
   return out;
 }
 
-async function fetchText(url: string): Promise<string | null> {
+// `fresh` (pull to refresh) skips the 5-minute cache.
+async function fetchText(url: string, fresh = false): Promise<string | null> {
   try {
     const res = await fetch(url, {
-      next: { revalidate: REVALIDATE },
+      ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: REVALIDATE } }),
       headers: { "user-agent": "Mozilla/5.0 (compatible; Stack/0.1; news reader)" },
       signal: AbortSignal.timeout(10000),
     });
@@ -200,10 +201,10 @@ async function fetchText(url: string): Promise<string | null> {
   }
 }
 
-async function rss(feeds: Feed[]): Promise<Story[]> {
+async function rss(feeds: Feed[], fresh = false): Promise<Story[]> {
   const lists = await Promise.all(
     feeds.map(async (f) => {
-      const xml = await fetchText(f.url);
+      const xml = await fetchText(f.url, fresh);
       return xml ? parseRss(xml, f.source).slice(0, 20) : [];
     }),
   );
@@ -262,8 +263,8 @@ function domainOf(url: string) {
   }
 }
 
-async function fetchJson<T>(url: string): Promise<T | null> {
-  const text = await fetchText(url);
+async function fetchJson<T>(url: string, fresh = false): Promise<T | null> {
+  const text = await fetchText(url, fresh);
   try {
     return text ? (JSON.parse(text) as T) : null;
   } catch {
@@ -271,12 +272,13 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-async function hackerNews(topic: TechTopic): Promise<Story[]> {
+async function hackerNews(topic: TechTopic, fresh: boolean): Promise<Story[]> {
   // Topic searches only look at the last 7 days so results stay "news".
   const since = Math.floor(Date.now() / 1000) - 7 * 86400;
   const recent = topic === "tech" ? "" : `&numericFilters=created_at_i>${since}`;
   const data = await fetchJson<{ hits: HnHit[] }>(
     `https://hn.algolia.com/api/v1/search?${HN_QUERY[topic]}${recent}`,
+    fresh,
   );
   return (data?.hits ?? [])
     .filter((h) => h.title)
@@ -294,8 +296,11 @@ async function hackerNews(topic: TechTopic): Promise<Story[]> {
     .sort((a, b) => (b.points ?? 0) - (a.points ?? 0));
 }
 
-async function devto(topic: TechTopic): Promise<Story[]> {
-  const data = await fetchJson<DevtoArticle[]>(`https://dev.to/api/articles?${DEVTO_QUERY[topic]}`);
+async function devto(topic: TechTopic, fresh: boolean): Promise<Story[]> {
+  const data = await fetchJson<DevtoArticle[]>(
+    `https://dev.to/api/articles?${DEVTO_QUERY[topic]}`,
+    fresh,
+  );
   return (data ?? []).map((a) => ({
     id: `devto-${a.id}`,
     source: "dev.to",
@@ -312,8 +317,8 @@ async function devto(topic: TechTopic): Promise<Story[]> {
   }));
 }
 
-async function tech(topic: TechTopic) {
-  const [hn, dev] = await Promise.all([hackerNews(topic), devto(topic)]);
+async function tech(topic: TechTopic, fresh: boolean) {
+  const [hn, dev] = await Promise.all([hackerNews(topic, fresh), devto(topic, fresh)]);
   // Interleave two HN stories per dev.to post so both sources show up.
   const out: Story[] = [];
   let i = 0;
@@ -326,7 +331,7 @@ async function tech(topic: TechTopic) {
   return out;
 }
 
-export async function getNews(topic: Topic): Promise<Story[]> {
-  if (topic === "tech" || topic === "ai" || topic === "dev") return tech(topic);
-  return rss(FEEDS[topic] ?? []);
+export async function getNews(topic: Topic, fresh = false): Promise<Story[]> {
+  if (topic === "tech" || topic === "ai" || topic === "dev") return tech(topic, fresh);
+  return rss(FEEDS[topic] ?? [], fresh);
 }

@@ -1,5 +1,7 @@
 // Stack's mark: four blocks settling into a stack (from ui/logo.jpg, redrawn
 // as vectors). With `animate`, the blocks drop in one by one, base first.
+// `built` (0–1) shows the stack part-way built, base first (pull to refresh);
+// `loop` keeps stacking and clearing the blocks (loading).
 
 // Measured from the original artwork: centre, size and tilt of each block.
 export const BLOCKS = [
@@ -13,11 +15,15 @@ export const LOGO_VIEWBOX = "242.5 130 124 124";
 export function Logo({
   size = 24,
   animate = false,
+  built,
+  loop = false,
   className = "",
   title = "Stack",
 }: {
   size?: number;
   animate?: boolean;
+  built?: number;
+  loop?: boolean;
   className?: string;
   title?: string;
 }) {
@@ -28,11 +34,11 @@ export function Logo({
       viewBox={LOGO_VIEWBOX}
       role="img"
       aria-label={title}
-      className={`${animate ? "logo-drop" : ""} ${className}`}
+      className={`${loop ? "logo-loop" : animate ? "logo-drop" : ""} ${className}`}
       fill="currentColor"
     >
       {BLOCKS.map((b, i) => (
-        <g key={i} style={{ animationDelay: `${i * 110}ms` }}>
+        <g key={i} style={blockStyle(i, loop, built)}>
           <rect
             x={b.cx - b.w / 2}
             y={b.cy - b.h / 2}
@@ -45,4 +51,12 @@ export function Logo({
       ))}
     </svg>
   );
+}
+
+function blockStyle(i: number, loop: boolean, built?: number) {
+  if (loop) return { animationDelay: `${i * 160}ms` };
+  if (built === undefined) return { animationDelay: `${i * 110}ms` };
+  // Each block owns a quarter of the pull: it fades in and drops into place.
+  const t = Math.min(1, Math.max(0, built * BLOCKS.length - i));
+  return { opacity: t, transform: `translateY(${(t - 1) * 40}px)` };
 }

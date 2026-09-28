@@ -348,9 +348,47 @@ html {
   }
 }
 
+/* Loading: starting from the full logo (where the pull left it), the
+   blocks clear one by one, then drop back in and stack up again */
+@keyframes logo-loop {
+  0%,
+  30% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  44% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  45% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(2px);
+    opacity: 1;
+  }
+  78%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.logo-loop > g {
+  animation: logo-loop 1600ms ease-in-out infinite both;
+}
+@keyframes logo-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .logo-drop > g,
   .card-snap {
     animation: none;
+  }
+  .logo-loop > g {
+    animation: logo-pulse 1200ms ease-in-out infinite;
   }
 }

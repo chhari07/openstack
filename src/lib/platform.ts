@@ -9,12 +9,15 @@ import type { Story, Topic } from "./news";
 export const isNative = () => Capacitor.isNativePlatform();
 
 // Website: ask our API routes. App: fetch the sources straight from the phone.
-export async function loadNews(topic: Topic): Promise<Story[]> {
+export async function loadNews(topic: Topic, fresh = false): Promise<Story[]> {
   if (isNative()) {
     const { getNews } = await import("./news");
-    return getNews(topic);
+    return getNews(topic, fresh);
   }
-  const res = await fetch(`/api/news?topic=${topic}`);
+  const res = await fetch(
+    `/api/news?topic=${topic}${fresh ? "&fresh=1" : ""}`,
+    fresh ? { cache: "no-store" } : undefined,
+  );
   if (!res.ok) throw new Error(`news ${res.status}`);
   return (await res.json()).stories;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Story, Topic } from "./news";
 import { loadNews } from "./platform";
 
@@ -12,8 +12,10 @@ export function useNews(topic: Topic) {
     stories: Story[];
     status: "loading" | "ok" | "error";
   }>({ topic, stories: [], status: "loading" });
+  const current = useRef(topic);
 
   useEffect(() => {
+    current.current = topic;
     let alive = true;
     loadNews(topic)
       .then((stories) => {
@@ -27,8 +29,22 @@ export function useNews(topic: Topic) {
     };
   }, [topic]);
 
+  // Pull to refresh: fetch past the cache, keeping the old stories on screen
+  // until the new ones arrive. Resolves to whether it worked.
+  const refresh = useCallback(async () => {
+    try {
+      const stories = await loadNews(topic, true);
+      if (current.current === topic) setState({ topic, stories, status: "ok" });
+      return true;
+    } catch {
+      return false;
+    }
+  }, [topic]);
+
   // While a new topic loads, report loading instead of the old list.
-  return state.topic === topic ? state : { topic, stories: [], status: "loading" as const };
+  const shown =
+    state.topic === topic ? state : { topic, stories: [], status: "loading" as const };
+  return { ...shown, refresh };
 }
 
 export const safeImage = (url?: string) => (url && /^https?:\/\//.test(url) ? url : undefined);

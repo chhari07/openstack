@@ -5,6 +5,8 @@ import { TabBar } from "@/components/tab-bar";
 import { Chips } from "@/components/sheet";
 import { HeroStory, StoryRow, StorySkeleton } from "@/components/story";
 import { NewsCards } from "@/components/news-cards";
+import { RefreshLogo, usePullToRefresh } from "@/components/pull-refresh";
+import { useToast } from "@/components/toast";
 import { Logo } from "@/components/logo";
 import { CloseIcon, SearchIcon } from "@/components/icons";
 import { useNews, type Topic } from "@/lib/use-news";
@@ -51,6 +53,23 @@ export default function News() {
   );
   const searchRef = useRef<HTMLInputElement>(null);
   const news = useNews(topic);
+  const toast = useToast();
+  const page = useRef<HTMLElement>(null);
+  const [busy, setBusy] = useState(false);
+  const refresh = async () => {
+    if (busy || news.status === "loading") return;
+    setBusy(true);
+    // Keep the logo stacking for a moment even when the network is quick.
+    const [ok] = await Promise.all([
+      news.refresh(),
+      new Promise((r) => setTimeout(r, 1200)),
+    ]);
+    setBusy(false);
+    toast({
+      text: ok ? "News updated" : "Couldn’t refresh. Check your connection.",
+    });
+  };
+  const pull = usePullToRefresh(page, refresh, busy || searching);
   const word =
     topic === "top"
       ? "NEWS"
@@ -77,6 +96,7 @@ export default function News() {
 
   return (
     <main
+      ref={page}
       className={
         cards
           ? "flex h-[calc(100dvh-env(safe-area-inset-top))] flex-col px-5 pt-5 pb-[calc(var(--above-tabs)-10px)] md:px-10 md:pt-8 md:pb-6"
@@ -85,9 +105,15 @@ export default function News() {
     >
       <div className="flex h-11 shrink-0 items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="flex size-[26px] items-center justify-center rounded-md bg-news text-white">
-            <Logo size={20} />
-          </span>
+          <button
+            aria-label="Refresh news"
+            onClick={refresh}
+            className="-m-2.5 flex size-[46px] items-center justify-center"
+          >
+            <span className="flex size-[26px] items-center justify-center rounded-md bg-news text-white">
+              <Logo size={20} loop={busy} />
+            </span>
+          </button>
           <span className="label text-[12px] font-medium">News</span>
         </div>
         <div className="flex items-center gap-1">
@@ -234,6 +260,7 @@ export default function News() {
         </>
       )}
 
+      <RefreshLogo pull={pull} busy={busy} />
       <TabBar />
     </main>
   );
