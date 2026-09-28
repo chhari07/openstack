@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+!.env.example
+
+# Capacitor
+/android/app/build
+
+# Firebase config download (values are in .env.local)
+google-services.json
+
+# Android Studio editor settings
+/android/.idea/
+# Firebase emulator logs
+firebase/*-debug.log
+# Copied from pdfjs-dist by `npm install` (postinstall)
+/public/pdf.worker.min.mjs
+# Spotify App Remote SDK (download it yourself; see README)
+/native/android-libs/*.aar

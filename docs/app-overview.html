@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack — App overview &amp; roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  @page wide { size: A4 landscape; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --music: #D62F26; --music-tint: #F8D8D5;
+    --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .82; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .wide { page: wide; width: 297mm; height: 210mm; padding: 9mm 10mm 12mm; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 8pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  .wide .foot { left: 10mm; right: 10mm; bottom: 5mm; }
+  .diagram { margin-top: 3mm; background: #fff; border-radius: 4mm; padding: 3mm; height: 172mm; display: flex; align-items: center; justify-content: center; }
+  .diagram img { max-width: 100%; max-height: 100%; }
+  h1 { margin: 4mm 0 0 -1.5mm; font-size: 50pt; }
+  h2 { margin: 6mm 0 1mm; font-size: 26pt; }
+  .h2sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  .intro { margin-top: 4mm; font-size: 10pt; line-height: 1.5; max-width: 170mm; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.2pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 7pt; font-weight: 500; color: var(--muted); padding: 0 3mm 0.5mm; }
+  td { background: var(--card); padding: 1.8mm 3mm; line-height: 1.34; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; width: 30mm; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+  td.no { color: var(--muted); }
+  .yes { color: #065C27; font-weight: 600; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; }
+  .card .tag { display: inline-block; font-size: 6.5pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: #065C27; }
+  .card ul { margin: 2mm 0 0; padding-left: 3.6mm; font-size: 8.2pt; line-height: 1.45; }
+  .card li { margin-bottom: .6mm; }
+
+  .phase { border-radius: 4mm; padding: 4.2mm 5mm; margin-bottom: 3.2mm; }
+  .phase .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .phase h3 { margin: 0; font-size: 15pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; }
+  .phase .when { font-size: 7.5pt; }
+  .phase ul { list-style: none; margin: 2.2mm 0 0; padding: 0; font-size: 9pt; line-height: 1.45; }
+  .phase li { display: flex; gap: 2.4mm; margin-bottom: 1.3mm; }
+  .phase li::before { content: ""; flex-shrink: 0; width: 3.2mm; height: 3.2mm; margin-top: .6mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .phase li b { font-weight: 700; }
+  .p1 { background: var(--yellow-tint); color: #3a2a00; }
+  .p2 { background: var(--pdf-tint); color: #3d2200; }
+  .p3 { background: var(--blue-tint); color: #0e2a4a; }
+  .p4 { background: var(--violet-tint); color: #2a1a66; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4mm 5mm; margin-top: 2mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7.5pt; color: #BDBAB2; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<!-- ===== Page 1: the diagram (landscape) ===== -->
+<section class="page wide">
+  <div class="top">
+    <svg width="28" height="28" fill="#111"><use href="#logo"/></svg>
+    <span class="label">Stack · app overview · diagram · 28.09.2026</span>
+  </div>
+  <div class="diagram"><img src="assets/stack-diagram.jpg" alt="Stack app diagram: how it's built, web vs Android, features today, roadmap and research sources"></div>
+  <div class="foot"><span class="label">Stack · news · music · PDFs · notes · editable version: docs/Stack_App.excalidraw</span><span class="label">01 / 03</span></div>
+</section>
+
+<!-- ===== Page 2: web vs app + today ===== -->
+<section class="page">
+  <div class="top">
+    <svg width="30" height="30" fill="#111"><use href="#logo"/></svg>
+    <span class="label">Stack · app overview · v1.0</span>
+  </div>
+  <h1 class="display">WEB VS APP</h1>
+  <p class="intro">
+    Both versions are built from the <b>same Next.js code</b>. The web app runs with a server; the Android app is a
+    self-contained APK (Capacitor) with native features. In short: <b>the web app is a reader you open in a browser; the APK
+    adds everything that uses the phone itself</b>: music, files, notifications and background playback.
+  </p>
+  <table>
+    <tr><th></th><th>Web app</th><th>Android app (APK)</th></tr>
+    <tr><td>How you get it</td><td>Open a URL; our Next.js server must be running or hosted</td><td>Install <b>Stack.apk</b> (sideloaded, debug-signed); needs no server of ours</td></tr>
+    <tr><td>News &amp; reader</td><td>Our server fetches and cleans articles (<code>/api</code>), cached 5 min</td><td>The phone fetches pages itself (CapacitorHttp, no CORS limits)</td></tr>
+    <tr><td>Spotify</td><td>Can play inside the browser (Web Playback SDK, Premium)</td><td>Remote-controls the Spotify app and opens it when needed. In-app playback is planned</td></tr>
+    <tr><td>Music on device</td><td class="no">Not available</td><td class="yes">Song library, Media3 background player, media notification, headset keys</td></tr>
+    <tr><td>PDFs</td><td>Pick files by hand</td><td>Pick files, or find <b>every PDF on the phone</b> (All files access / one folder)</td></tr>
+    <tr><td>Notifications</td><td class="no">None</td><td class="yes">Daily digest; permissions managed in Settings → Access</td></tr>
+    <tr><td>Launch &amp; brand</td><td>Favicon only</td><td>Animated logo splash, app icon, notification icon</td></tr>
+    <tr><td>Layouts</td><td>Phone column; navigation rail on wide screens</td><td>Phone portrait; tablets rotate with the rail layout</td></tr>
+    <tr><td>Updates</td><td>Instant on redeploy</td><td>Rebuild + reinstall (no auto-update yet)</td></tr>
+    <tr><td>Your data</td><td>IndexedDB in that browser</td><td>IndexedDB in the app (not synced with the web)</td></tr>
+  </table>
+
+  <h2 class="display">WHAT SHIPS TODAY</h2>
+  <div class="h2sub label">v1.0 · tested on Android 16 phone + tablet emulators, light &amp; dark</div>
+  <div class="grid3">
+    <div class="card"><span class="tag label">Today</span><ul><li>Top story, continue reading, last note</li><li>Mini player, animated logo, daily-digest card</li></ul></div>
+    <div class="card"><span class="tag label">News</span><ul><li>11 topics incl. India, World, Tech, Sports</li><li>Flash cards or list, search, save, share</li><li>Reader mode + highlight / note</li></ul></div>
+    <div class="card"><span class="tag label">Music</span><ul><li>Phone songs: shuffle, repeat, seek, background play</li><li>Spotify: login, playlists, Liked Songs, remote control</li></ul></div>
+    <div class="card"><span class="tag label">Library + PDF</span><ul><li>Shelves, covers, saved articles</li><li>Finds every PDF on the phone</li><li>Highlights, notes per page, time left</li></ul></div>
+    <div class="card"><span class="tag label">Notes</span><ul><li>Highlights, ideas, music notes linked to their source</li><li>Search, filters, edit, masonry</li></ul></div>
+    <div class="card"><span class="tag label">Settings</span><ul><li>Auto / Light / Dark theme</li><li>Access: files, notifications, music</li><li>Spotify Client ID, digest time</li></ul></div>
+  </div>
+  <div class="foot"><span class="label">Stack · news · music · PDFs · notes</span><span class="label">02 / 03</span></div>
+</section>
+
+<!-- ===== Page 3: roadmap ===== -->
+<section class="page">
+  <div class="top">
+    <svg width="30" height="30" fill="#111"><use href="#logo"/></svg>
+    <span class="label">Stack · roadmap · from 28.09.2026</span>
+  </div>
+  <h1 class="display">NEXT UPDATES</h1>
+  <p class="intro">Four phases, ordered so that each one builds on the last. Phase 2 holds the features that no competitor combines.</p>
+
+  <div class="phase p1">
+    <div class="row"><h3>PHASE 1 · FINISH &amp; STABILISE</h3><span class="when label">Week 1</span></div>
+    <ul>
+      <li><span><b>Spotify inside Stack</b> with the App Remote SDK, so "no active device" never appears (code parked in <code>native/wip/</code>)</span></li>
+      <li><span><b>Release-signed APK</b> with version numbers and an in-app "update available" check</span></li>
+      <li><span><b>Offline cache:</b> today's cards and saved articles readable without network</span></li>
+      <li><span><b>Deploy the web app</b> (Vercel) for a shareable link</span></li>
+    </ul>
+  </div>
+  <div class="phase p2">
+    <div class="row"><h3>PHASE 2 · STACK'S UNIQUE FEATURES</h3><span class="when label">Weeks 2–3</span></div>
+    <ul>
+      <li><span><b>Focus session:</b> pick a PDF or article → 25-min timer + music + notes → summary at the end</span></li>
+      <li><span><b>Share to Stack:</b> send links from Chrome, YouTube or WhatsApp straight into the Library</span></li>
+      <li><span><b>Listen mode:</b> articles and PDFs read aloud, with controls in the media notification</span></li>
+    </ul>
+  </div>
+  <div class="phase p3">
+    <div class="row"><h3>PHASE 3 · SMARTER READING</h3><span class="when label">Weeks 4–5</span></div>
+    <ul>
+      <li><span><b>60-word AI summaries</b> on news cards and "explain this" on selected text (Gemini free tier)</span></li>
+      <li><span><b>Personal feed:</b> choose topics on first launch; Hindi news sources</span></li>
+      <li><span><b>Breaking-news alerts</b> per topic (background fetch with WorkManager)</span></li>
+    </ul>
+  </div>
+  <div class="phase p4">
+    <div class="row"><h3>PHASE 4 · YOUR DATA &amp; REACH</h3><span class="when label">Week 6+</span></div>
+    <ul>
+      <li><span><b>Export notes</b> to Markdown; Google Drive backup or optional cloud sync</span></li>
+      <li><span><b>Resurface an old highlight</b> in the daily digest (spaced review)</span></li>
+      <li><span><b>EPUB books</b>, reading stats and streaks</span></li>
+      <li><span><b>Play Store build:</b> folder picker + music-only permission instead of All files access</span></li>
+    </ul>
+  </div>
+
+  <div class="inked">
+    <span class="label">Related files</span><br>
+    <b>Stack_Research_Sources.pdf</b>: 25 sources (similar apps + build guides) · <b>ROADMAP.md</b>: this plan as a checklist ·
+    <b>Stack_App.excalidraw</b>: the editable diagram on page 1
+  </div>
+  <div class="foot"><span class="label">Stack · news · music · PDFs · notes</span><span class="label">03 / 03</span></div>
+</section>
+</body>
+</html>

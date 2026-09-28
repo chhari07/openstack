@@ -1,0 +1,15 @@
+{
+  "appId": "com.chhari.stack",
+  "appName": "Stack",
+  "webDir": "out",
+  "backgroundColor": "#F7F5F0",
+  "android": {
+    "backgroundColor": "#F7F5F0",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "LocalNotifications": { "smallIcon": "ic_stat_stack", "iconColor": "#D62F26" },
+    "SystemBars": { "insetsHandling": "css", "initialViewportFitValueHint": "cover", "style": "LIGHT" }
+  }
+}

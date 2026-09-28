@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack — Research sources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --music: #D62F26; --music-tint: #F8D8D5;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00; --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .8; }
+  a { color: inherit; text-decoration: none; }
+
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 9pt; color: var(--muted); }
+  h1 { margin: 3mm 0 0 -1.5mm; font-size: 52pt; }
+  .sub { margin-top: 4mm; display: flex; justify-content: space-between; font-size: 8.5pt; }
+  .intro { margin-top: 4mm; font-size: 10pt; line-height: 1.5; max-width: 165mm; }
+  .intro b { font-weight: 700; }
+  .key { margin-top: 3.5mm; display: flex; gap: 2.5mm; flex-wrap: wrap; }
+  .chip { font-size: 7.5pt; padding: 1.4mm 3mm; border-radius: 20mm; }
+
+  h2 { margin: 5mm 0 1mm; font-size: 28pt; }
+  .h2sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2.8mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm; break-inside: avoid; display: flex; flex-direction: column; gap: 1.4mm; }
+  .card .row { display: flex; justify-content: space-between; align-items: center; }
+  .num { font-size: 7pt; color: var(--muted); }
+  .tag { font-size: 6pt; padding: 0.8mm 2mm; border-radius: 3mm; }
+  .card h3 { margin: 0; font-size: 10.5pt; line-height: 1.2; font-weight: 700; }
+  .card p { margin: 0; font-size: 8pt; line-height: 1.42; color: #3A3935; flex-grow: 1; }
+  .card .url { font-size: 6pt; color: var(--muted); word-break: break-all; text-decoration: underline; text-decoration-color: var(--rule); }
+
+  .news   { background: var(--news-tint);  color: #065C27; }
+  .read   { background: var(--pdf-tint);   color: var(--pdf-deep); }
+  .focus  { background: var(--music-tint); color: #A3221B; }
+  .pdf    { background: var(--blue-tint);  color: var(--blue-deep); }
+  .p1 { background: #FFF3BF; color: #8A5A00; }
+  .p2 { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .p3 { background: var(--blue-tint); color: var(--blue-deep); }
+  .all { background: var(--violet-tint); color: var(--violet); }
+
+
+  .inked { background: var(--ink); color: #fff; border-radius: 3.5mm; padding: 4mm 5mm; grid-column: span 2; }
+  .inked .label { font-size: 8pt; color: #BDBAB2; }
+  .inked ol { margin: 1.5mm 0 0; padding-left: 5mm; font-size: 9pt; line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<!-- Stack logo (4 blocks), reused -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<!-- ================= PAGE 1 ================= -->
+<section class="page">
+  <div class="top">
+    <svg width="34" height="34" fill="#111"><use href="#logo"/></svg>
+    <span class="label">Stack · research pack · 28.09.2026</span>
+  </div>
+  <h1 class="display">RESEARCH<br>SOURCES</h1>
+  <div class="sub"><span class="label">For better research on apps like Stack</span><span class="label">25 links · 2 groups</span></div>
+
+  <p class="intro">
+    Stack mixes <b>news cards</b>, <b>music</b>, <b>PDF reading</b> and <b>notes</b>. No single app does all four, so these sources
+    cover each slice: <b>12 apps and reviews</b> to learn what users expect, and <b>13 build guides</b> for the features planned next.
+    Every title and link in this PDF is clickable.
+  </p>
+  <div class="key">
+    <span class="chip label news">News cards</span>
+    <span class="chip label read">Read-later &amp; notes</span>
+    <span class="chip label focus">Focus &amp; music</span>
+    <span class="chip label pdf">PDF &amp; reading</span>
+  </div>
+
+  <h2 class="display">01 — SIMILAR APPS</h2>
+  <div class="h2sub label">What to learn from each · 12 sources</div>
+
+  <div class="grid">
+    <a class="card" href="https://play.google.com/store/apps/details?id=com.nis.app">
+      <div class="row"><span class="num label">01</span><span class="tag label news">News cards</span></div>
+      <h3>Inshorts — News in 60 words</h3>
+      <p>India's top short-news app (10M+ daily users). Study its swipe cards, topic picks, Hindi support and breaking-news alerts.</p>
+      <span class="url label">play.google.com/store/apps/details?id=com.nis.app</span>
+    </a>
+    <a class="card" href="https://wan-ifra.org/2020/03/how-inshorts-used-ai-to-become-one-of-indias-top-news-apps/">
+      <div class="row"><span class="num label">02</span><span class="tag label news">News cards</span></div>
+      <h3>How Inshorts used AI (WAN-IFRA)</h3>
+      <p>How the 60-word AI summaries (Rapid60) were trained and scaled. The model for Stack's planned card summaries.</p>
+      <span class="url label">wan-ifra.org · how-inshorts-used-ai</span>
+    </a>
+    <a class="card" href="https://readwise.io/read">
+      <div class="row"><span class="num label">03</span><span class="tag label read">Read-later &amp; notes</span></div>
+      <h3>Readwise Reader</h3>
+      <p>The most complete read-later app: articles, RSS, PDFs, highlights, text-to-speech and an AI reading assistant ($12.99/mo).</p>
+      <span class="url label">readwise.io/read</span>
+    </a>
+    <a class="card" href="https://docs.readwise.io/reader">
+      <div class="row"><span class="num label">04</span><span class="tag label read">Read-later &amp; notes</span></div>
+      <h3>Readwise Reader docs</h3>
+      <p>Feature-by-feature detail: highlighting, Ghostreader AI, TTS, exports to Notion/Obsidian. A checklist for Stack's notes.</p>
+      <span class="url label">docs.readwise.io/reader</span>
+    </a>
+    <a class="card" href="https://www.getmente.com/blog/best-read-it-later-apps-2026">
+      <div class="row"><span class="num label">05</span><span class="tag label read">Read-later &amp; notes</span></div>
+      <h3>Best read-it-later apps 2026 (Mente)</h3>
+      <p>Honest comparison after Pocket and Omnivore shut down: Readwise, Matter, Instapaper and more, with prices.</p>
+      <span class="url label">getmente.com/blog/best-read-it-later-apps-2026</span>
+    </a>
+    <a class="card" href="https://www.readless.app/blog/omnivore-alternatives-2026">
+      <div class="row"><span class="num label">06</span><span class="tag label read">Read-later &amp; notes</span></div>
+      <h3>Omnivore alternatives 2026 (Readless)</h3>
+      <p>7 tested apps, free and paid. Shows which features people missed most when Omnivore closed.</p>
+      <span class="url label">readless.app/blog/omnivore-alternatives-2026</span>
+    </a>
+    <a class="card" href="https://play.google.com/store/apps/details?id=com.study.focustune.music">
+      <div class="row"><span class="num label">07</span><span class="tag label focus">Focus &amp; music</span></div>
+      <h3>FocusTune</h3>
+      <p>Pomodoro timer + lofi music + to-do list. The closest idea to Stack's planned Focus session.</p>
+      <span class="url label">play.google.com · com.study.focustune.music</span>
+    </a>
+    <a class="card" href="https://play.google.com/store/apps/details?id=com.focusstudy">
+      <div class="row"><span class="num label">08</span><span class="tag label focus">Focus &amp; music</span></div>
+      <h3>Focus Study</h3>
+      <p>Study timer with notes for every session, streaks and a tracker. Ideas for Stack's reading stats.</p>
+      <span class="url label">play.google.com · com.focusstudy</span>
+    </a>
+    <a class="card" href="https://elevenreader.io/">
+      <div class="row"><span class="num label">09</span><span class="tag label pdf">PDF &amp; reading</span></div>
+      <h3>ElevenReader</h3>
+      <p>Reads documents aloud with natural voices. The benchmark for Stack's planned Listen mode.</p>
+      <span class="url label">elevenreader.io</span>
+    </a>
+    <a class="card" href="https://www.androidauthority.com/best-pdf-readers-for-android-366394/">
+      <div class="row"><span class="num label">10</span><span class="tag label pdf">PDF &amp; reading</span></div>
+      <h3>Best PDF readers for Android</h3>
+      <p>Android Authority's round-up of PDF apps (Moon+ Reader and others) and the features they compete on.</p>
+      <span class="url label">androidauthority.com · best-pdf-readers-for-android</span>
+    </a>
+    <a class="card" href="https://zapier.com/blog/best-news-apps/">
+      <div class="row"><span class="num label">11</span><span class="tag label news">News cards</span></div>
+      <h3>The 5 best news apps in 2026 (Zapier)</h3>
+      <p>What a modern news app needs: personalisation, offline reading, audio briefings and AI summaries.</p>
+      <span class="url label">zapier.com/blog/best-news-apps</span>
+    </a>
+    <a class="card" href="https://daily.dev/blog/best-news-aggregator-apps-tested-compared/">
+      <div class="row"><span class="num label">12</span><span class="tag label news">News cards</span></div>
+      <h3>News aggregator apps compared (daily.dev)</h3>
+      <p>10 aggregators tested side by side: feeds, sources, filtering. Useful for Stack's topic and source choices.</p>
+      <span class="url label">daily.dev · best-news-aggregator-apps</span>
+    </a>
+  </div>
+  <div class="foot">
+    <span class="label">Stack · research sources · news · music · PDFs · notes</span>
+    <span class="label">01 / 02</span>
+  </div>
+</section>
+
+<!-- ================= PAGE 2 ================= -->
+<section class="page">
+  <div class="top">
+    <svg width="34" height="34" fill="#111"><use href="#logo"/></svg>
+    <span class="label">Stack · research pack · 28.09.2026</span>
+  </div>
+
+  <h2 class="display" style="margin-top:6mm">02 — BUILD GUIDES</h2>
+  <div class="h2sub label">Official docs for the next updates · 13 sources · tagged by roadmap phase</div>
+  <div class="key" style="margin:0 0 4mm">
+    <span class="chip label p1">Phase 1 · finish</span>
+    <span class="chip label p2">Phase 2 · unique features</span>
+    <span class="chip label p3">Phase 3 · smarter reading</span>
+    <span class="chip label all">Foundation (all phases)</span>
+  </div>
+
+  <div class="grid">
+    <a class="card" href="https://capacitorjs.com/docs">
+      <div class="row"><span class="num label">13</span><span class="tag label all">Foundation</span></div>
+      <h3>Capacitor docs</h3>
+      <p>How the web code becomes the Android app: plugins, native bridge, builds. Everything native in Stack starts here.</p>
+      <span class="url label">capacitorjs.com/docs</span>
+    </a>
+    <a class="card" href="https://capacitorjs.com/docs/apis/local-notifications">
+      <div class="row"><span class="num label">14</span><span class="tag label p3">Phase 3</span></div>
+      <h3>Capacitor Local Notifications</h3>
+      <p>Scheduling, permissions and exact vs inexact alarms. Powers the daily digest and future news alerts.</p>
+      <span class="url label">capacitorjs.com/docs/apis/local-notifications</span>
+    </a>
+    <a class="card" href="https://developer.spotify.com/documentation/web-api">
+      <div class="row"><span class="num label">15</span><span class="tag label p1">Phase 1</span></div>
+      <h3>Spotify Web API</h3>
+      <p>Login (PKCE), playlists, Liked Songs, player control. Includes development-mode user limits.</p>
+      <span class="url label">developer.spotify.com/documentation/web-api</span>
+    </a>
+    <a class="card" href="https://developer.spotify.com/documentation/android">
+      <div class="row"><span class="num label">16</span><span class="tag label p1">Phase 1</span></div>
+      <h3>Spotify Android SDK (App Remote)</h3>
+      <p>Controls the Spotify app directly from Stack, which removes the "no active device" problem.</p>
+      <span class="url label">developer.spotify.com/documentation/android</span>
+    </a>
+    <a class="card" href="https://developer.android.com/media/media3">
+      <div class="row"><span class="num label">17</span><span class="tag label p2">Phase 2</span></div>
+      <h3>Android Media3</h3>
+      <p>Background playback and the media notification (used for phone music now, and for Listen mode next).</p>
+      <span class="url label">developer.android.com/media/media3</span>
+    </a>
+    <a class="card" href="https://developer.android.com/training/data-storage/manage-all-files">
+      <div class="row"><span class="num label">18</span><span class="tag label all">Foundation</span></div>
+      <h3>Android: manage all files</h3>
+      <p>The "All files access" permission, and Google Play's rules for it. Needed before a Play Store release.</p>
+      <span class="url label">developer.android.com · manage-all-files</span>
+    </a>
+    <a class="card" href="https://developer.android.com/training/sharing/receive">
+      <div class="row"><span class="num label">19</span><span class="tag label p2">Phase 2</span></div>
+      <h3>Android: receive shared content</h3>
+      <p>How Stack appears in Android's share menu, the base of "Share to Stack" (read later from any app).</p>
+      <span class="url label">developer.android.com/training/sharing/receive</span>
+    </a>
+    <a class="card" href="https://developer.android.com/topic/libraries/architecture/workmanager">
+      <div class="row"><span class="num label">20</span><span class="tag label p3">Phase 3</span></div>
+      <h3>Android WorkManager</h3>
+      <p>Reliable background jobs: fetch news every few hours and send breaking-news alerts per topic.</p>
+      <span class="url label">developer.android.com · workmanager</span>
+    </a>
+    <a class="card" href="https://developer.android.com/develop/ui/views/launch/splash-screen">
+      <div class="row"><span class="num label">21</span><span class="tag label all">Foundation</span></div>
+      <h3>Android splash screens</h3>
+      <p>Animated icons, timing and dark mode for the launch screen (the logo drop animation follows this).</p>
+      <span class="url label">developer.android.com · splash-screen</span>
+    </a>
+    <a class="card" href="https://ai.google.dev/gemini-api/docs">
+      <div class="row"><span class="num label">22</span><span class="tag label p3">Phase 3</span></div>
+      <h3>Gemini API</h3>
+      <p>Free-tier AI for 60-word card summaries and "explain this" on selected text.</p>
+      <span class="url label">ai.google.dev/gemini-api/docs</span>
+    </a>
+    <a class="card" href="https://mozilla.github.io/pdf.js/">
+      <div class="row"><span class="num label">23</span><span class="tag label all">Foundation</span></div>
+      <h3>pdf.js</h3>
+      <p>Mozilla's PDF engine behind Stack's reader: rendering, the text layer for highlights, the legacy build for older phones.</p>
+      <span class="url label">mozilla.github.io/pdf.js</span>
+    </a>
+    <a class="card" href="https://github.com/mozilla/readability">
+      <div class="row"><span class="num label">24</span><span class="tag label all">Foundation</span></div>
+      <h3>Mozilla Readability</h3>
+      <p>Turns any news page into clean reader-mode text (the same library as Firefox Reader View).</p>
+      <span class="url label">github.com/mozilla/readability</span>
+    </a>
+    <a class="card" href="https://nextjs.org/docs/app/guides/static-exports">
+      <div class="row"><span class="num label">25</span><span class="tag label all">Foundation</span></div>
+      <h3>Next.js static exports</h3>
+      <p>How the same Next.js code is exported as a static bundle for the APK, and what that rules out (no server routes).</p>
+      <span class="url label">nextjs.org/docs/app/guides/static-exports</span>
+    </a>
+      <div class="inked">
+      <span class="label">Where to start</span>
+      <ol>
+        <li><b>Readwise Reader</b> (03) for how reading, highlights and notes fit together.</li>
+        <li><b>Inshorts</b> (01) for news cards that people use every day.</li>
+        <li><b>Spotify Android SDK</b> (16), because it unlocks Phase 1: Spotify playing inside Stack.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="label">Stack · research sources · news · music · PDFs · notes</span>
+    <span class="label">02 / 02</span>
+  </div>
+</section>
+
+</body>
+</html>

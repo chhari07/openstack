@@ -1,26 +1,356 @@
 @import "tailwindcss";
 
+@theme {
+  --color-paper: #f7f5f0;
+  --color-paper-2: #eeece8;
+  --color-desk: #e4e1da;
+  --color-ink: #111111;
+  --color-on-ink: #ffffff; /* text on bg-ink */
+  --color-card: #ffffff;
+  --color-prose: #22211f;
+  --color-soft: #1d1d1b;
+  --color-muted: #6b6862;
+  --color-line: rgb(17 17 17 / 0.1);
+  --color-rule: #e2dfd8;
+
+  --color-news: #0a8a3a;
+  --color-news-text: #087a33;
+  --color-news-tint: #d6eedc;
+  --color-news-deep: #065c27;
+  --color-music: #d62f26;
+  --color-music-text: #c42a21;
+  --color-music-tint: #f8d8d5;
+  --color-music-deep: #a3221b;
+  --color-pdf: #f2a246;
+  --color-pdf-tint: #fce3c4;
+  --color-pdf-deep: #8a4b00;
+  --color-blue: #4e9ee6;
+  --color-blue-tint: #d7e8f8;
+  --color-blue-deep: #1f5796;
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-serif: var(--font-bodoni), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  /* Just above the bottom tab bar (its height grows with the phone's gesture bar) */
+  --above-tabs: calc(81px + max(env(safe-area-inset-bottom), 12px));
+  --rail: 0px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* Tablets: the bottom tab bar becomes a left rail (NavRail). */
+@media (min-width: 768px) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --rail: 96px;
+    --above-tabs: calc(20px + env(safe-area-inset-bottom));
   }
 }
 
+/* Dark theme: Settings → Appearance sets data-theme; "system" follows the phone. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-paper: #141413;
+  --color-paper-2: #0f0f0e;
+  --color-desk: #050505;
+  --color-ink: #f1efe9;
+  --color-on-ink: #141413;
+  --color-card: #1f1f1d;
+  --color-soft: #262624;
+  --color-muted: #a39f97;
+  --color-line: rgb(241 239 233 / 0.12);
+  --color-rule: #34332f;
+  --color-prose: #e4e1da;
+  --color-news-text: #4fc07a;
+  --color-news-tint: #173d25;
+  --color-news-deep: #9fe0b4;
+  --color-music-text: #ff6b61;
+  --color-music-tint: #4a1d1a;
+  --color-music-deep: #f4a7a1;
+  --color-pdf-tint: #4a3214;
+  --color-pdf-deep: #f6c88a;
+  --color-blue-tint: #183454;
+  --color-blue-deep: #9cc8f2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --color-paper: #141413;
+  --color-paper-2: #0f0f0e;
+  --color-desk: #050505;
+  --color-ink: #f1efe9;
+  --color-on-ink: #141413;
+  --color-card: #1f1f1d;
+  --color-soft: #262624;
+  --color-muted: #a39f97;
+  --color-line: rgb(241 239 233 / 0.12);
+  --color-rule: #34332f;
+  --color-prose: #e4e1da;
+  --color-news-text: #4fc07a;
+  --color-news-tint: #173d25;
+  --color-news-deep: #9fe0b4;
+  --color-music-text: #ff6b61;
+  --color-music-tint: #4a1d1a;
+  --color-music-deep: #f4a7a1;
+  --color-pdf-tint: #4a3214;
+  --color-pdf-deep: #f6c88a;
+  --color-blue-tint: #183454;
+  --color-blue-deep: #9cc8f2;
+  }
+}
+
+html {
+  background: var(--color-desk);
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-desk);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Small uppercase mono labels, the Saviom-style "metadata" voice */
+.label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Song and track names: plain sans, normal case, so long titles stay readable */
+.song {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+/* The huge condensed wordmarks: STACK, FOCUS, TECH TODAY */
+.display {
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+}
+
+/* Smooth scrolling: glide to in-page jumps, and no Android overscroll
+   stretch (it drags the fixed tab bar and mini player with the page). */
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Horizontal card rows: momentum swipe, each card snaps to the left edge,
+   and a sideways swipe never scrolls the page or triggers "back". */
+.rail {
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 20px;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar {
+  display: none;
+}
+.rail > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+  .rail {
+    scroll-padding-inline: 40px;
+  }
+}
+
+/* A full screen below the status bar (the layout already pads for it), for
+   pages with a button pinned to the bottom. */
+.screen {
+  min-height: calc(100dvh - env(safe-area-inset-top));
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Saved highlights, drawn with the CSS Custom Highlight API */
+::highlight(stack-article) {
+  background-color: var(--color-news-tint);
+  color: inherit;
+}
+::highlight(stack-pdf) {
+  background-color: rgb(242 162 70 / 0.38);
+}
+
+/* Readable article body */
+.prose-stack {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--color-prose);
+  overflow-wrap: anywhere;
+}
+.prose-stack > * + * {
+  margin-top: 1em;
+}
+.prose-stack h2,
+.prose-stack h3,
+.prose-stack h4 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 1.6em;
+  color: var(--color-ink);
+}
+.prose-stack h2 {
+  font-size: 22px;
+}
+.prose-stack h3 {
+  font-size: 19px;
+}
+.prose-stack a {
+  color: var(--color-news-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-stack img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.prose-stack blockquote {
+  border-inline-start: 3px solid var(--color-news);
+  padding-inline-start: 14px;
+  color: var(--color-muted);
+  font-style: italic;
+}
+.prose-stack ul {
+  list-style: disc;
+  padding-inline-start: 1.3em;
+}
+.prose-stack ol {
+  list-style: decimal;
+  padding-inline-start: 1.3em;
+}
+.prose-stack pre {
+  background: var(--color-soft);
+  color: #f7f5f0;
+  padding: 14px;
+  border-radius: 12px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.prose-stack code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+.prose-stack :not(pre) > code {
+  background: var(--color-rule);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.prose-stack table {
+  display: block;
+  overflow-x: auto;
+  font-size: 14px;
+  border-collapse: collapse;
+}
+.prose-stack td,
+.prose-stack th {
+  border: 1px solid var(--color-rule);
+  padding: 6px 8px;
+}
+
+/* pdf.js text layer: invisible text on top of the page canvas so it can be selected */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-align: initial;
+  transform-origin: 0 0;
+  forced-color-adjust: none;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+.textLayer .markedContent {
+  display: contents;
+}
+.textLayer ::selection {
+  background: rgb(242 162 70 / 0.45);
+}
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+
+/* Logo animation: each block drops in and settles, base first */
+@keyframes logo-drop {
+  0% {
+    transform: translateY(-140px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.logo-drop > g {
+  animation: logo-drop 520ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+/* Flash cards lift into place as they snap into view */
+@keyframes card-in {
+  from {
+    transform: scale(0.92) translateY(24px);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@supports (animation-timeline: view()) {
+  .card-snap {
+    animation: card-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 35%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-drop > g,
+  .card-snap {
+    animation: none;
+  }
 }
