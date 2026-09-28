@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import {
-  addGoogleAccount,
   explainAuth,
-  NoGoogleAccount,
+  GoogleNotReady,
   resetPassword,
   SignInCancelled,
   signInWithEmail,
@@ -12,11 +11,13 @@ import {
   signUpWithEmail,
 } from "@/lib/cloud";
 import { useAccount } from "./account-provider";
+import { useToast } from "./toast";
 
 // Sign in or sign up with Google (one button does both). Email + password is
 // there for people without a Google account.
 export function SignInPanel() {
   const { configured } = useAccount();
+  const toast = useToast();
   const [withEmail, setWithEmail] = useState(false);
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ export function SignInPanel() {
   const [busy, setBusy] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [noAccount, setNoAccount] = useState(false);
+  const [notReady, setNotReady] = useState(false);
 
   if (!configured) {
     return (
@@ -35,15 +36,17 @@ export function SignInPanel() {
     );
   }
 
-  const run = async (which: "google" | "email", fn: () => Promise<void>) => {
+  // `done`: what to say when it worked (nothing for "forgot password", which shows its own notice).
+  const run = async (which: "google" | "email", fn: () => Promise<void>, done: string | null = "You’re signed in") => {
     setBusy(which);
     setError(null);
     setNotice(null);
-    setNoAccount(false);
+    setNotReady(false);
     try {
       await fn();
+      if (done) toast({ text: done });
     } catch (e) {
-      if (e instanceof NoGoogleAccount) setNoAccount(true);
+      if (e instanceof GoogleNotReady) setNotReady(true);
       else if (!(e instanceof SignInCancelled)) setError(explainAuth(e));
     } finally {
       setBusy(null);
@@ -124,10 +127,14 @@ export function SignInPanel() {
               type="button"
               disabled={!validEmail || !!busy}
               onClick={() =>
-                run("email", async () => {
-                  await resetPassword(email);
-                  setNotice(`We sent a link to reset your password to ${email.trim()}.`);
-                })
+                run(
+                  "email",
+                  async () => {
+                    await resetPassword(email);
+                    setNotice(`We sent a link to reset your password to ${email.trim()}.`);
+                  },
+                  null,
+                )
               }
               className="label h-10 text-[10px] text-muted underline disabled:opacity-40"
             >
@@ -137,17 +144,26 @@ export function SignInPanel() {
         </form>
       )}
 
-      {noAccount && (
+      {notReady && (
         <div role="alert" className="flex flex-col gap-2.5 rounded-2xl bg-card p-4">
-          <p className="text-[14px] leading-relaxed">
-            This phone doesn’t have a Google account yet. Add yours in Android, then come back and tap
-            <b> Continue with Google</b> again.
+          <p className="text-[14px] font-semibold">Google sign-in isn’t ready for this app yet</p>
+          <p className="text-[13px] leading-relaxed text-muted">
+            Google doesn’t recognise this version of Stack. Until that’s fixed you can create an account with your
+            email instead; your data moves over when you add Google later.
+          </p>
+          <p className="text-[12px] leading-relaxed text-muted">
+            For the developer: add the APK’s SHA-1 in Firebase → Project settings → Android app (com.chhari.stack) →
+            Add fingerprint. See firebase/README.md.
           </p>
           <button
-            onClick={() => addGoogleAccount().catch(() => setError("Open Settings → Passwords & accounts → Add account."))}
-            className="flex h-12 items-center justify-center gap-2 rounded-full border border-ink/20 text-[15px] font-semibold"
+            onClick={() => {
+              setNotReady(false);
+              setWithEmail(true);
+              setMode("up");
+            }}
+            className="h-12 rounded-full border border-ink/20 text-[15px] font-semibold"
           >
-            <GoogleMark /> Add a Google account
+            Use email instead
           </button>
         </div>
       )}

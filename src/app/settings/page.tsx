@@ -8,7 +8,7 @@ import { useAccount } from "@/components/account-provider";
 import { getProfile } from "@/lib/profile";
 import { useStore } from "@/lib/use-store";
 import { useSpotify } from "@/components/spotify-provider";
-import { SpotifySetup } from "@/components/spotify-setup";
+import { SpotifyLoginNote, SpotifySetup, SpotifyTroubleshooting } from "@/components/spotify-setup";
 import { useToast } from "@/components/toast";
 import { useIsNative } from "@/lib/platform";
 import { PhoneFiles, useAllFiles } from "@/lib/phone-files";
@@ -343,7 +343,7 @@ export default function Settings() {
           ) : (
             <>
               <p className="text-[14px] text-muted">
-                Log in to see your playlists and control playback.
+                Your Spotify app is set up. Log in to see your playlists and control playback.
               </p>
               <button
                 onClick={login}
@@ -354,6 +354,8 @@ export default function Settings() {
               {sp.error && (
                 <p className="text-[13px] text-music-deep">{sp.error}</p>
               )}
+              <SpotifyLoginNote />
+              <SpotifyTroubleshooting />
             </>
           )}
           {sp.configured && (

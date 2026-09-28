@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSpotify } from "./spotify-provider";
-import { SpotifySetup } from "./spotify-setup";
+import { SpotifyLoginNote, SpotifySetup, SpotifyTroubleshooting } from "./spotify-setup";
 import { useToast } from "./toast";
 import { NoteIcon, RepeatIcon } from "./icons";
 import { ModeButton } from "./local-view";
@@ -150,6 +150,8 @@ export function SpotifyView() {
             {sp.error && (
               <p className="text-[13px] text-music-deep">{sp.error}</p>
             )}
+            <SpotifyLoginNote />
+            <SpotifyTroubleshooting />
             <Link
               href="/settings"
               className="label text-[10px] text-muted underline"

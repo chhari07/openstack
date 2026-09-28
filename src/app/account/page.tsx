@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/components/toast";
 import { useAccount } from "@/components/account-provider";
 import { ProfileEditor } from "@/components/profile-editor";
 import { SignInPanel } from "@/components/sign-in";
@@ -14,7 +15,19 @@ export default function Account() {
   const router = useRouter();
   const { configured, ready, user, sync, syncNow, signOut } = useAccount();
   const [leaving, setLeaving] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"keep" | "remove" | null>(null);
+  const [unsynced, setUnsynced] = useState(0); // changes that would be lost
+  const toast = useToast();
+
+  const leave = async (remove: boolean, force = false) => {
+    setBusy(remove ? "remove" : "keep");
+    const result = await signOut(remove, force);
+    setBusy(null);
+    if (remove && !force && result.unsynced > 0) return setUnsynced(result.unsynced);
+    setLeaving(false);
+    setUnsynced(0);
+    toast({ text: remove ? "Signed out and removed from this phone" : "Signed out. Your things are still on this phone." });
+  };
   const back = () => (canGoBack() ? router.back() : router.push("/"));
 
   const status =
@@ -88,34 +101,62 @@ export default function Account() {
         )}
       </div>
 
-      <Sheet open={leaving} onClose={() => !busy && setLeaving(false)} title="Sign out">
-        <p className="text-[15px] leading-relaxed">
-          Your things stay safe in your account. Do you want to keep a copy on this phone?
-        </p>
-        <button
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            await signOut(false);
-            setBusy(false);
-            setLeaving(false);
-          }}
-          className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink disabled:opacity-50"
-        >
-          Sign out, keep on this phone
-        </button>
-        <button
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            await signOut(true);
-            setBusy(false);
-            setLeaving(false);
-          }}
-          className="h-12 rounded-full border border-music/40 text-[15px] font-semibold text-music-text disabled:opacity-50"
-        >
-          Sign out and remove from this phone
-        </button>
+      <Sheet
+        open={leaving}
+        onClose={() => {
+          if (busy) return;
+          setLeaving(false);
+          setUnsynced(0);
+        }}
+        title={unsynced ? "Some changes aren’t synced" : "Sign out"}
+      >
+        {unsynced > 0 ? (
+          <>
+            <p className="text-[15px] leading-relaxed">
+              {unsynced} change{unsynced > 1 ? "s haven’t" : " hasn’t"} reached your account yet
+              {sync.state === "error" ? " because sync isn’t working (see Account & sync)" : ""}. If you remove
+              Stack’s data from this phone now, {unsynced > 1 ? "they" : "it"} will be lost.
+            </p>
+            <button
+              disabled={!!busy}
+              onClick={() => leave(false)}
+              className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink disabled:opacity-50"
+            >
+              {busy === "keep" ? "Signing out…" : "Sign out, keep everything on this phone"}
+            </button>
+            <button
+              disabled={!!busy}
+              onClick={() => leave(true, true)}
+              className="h-12 rounded-full border border-music/40 text-[15px] font-semibold text-music-text disabled:opacity-50"
+            >
+              {busy === "remove" ? "Removing…" : "Remove anyway"}
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-[15px] leading-relaxed">
+              Your notes, PDFs and playlists stay safe in your account. Do you also want to keep a copy on this
+              phone?
+            </p>
+            <button
+              disabled={!!busy}
+              onClick={() => leave(false)}
+              className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink disabled:opacity-50"
+            >
+              {busy === "keep" ? "Signing out…" : "Sign out, keep on this phone"}
+            </button>
+            <p className="-mt-2 text-center text-[12px] text-muted">
+              If someone else signs in here later, this copy is added to their account.
+            </p>
+            <button
+              disabled={!!busy}
+              onClick={() => leave(true)}
+              className="h-12 rounded-full border border-music/40 text-[15px] font-semibold text-music-text disabled:opacity-50"
+            >
+              {busy === "remove" ? "Checking and removing…" : "Sign out and remove from this phone"}
+            </button>
+          </>
+        )}
       </Sheet>
     </main>
   );

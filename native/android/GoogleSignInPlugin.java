@@ -1,8 +1,6 @@
 package com.chhari.stack;
 
-import android.content.Intent;
 import android.os.CancellationSignal;
-import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.credentials.Credential;
@@ -19,14 +17,15 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption;
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 
 /**
- * "Continue with Google" with Android's own account picker (Credential
- * Manager). Returns a Google ID token, which the web app hands to Supabase
- * (signInWithIdToken). Signing in with a new Google account creates the Stack
- * account, so the same button is both sign-in and sign-up.
+ * "Continue with Google" through Android's Credential Manager, using the
+ * "Sign in with Google" button flow: Google's own dialog, which lists the
+ * phone's accounts and offers to add one if there are none. Returns a Google
+ * ID token that the web app hands to Firebase. A new Google account gets a new
+ * Stack account, so the same button is both sign-in and sign-up.
  */
 @CapacitorPlugin(name = "GoogleSignIn")
 public class GoogleSignInPlugin extends Plugin {
@@ -39,10 +38,7 @@ public class GoogleSignInPlugin extends Plugin {
             call.reject("Google sign-in isn't set up in this build", "NOT_CONFIGURED");
             return;
         }
-        GetGoogleIdOption.Builder option = new GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false) // any Google account on the phone
-                .setServerClientId(clientId)
-                .setAutoSelectEnabled(false);
+        GetSignInWithGoogleOption.Builder option = new GetSignInWithGoogleOption.Builder(clientId);
         if (nonce != null) option.setNonce(nonce);
         GetCredentialRequest request = new GetCredentialRequest.Builder()
                 .addCredentialOption(option.build())
@@ -80,25 +76,14 @@ public class GoogleSignInPlugin extends Plugin {
                         if (e instanceof GetCredentialCancellationException) {
                             call.reject("Sign-in was cancelled", "CANCELLED");
                         } else if (e instanceof NoCredentialException) {
-                            call.reject("No Google account on this phone yet.", "NO_ACCOUNT");
+                            // With the button flow Google handles "no account" itself, so this
+                            // means Google doesn't recognise the app (package + SHA-1 not
+                            // registered for this project), e.g. Google's error [28433].
+                            call.reject("Google doesn't recognise this app yet: " + e.getMessage(), "NOT_REGISTERED");
                         } else {
                             call.reject(e.getMessage() == null ? "Google sign-in failed" : e.getMessage(), "FAILED");
                         }
                     }
                 });
-    }
-
-    /** Opens Android's "Add account" screen for a Google account. */
-    @PluginMethod
-    public void addAccount(PluginCall call) {
-        Intent intent = new Intent(Settings.ACTION_ADD_ACCOUNT)
-                .putExtra(Settings.EXTRA_ACCOUNT_TYPES, new String[] { "com.google" })
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            getContext().startActivity(intent);
-            call.resolve();
-        } catch (Exception e) {
-            call.reject("Couldn't open Android's accounts screen", "NO_SETTINGS");
-        }
     }
 }

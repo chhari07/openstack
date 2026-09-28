@@ -5,7 +5,7 @@ import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { cloud, cloudConfigured, signOutCloud } from "@/lib/cloud";
 import { getProfile, saveProfile } from "@/lib/profile";
 import { squareJpeg } from "@/lib/image";
-import { onChange } from "@/lib/sync-state";
+import { onChange, pendingChanges } from "@/lib/sync-state";
 import {
   clearLocalData,
   syncNow,
@@ -47,7 +47,9 @@ type Ctx = {
   user: User | null;
   sync: SyncStatus;
   syncNow: () => Promise<void>;
-  signOut: (removeFromDevice: boolean) => Promise<void>;
+  // Resolves to the number of changes that couldn't be uploaded; with
+  // removeFromDevice (and not force) nothing is signed out if that isn't 0.
+  signOut: (removeFromDevice: boolean, force?: boolean) => Promise<{ unsynced: number }>;
 };
 
 const AccountCtx = createContext<Ctx | null>(null);
@@ -118,9 +120,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uid]);
 
-  const signOut = useCallback(async (removeFromDevice: boolean) => {
-    // Upload anything not synced yet, so signing out never loses it.
+  const signOut = useCallback(async (removeFromDevice: boolean, force = false) => {
+    // Upload anything not synced yet first. Removing data from the phone that
+    // never reached the account would lose it, so that needs `force`.
     await syncNow().catch(() => {});
+    const unsynced = Object.keys(await pendingChanges()).length;
+    if (removeFromDevice && unsynced > 0 && !force) return { unsynced };
     await signOutCloud();
     if (removeFromDevice) {
       await clearLocalData();
@@ -130,6 +135,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         /* ignore */
       }
     }
+    return { unsynced };
   }, []);
 
   return (

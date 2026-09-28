@@ -128,8 +128,20 @@ async function syncOnce() {
     await download(uid);
     setStatus({ state: "idle", lastSynced: Date.now() });
   } catch (e) {
-    setStatus({ ...status, state: "error", error: (e as Error).message ?? String(e) });
+    const code = (e as { code?: string }).code ?? "";
+    if (code === "unavailable") return setStatus({ ...status, state: "offline" });
+    setStatus({ ...status, state: "error", error: explainSync(e) });
   }
+}
+
+// Plain words for sync failures people can act on.
+function explainSync(e: unknown) {
+  const code = (e as { code?: string }).code ?? "";
+  if (code === "permission-denied")
+    return "the account’s database isn’t set up to accept Stack yet (Firestore rules not published). Your data is safe on this phone.";
+  if (code === "resource-exhausted") return "the database is over its free daily limit. It will sync again later.";
+  if (code === "unauthenticated") return "your sign-in expired. Sign out and sign in again.";
+  return (e as Error).message ?? String(e);
 }
 
 async function upload(uid: string) {

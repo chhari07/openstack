@@ -78,11 +78,9 @@ function need() {
 
 // Thrown when the person closes the Google picker or pop-up: nothing to show.
 export class SignInCancelled extends Error {}
-// The phone has no Google account to offer: the sign-in panel offers to add one.
-export class NoGoogleAccount extends Error {}
-
-// Android's own "Add a Google account" screen.
-export const addGoogleAccount = () => GoogleSignIn.addAccount();
+// Google doesn't recognise this build of the app yet (its SHA-1 isn't
+// registered in the Firebase project): the sign-in panel explains.
+export class GoogleNotReady extends Error {}
 
 const CODES: Record<string, string> = {
   "auth/invalid-credential": "Wrong email or password.",
@@ -112,7 +110,6 @@ const cancelled = (e: unknown) =>
 
 type GoogleSignInPlugin = {
   signIn(opts: { serverClientId: string }): Promise<{ idToken: string; email?: string; name?: string }>;
-  addAccount(): Promise<void>;
 };
 const GoogleSignIn = registerPlugin<GoogleSignInPlugin>("GoogleSignIn");
 
@@ -125,7 +122,7 @@ export async function signInWithGoogle() {
       // Android: the phone's own account picker gives a Google ID token.
       if (!GOOGLE_WEB_CLIENT_ID) throw new Error("Google sign-in isn’t set up in this build of Stack.");
       const { idToken } = await GoogleSignIn.signIn({ serverClientId: GOOGLE_WEB_CLIENT_ID }).catch((e) => {
-        if ((e as { code?: string }).code === "NO_ACCOUNT") throw new NoGoogleAccount(e.message);
+        if ((e as { code?: string }).code === "NOT_REGISTERED") throw new GoogleNotReady(e.message);
         throw e;
       });
       await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
