@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { fileSize, PhoneFiles, readPhoneFile, useAllFiles, type PhoneFile } from "@/lib/phone-files";
-import { useIsNative } from "@/lib/platform";
+import { PLAY_BUILD, useIsNative } from "@/lib/platform";
 import { PlusIcon, SearchIcon } from "./icons";
 
 // "On this phone": PDFs that aren't in the Library yet, from the whole phone
@@ -46,6 +46,24 @@ export function PhoneShelf({
   }, [native, scan]);
 
   if (!native || all.granted === null) return null;
+
+  if (!all.granted && folder === null && PLAY_BUILD) {
+    return (
+      <section className="mt-5 flex flex-col gap-3 rounded-2xl bg-card p-4">
+        <h2 className="text-[16px] font-semibold">PDFs on your phone</h2>
+        <p className="text-[14px] leading-relaxed text-muted">
+          Pick a folder, like <b className="text-ink">Download</b> or <b className="text-ink">Documents</b>, and Stack
+          will list the PDFs in it. You can also share any PDF to Stack from another app.
+        </p>
+        <button
+          onClick={() => PhoneFiles.pickFolder().then(scan).catch(() => {})}
+          className="h-11 rounded-full bg-ink text-[14px] font-semibold text-on-ink"
+        >
+          Pick a folder
+        </button>
+      </section>
+    );
+  }
 
   if (!all.granted && folder === null) {
     return (

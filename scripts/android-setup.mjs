@@ -192,6 +192,25 @@ for (const p of permissions) {
   const name = p.match(/android:name="([^"]+)"/)[1];
   if (!manifest.includes(`"${name}"`)) manifest = manifest.replace("</manifest>", `    ${p}\n</manifest>`);
 }
+// Stack AI calls the Next.js server. In development that's the laptop's dev
+// server over plain http (10.0.2.2 is the laptop from the emulator); every
+// other address still needs https.
+mkdirSync("android/app/src/main/res/xml", { recursive: true });
+writeFileSync(
+  "android/app/src/main/res/xml/network_security_config.xml",
+  `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>
+`,
+);
+if (!manifest.includes("android:networkSecurityConfig")) {
+  manifest = manifest.replace("<application", '<application\n        android:networkSecurityConfig="@xml/network_security_config"');
+}
 writeFileSync(manifestPath, manifest);
 
 if (!existsSync(`${res}/mipmap-xxxhdpi/ic_launcher.png`)) throw new Error("icons not copied");

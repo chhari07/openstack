@@ -7,7 +7,9 @@ import { isNative } from "./platform";
 
 // The Client ID can be built in (.env.local) or pasted in Settings at runtime,
 // so the APK doesn't need a rebuild. It isn't a secret (PKCE has no secret).
-const BUILT_IN_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID ?? "";
+// The Play build ships without a Client ID: Spotify only lets 25 people use a
+// small app, so there it's "bring your own" (Settings → Spotify).
+const BUILT_IN_ID = process.env.NEXT_PUBLIC_STACK_STORE === "play" ? "" : (process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID ?? "");
 const ID_KEY = "stack.spotify.clientId";
 const ID_EVENT = "stack-spotify-config";
 

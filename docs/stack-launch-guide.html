@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Launch Stack: step by step</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 46pt; }
+  h2 { margin: 6mm 0 1.5mm; font-size: 22pt; }
+  h3 { margin: 0; font-size: 13pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 4mm; font-size: 10pt; line-height: 1.5; max-width: 176mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; font-size: 8.4pt; line-height: 1.45; }
+  .card ul { margin: 1.6mm 0 0; padding-left: 3.6mm; }
+  .card li { margin-bottom: .6mm; }
+  .tag { display: inline-block; font-size: 6.3pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+
+  .stat { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm 3mm; }
+  .stat .n { font-size: 25pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.03em; line-height: .95; }
+  .stat .d { font-size: 7.6pt; line-height: 1.35; margin-top: 1.2mm; }
+  .stat .s { font-size: 6.2pt; color: var(--muted); margin-top: 1.4mm; }
+  .g { color: var(--news); } .r { color: var(--music); } .o { color: var(--pdf-deep); } .bl { color: var(--blue-deep); } .v { color: var(--violet); }
+
+  .band { border-radius: 4mm; padding: 4mm 5mm; margin-bottom: 3mm; font-size: 8.8pt; line-height: 1.48; }
+  .band .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.4mm; }
+  .band ul { list-style: none; margin: 1.6mm 0 0; padding: 0; }
+  .band li { display: flex; gap: 2.4mm; margin-bottom: 1.1mm; }
+  .band li::before { content: ""; flex-shrink: 0; width: 3mm; height: 3mm; margin-top: .7mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .b1 { background: var(--yellow-tint); color: #3a2a00; }
+  .b2 { background: var(--pdf-tint); color: #3d2200; }
+  .b3 { background: var(--blue-tint); color: #0e2a4a; }
+  .b4 { background: var(--violet-tint); color: #2a1a66; }
+  .b5 { background: var(--news-tint); color: #06321a; }
+  .b6 { background: var(--music-tint); color: #4a1210; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4.2mm 5mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+
+  .verdict { display: grid; grid-template-columns: 30mm 1fr; gap: 0; background: var(--card); border-radius: 3.5mm; margin-bottom: 2.4mm; overflow: hidden; }
+  .verdict .v1 { padding: 3.4mm; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1mm; }
+  .verdict .v1 .big { font-size: 17pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; line-height: .9; }
+  .verdict .v2 { padding: 3.4mm 4mm; font-size: 8.8pt; line-height: 1.48; border-left: 1px solid var(--rule); }
+
+  .meter { display: inline-flex; gap: .7mm; vertical-align: middle; }
+  .meter i { display: block; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--rule); }
+  .meter.m1 i:nth-child(-n+1), .meter.m2 i:nth-child(-n+2), .meter.m3 i:nth-child(-n+3), .meter.m4 i:nth-child(-n+4), .meter.m5 i:nth-child(-n+5) { background: var(--ink); }
+
+  .quad { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.6mm; height: 118mm; position: relative; }
+  .quad > div { border-radius: 4mm; padding: 3.6mm 4mm; font-size: 8.4pt; line-height: 1.4; }
+  .chip { display: inline-block; background: var(--card); border-radius: 2.4mm; padding: 1.2mm 2.4mm; margin: 0 1.2mm 1.4mm 0; font-size: 8pt; font-weight: 600; }
+  .chip small { font-weight: 400; color: var(--muted); }
+
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .src { font-size: 7.2pt; line-height: 1.45; columns: 2; column-gap: 7mm; }
+  .src p { break-inside: avoid; margin-bottom: 1.4mm; }
+  .src a { color: var(--blue-deep); text-decoration: none; word-break: break-all; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+</style>
+<style>
+  .step { display:grid; grid-template-columns: 9mm 1fr; gap: 2.4mm; background: var(--card); border-radius: 3.2mm; padding: 2.6mm 3.4mm; margin-bottom: 1.8mm; font-size: 8.5pt; line-height: 1.42; }
+  .step .num { width: 7mm; height: 7mm; border-radius: 2mm; background: var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-stretch:75%; font-size: 10pt; }
+  .step b.t { display:block; font-size: 9.2pt; margin-bottom: .4mm; }
+  .step code, .cmd code { font-family: "IBM Plex Mono", monospace; font-size: 7.4pt; background: var(--paper-2); padding: .2mm 1mm; border-radius: 1mm; }
+  .cmd { background: #1b1b1a; color: #e9e6df; border-radius: 3mm; padding: 3mm 4mm; font-family: "IBM Plex Mono", monospace; font-size: 7.3pt; line-height: 1.55; margin: 1.6mm 0 2.4mm; white-space: pre-wrap; }
+  .cmd .c { color: #8f8b83; }
+  .who { float:right; font-size: 6.2pt; }
+  .ok { color: var(--news-deep); font-weight: 700; } .no { color: var(--music-deep); font-weight: 700; }
+  .stage { display:flex; gap: 3mm; align-items: baseline; }
+  .stage .sn { font-size: 30pt; font-weight: 800; font-stretch: 75%; line-height: .8; }
+  .tick { list-style:none; padding:0; margin: 0; columns: 2; column-gap: 6mm; font-size: 8.2pt; line-height: 1.4; }
+  .tick li { break-inside: avoid; display:flex; gap: 2mm; margin-bottom: 1.3mm; }
+  .tick li::before { content:""; flex-shrink:0; width: 3.2mm; height: 3.2mm; margin-top: .5mm; border: 1.2px solid #111; border-radius: 1mm; }
+  .tick h4 { column-span: all; margin: 2.4mm 0 1.4mm; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: 7pt; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<!-- 01 cover -->
+<section class="page cover">
+  <div class="top"><svg width="34" height="34" fill="#fff"><use href="#logo"/></svg><span class="label">StackForge Labs · launch guide · 29.09.2026</span></div>
+  <div style="position:absolute; left:13mm; right:13mm; top:58mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">Stack · by StackForge Labs</div>
+    <div class="display" style="font-size:88pt">LAUNCH<br>STACK.</div>
+    <p class="serif" style="font-size:21pt; margin-top:8mm; line-height:1.2">From the laptop to the Play Store,<br>one step at a time.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(7,1fr); gap:2mm;">
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">1</div><div style="font-size:8pt; margin-top:1.5mm">Accounts</div></div>
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">2</div><div style="font-size:8pt; margin-top:1.5mm">Fix the app</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">3</div><div style="font-size:8pt; margin-top:1.5mm">Server live</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">4</div><div style="font-size:8pt; margin-top:1.5mm">Release build</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">5</div><div style="font-size:8pt; margin-top:1.5mm">Play Console</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">6</div><div style="font-size:8pt; margin-top:1.5mm">12 testers × 14 days</div></div>
+    <div style="background:var(--blue); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:6.5pt">7</div><div style="font-size:8pt; margin-top:1.5mm">Launch &amp; grow</div></div>
+  </div>
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 12</span></div>
+</section>
+
+<!-- 02 overview -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">00 · Where you are today</span></div>
+  <h1 class="display">THE ROUTE</h1>
+  <p class="intro">About <b>6 weeks</b> from today to a public Play Store launch. The slowest part is the 14-day closed test, so everything is ordered to <b>start that clock as early as possible</b>.</p>
+  <table>
+    <tr><th style="width:18mm">Stage</th><th style="width:44mm">What</th><th>Done when</th><th style="width:26mm">When</th></tr>
+    <tr><td>1</td><td>Accounts &amp; name</td><td>Play Console, domain, Anthropic key and Vercel ready</td><td>Week 1</td></tr>
+    <tr><td>2</td><td>Make the app store-ready</td><td>No blocked permissions, Spotify hidden, AI on Haiku</td><td>Week 1</td></tr>
+    <tr><td>3</td><td>Web + server live</td><td>stackforge.in serves the app, AI, privacy and delete pages</td><td>Week 1–2</td></tr>
+    <tr><td>4</td><td>Signed release build</td><td>An <code>.aab</code> signed with your own upload key</td><td>Week 2</td></tr>
+    <tr><td>5</td><td>Play Console setup</td><td>Store listing and all "App content" forms green</td><td>Week 2</td></tr>
+    <tr><td>6</td><td>Closed test</td><td>12+ testers opted in for 14 days in a row; production approved</td><td>Weeks 2–5</td></tr>
+    <tr><td>7</td><td>Launch &amp; first 30 days</td><td>Staged rollout to 100%; weekly numbers</td><td>Week 6 →</td></tr>
+  </table>
+
+  <h2 class="display">HEALTH CHECK OF YOUR REPO</h2>
+  <div class="sub label">Checked in ~/Desktop/projects/stack on 29.09.2026</div>
+  <table>
+    <tr><th style="width:60mm">Check</th><th style="width:22mm">Status</th><th>Note</th></tr>
+    <tr><td>Target SDK</td><td class="ok">OK · 36</td><td>Meets Play's current target level (Android 16)</td></tr>
+    <tr><td>Secrets in git history</td><td class="ok">OK · none</td><td><code>.env*</code> and <code>google-services.json</code> are gitignored; no API keys in any commit</td></tr>
+    <tr><td>GitHub remote</td><td class="ok">OK</td><td><code>github.com/chhari07/stackforge</code> already matches the new name</td></tr>
+    <tr><td>Release signing</td><td class="no">Missing</td><td><code>build-apk.sh</code> only makes a debug APK. Play needs a signed <code>.aab</code> (Stage 4)</td></tr>
+    <tr><td>All files access</td><td class="no">Blocker</td><td><code>MANAGE_EXTERNAL_STORAGE</code> is in the manifest. Remove it from the Play build (Stage 2)</td></tr>
+    <tr><td>AI server URL</td><td class="no">Emulator only</td><td><code>NEXT_PUBLIC_AI_URL</code> is <code>http://10.0.2.2:3000</code>. Needs your https domain</td></tr>
+    <tr><td>Version</td><td>1 / "1.0"</td><td>Bump <code>versionCode</code> on every upload</td></tr>
+    <tr><td>Uncommitted changes</td><td>5 files</td><td>Commit before building a release so each build matches a commit</td></tr>
+  </table>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">02 / 12</span></div>
+</section>
+
+<!-- 03 stage 1 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 1 · Week 1</span></div>
+  <h1 class="display">ACCOUNTS &amp; NAME</h1>
+  <p class="intro">Do these first. Some take days to be approved, so start them on day one and code while you wait.</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Check the StackForge name</b>Search "StackForge" on IP India (classes 9 and 42). Then check <code>stackforge.in</code>, <code>stackforgelabs.com</code> and <code>stackforge.app</code> at a registrar. Buy the <b>.in</b> and one global domain.</div></div>
+  <div class="step"><div class="num">2</div><div><b class="t">Create the Google Play Console account</b>play.google.com/console · one-time fee <b>US$25</b>. Choose <b>Personal</b> now (quick). An <b>Organisation</b> account needs a registered company and a D-U-N-S number, but it skips the 12-tester rule. Upload your ID; Google may also ask you to confirm you have a real Android phone (Play Console app). Approval can take a few days.<br><b>Developer name on the store:</b> "StackForge Labs".</div></div>
+  <div class="step"><div class="num">3</div><div><b class="t">Create a support email</b>For example <code>hello@stackforge.in</code>, using your domain's email forwarding or Zoho Mail's free plan. Play shows it publicly, so keep your personal Gmail private.</div></div>
+  <div class="step"><div class="num">4</div><div><b class="t">Anthropic API key with a spending limit</b>console.anthropic.com → create a key for "stack-prod" → set a <b>monthly spend limit</b> (for example $20) so a bug can't run up a bill.</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Vercel account</b>Sign in with GitHub and import <code>chhari07/stackforge</code>. The free Hobby plan is enough to start. It will host the web app, the AI route and the privacy pages.</div></div>
+  <div class="step"><div class="num">6</div><div><b class="t">Claim the handles</b>GitHub org <code>stackforge-labs</code> (optional), plus X and Instagram <code>@stackforgelabs</code>. Use the same spelling everywhere.</div></div>
+  <div class="step"><div class="num">7</div><div><b class="t">Line up 15–20 testers now</b>Friends, classmates, dev groups. You need <b>12 who stay opted in for 14 days</b>, so invite extras. Collect their Gmail addresses in a sheet. (Stage 6 has the details.)</div></div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">Cost so far</span><br>Play Console $25 (≈ ₹2,200) · domains ≈ ₹1,500 a year · Vercel and Firebase free tiers · AI pay-as-you-go with a cap. <b>Total to launch: under ₹5,000.</b></div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">03 / 12</span></div>
+</section>
+
+<!-- 04 stage 2 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 2 · Week 1</span></div>
+  <h1 class="display">MAKE IT STORE-READY</h1>
+  <p class="intro">Code changes that stop Play from rejecting the app and keep AI costs safe. Commit after each one.</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Two builds: Play and sideload</b>Add a build switch (for example <code>STACK_STORE=play</code>). In the Play build, <code>scripts/android-setup.mjs</code> <b>leaves out <code>MANAGE_EXTERNAL_STORAGE</code></b> and the "scan the whole phone" button. PDFs come in through the folder picker (SAF) and Share to Stack. The sideload APK can keep full scanning.</div></div>
+  <div class="step"><div class="num">2</div><div><b class="t">Hide Spotify</b>Spotify caps you at 25 users. Remove it from the Play build, or keep it under Settings → "Advanced: use your own Spotify Client ID". Phone music stays.</div></div>
+  <div class="step"><div class="num">3</div><div><b class="t">News: summary + link</b>For news cards, show the headline, a short summary and "Open original". Keep full reader mode only for articles the user <b>saved</b>.</div></div>
+  <div class="step"><div class="num">4</div><div><b class="t">AI: cheap by default, capped per user</b>Set <code>AI_MODEL=claude-haiku-4-5</code> for everyday tasks. Keep <code>AI_DAILY_LIMIT</code> low (for example 20 per user per day). The in-memory limit resets when Vercel restarts, so move the counter into Firestore before you have many users.</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Point the app at the real server</b>The APK build uses <code>NEXT_PUBLIC_AI_URL=https://stackforge.in</code> (or the Vercel URL) instead of <code>10.0.2.2</code>. The emulator cleartext rule should apply to debug builds only.</div></div>
+  <div class="step"><div class="num">6</div><div><b class="t">Account deletion inside the app</b>Play requires apps with sign-in to let users <b>delete their account and data</b>. Add Settings → Account → "Delete account": remove <code>users/&lt;uid&gt;</code> from Firestore, the user's Storage files and the Auth user.</div></div>
+  <div class="step"><div class="num">7</div><div><b class="t">Crash and usage numbers</b>Add something simple to count installs, active days and reviews done (Firebase Analytics or your own Firestore counter). You'll need day-1, day-7 and day-30 numbers.</div></div>
+  <div class="step"><div class="num">8</div><div><b class="t">Version numbers</b>In <code>android/app/build.gradle</code>, set <code>versionCode 2</code> and <code>versionName "1.0.0"</code>, and add 1 to <code>versionCode</code> for every upload.</div></div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">04 / 12</span></div>
+</section>
+
+<!-- 05 stage 3 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 3 · Weeks 1–2</span></div>
+  <h1 class="display">SERVER &amp; WEB LIVE</h1>
+  <p class="intro">The Android app needs your server for AI and sign-in checks. Play needs public web pages for privacy and account deletion.</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Deploy to Vercel</b>Import the repo, framework Next.js, and add these environment variables (Production):</div></div>
+  <div class="cmd"><span class="c"># Vercel → Project → Settings → Environment Variables</span>
+NEXT_PUBLIC_FIREBASE_API_KEY=…        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=…
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=openstack-28bf7   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=…
+NEXT_PUBLIC_FIREBASE_APP_ID=…         NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID=…
+ANTHROPIC_API_KEY=sk-ant-…            <span class="c"># server only, never NEXT_PUBLIC_</span>
+AI_MODEL=claude-haiku-4-5             AI_DAILY_LIMIT=20</div>
+  <div class="step"><div class="num">2</div><div><b class="t">Connect the domain</b>Vercel → Domains → add <code>stackforge.in</code> and follow the DNS steps. HTTPS is automatic.</div></div>
+  <div class="step"><div class="num">3</div><div><b class="t">Firebase for production</b>Firebase console → Authentication → Settings → <b>Authorized domains</b>: add <code>stackforge.in</code> and your Vercel URL. Then push the security rules:</div></div>
+  <div class="cmd">firebase use openstack-28bf7
+firebase deploy --only firestore:rules,storage   <span class="c"># Storage only if you're on the Blaze plan</span></div>
+  <div class="step"><div class="num">4</div><div><b class="t">Public pages</b>Add three simple pages to the site:<br>
+    <code>/privacy</code>: what's stored on the phone, what's synced (email, notes, highlights, PDFs if uploaded), that AI text goes to Anthropic for processing, and how to delete it.<br>
+    <code>/delete-account</code>: steps to delete in the app, plus an email option for people who've uninstalled it.<br>
+    <code>/</code>: a landing page with the logo, one line ("Stack makes you remember what you read"), screenshots and a "Get it on Google Play" button.</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Smoke test</b>From a phone on mobile data (not your Wi-Fi): open the site, sign in with Google, save a note, run one AI summary and check that the note appears on the web. If any of these fail, fix it before Stage 4.</div></div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">05 / 12</span></div>
+</section>
+
+<!-- 06 stage 4 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 4 · Week 2</span></div>
+  <h1 class="display">THE RELEASE BUILD</h1>
+  <p class="intro">Play takes an <b>Android App Bundle (.aab)</b> signed with your <b>upload key</b>. Google then re-signs it with the app signing key it keeps (Play App Signing).</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Create your upload key (once)</b>Keep it <b>outside</b> the repo.</div></div>
+  <div class="cmd">keytool -genkeypair -v -keystore ~/keys/stackforge-upload.jks \
+  -alias stack -keyalg RSA -keysize 2048 -validity 10000
+<span class="c"># back up the .jks file and its passwords in 2 places (e.g. a password manager + a USB drive)</span></div>
+  <div class="step"><div class="num">2</div><div><b class="t">Tell Gradle about it</b>Create <code>android/keystore.properties</code>, add it to <code>.gitignore</code>, and read it in <code>android/app/build.gradle</code>:</div></div>
+  <div class="cmd"><span class="c"># android/keystore.properties  (never commit)</span>
+storeFile=/home/aman-kumar-chhari/keys/stackforge-upload.jks
+storePassword=…   keyAlias=stack   keyPassword=…
+
+<span class="c">// android/app/build.gradle</span>
+def ks = new Properties(); ks.load(new FileInputStream(rootProject.file("keystore.properties")))
+android { signingConfigs { release { storeFile file(ks.storeFile); storePassword ks.storePassword
+                                     keyAlias ks.keyAlias; keyPassword ks.keyPassword } }
+          buildTypes { release { signingConfig signingConfigs.release } } }</div>
+  <div class="step"><div class="num">3</div><div><b class="t">Build the bundle</b>Copy <code>build-apk.sh</code> to <code>build-aab.sh</code> and change the last steps:</div></div>
+  <div class="cmd">STACK_TARGET=apk STACK_STORE=play npx next build
+node scripts/android-setup.mjs &amp;&amp; npx cap sync android
+(cd android &amp;&amp; ./gradlew bundleRelease)
+<span class="c"># → android/app/build/outputs/bundle/release/app-release.aab</span></div>
+  <div class="step"><div class="num">4</div><div><b class="t">Fix Google sign-in for the store build</b>After the first upload, go to Play Console → <b>Test and release → App integrity</b> and copy the <b>app signing key SHA-1</b> and <b>upload key SHA-1</b>. Add both in Firebase → Project settings → your Android app → <b>Add fingerprint</b>. Without this, Google sign-in fails on Play installs even though it works on your debug APK.</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Test the release build on a real phone</b>Install it through the internal testing track (next stage) and repeat the smoke test: sign-in, save, AI, sync, music, notifications, dark mode.</div></div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">06 / 12</span></div>
+</section>
+
+<!-- 07 stage 5 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 5 · Week 2</span></div>
+  <h1 class="display">PLAY CONSOLE SETUP</h1>
+  <p class="intro">Create app → name <b>"Stack: Read, Keep, Remember"</b> · App · Free · default language English (India). Then clear every item under <b>Policy → App content</b>.</p>
+  <table>
+    <tr><th style="width:40mm">Form</th><th>What to answer for Stack</th></tr>
+    <tr><td>Privacy policy</td><td><code>https://stackforge.in/privacy</code></td></tr>
+    <tr><td>App access</td><td>"All features work without login." If a feature needs sign-in, give a test Google account's instructions</td></tr>
+    <tr><td>Ads</td><td>No ads</td></tr>
+    <tr><td>Content rating</td><td>Fill the IARC questionnaire honestly. It's a reading and notes tool, but user content and web articles can include anything</td></tr>
+    <tr><td>Target audience</td><td><b>18+</b> (or 13+). Don't select under-13, or the stricter Families rules apply</td></tr>
+    <tr><td>Data safety</td><td>Collected: <b>email and name</b> (account), <b>user content</b> (notes, highlights, files if synced), <b>app activity</b> if you add analytics. Encrypted in transit: yes. Users can request deletion: yes (link <code>/delete-account</code>). Shared: AI text is processed by Anthropic on your behalf</td></tr>
+    <tr><td>Account deletion</td><td>URL <code>https://stackforge.in/delete-account</code></td></tr>
+    <tr><td>Foreground service</td><td>Declare <b>media playback</b> (music during Focus): give a short description and a short screen recording of background play with its notification</td></tr>
+    <tr><td>App category</td><td><b>Education</b> or <b>Productivity</b>. Not "News &amp; Magazines", which brings extra news-publisher rules</td></tr>
+  </table>
+
+  <h2 class="display">STORE LISTING ASSETS</h2>
+  <table>
+    <tr><th style="width:40mm">Asset</th><th>Spec</th><th style="width:58mm">Tip</th></tr>
+    <tr><td>App icon</td><td>512 × 512 PNG</td><td>The block logo on paper colour</td></tr>
+    <tr><td>Feature graphic</td><td>1024 × 500</td><td>Reuse <code>Stack-Brand/banner-wide</code></td></tr>
+    <tr><td>Phone screenshots</td><td>2–8, 9:16</td><td>Lead with Save → Highlight → Review → Quiz</td></tr>
+    <tr><td>Tablet screenshots</td><td>7" and 10"</td><td>You have tablet layouts, so use them</td></tr>
+    <tr><td>Short description</td><td>≤ 80 characters</td><td>"Save articles &amp; PDFs, highlight, and actually remember what you read."</td></tr>
+    <tr><td>Full description</td><td>≤ 4,000 characters</td><td>Problem → 4 steps → features → free vs Plus → privacy</td></tr>
+  </table>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">07 / 12</span></div>
+</section>
+
+<!-- 08 stage 6 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 6 · Weeks 2–5</span></div>
+  <h1 class="display">12 TESTERS × 14 DAYS</h1>
+  <p class="intro">New personal developer accounts must run a <b>closed test</b> with at least <b>12 testers opted in continuously for 14 days</b> before Play lets you publish to everyone. Treat it as your first real user research, not a chore.</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Internal testing first (day 0)</b>Test and release → Testing → <b>Internal testing</b> → upload the <code>.aab</code> → add yourself and 2–3 friends. It's live in minutes, so use it to catch install and sign-in problems.</div></div>
+  <div class="step"><div class="num">2</div><div><b class="t">Start the closed test (day 1)</b>Testing → <b>Closed testing</b> → create a track → add the tester emails (a Google Group is easiest) → upload the same build → send for review. The first review can take a few days.</div></div>
+  <div class="step"><div class="num">3</div><div><b class="t">Get testers opted in</b>Send each tester the opt-in link from the track page. Invite <b>15–20</b>, because anyone who opts out resets their own 14-day count. Check the tester count in the Console every few days.</div></div>
+  <div class="step"><div class="num">4</div><div><b class="t">Give them something to do</b>Day 1: "Save 3 articles or PDFs and highlight one line." Day 3: "Do the morning review." Day 7: a 5-question Google Form (What did you use? What confused you? Would you miss it? Would you pay ₹99? What's missing?).</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Ship 1–2 updates during the test</b>Fix the top complaints and upload new builds to the same track (bump <code>versionCode</code>). Google looks at whether you actually tested and improved the app.</div></div>
+  <div class="step"><div class="num">6</div><div><b class="t">Apply for production (day 15+)</b>Dashboard → <b>Apply for production</b>. Google asks how you recruited testers, what feedback you got and what you changed, so answer from your notes and form results. A review usually takes about a week.</div></div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">Where to find testers</span><br>College and alumni WhatsApp groups · dev.to / Reddit r/androidapps "looking for testers" posts · Discord servers you're in · friends who read a lot · people who used Pocket. Offer free Stack Plus for a year as thanks.</div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">08 / 12</span></div>
+</section>
+
+<!-- 09 stage 7 -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Stage 7 · Week 6</span></div>
+  <h1 class="display">LAUNCH DAY</h1>
+  <p class="intro">Once production access is approved, launch in a controlled way and make noise in the same week.</p>
+
+  <div class="step"><div class="num">1</div><div><b class="t">Staged rollout</b>Production → create release → rollout <b>20%</b>. Watch Android vitals (crashes, ANRs) for 2 days → <b>50%</b> → <b>100%</b>. You can halt a rollout if something breaks.</div></div>
+  <div class="step"><div class="num">2</div><div><b class="t">Make the GitHub repo public</b>Before flipping it: run a secret scan again, add a <b>LICENSE</b> (<b>AGPL-3.0</b> protects the open core from closed clones; MIT is simpler if you want maximum reuse), a <code>CONTRIBUTING.md</code>, and a README that links to the Play Store and stackforge.in.</div></div>
+  <div class="step"><div class="num">3</div><div><b class="t">Update the landing page</b>Add the Play badge, 3 screenshots, a 30-second screen recording and an email signup for "Stack Plus is coming".</div></div>
+  <div class="step"><div class="num">4</div><div><b class="t">Post the launch story</b>The same week, post on: LinkedIn (build story + video), dev.to ("I built a local-first reading app with Next.js + Capacitor"), Reddit (r/androidapps, r/IndiaTech, r/productivity; follow each community's self-promotion rules), X, college groups, and Product Hunt on a Tuesday–Thursday.</div></div>
+  <div class="step"><div class="num">5</div><div><b class="t">Ask your testers for reviews</b>Your 12–20 testers can now leave public reviews. Early 4–5★ reviews matter a lot for store ranking.</div></div>
+
+  <h2 class="display">SAMPLE LAUNCH POST</h2>
+  <div class="card" style="font-size:9pt; line-height:1.55">I read a lot of articles and PDFs, and I forgot almost all of it. So I built <b>Stack</b>.<br>
+  Save anything from Chrome, WhatsApp or Telegram → highlight a line → Stack brings it back the next morning as a quick review and quiz.<br>
+  Free, open source, and it works offline without an account. Made in India by <b>StackForge Labs</b>.<br>
+  <span class="label" style="font-size:7pt; color:var(--muted)">▶ Play Store link · ⭐ github.com/chhari07/stackforge · 30-sec demo video</span></div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">09 / 12</span></div>
+</section>
+
+<!-- 10 after launch -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">After launch · Days 1–30</span></div>
+  <h1 class="display">THE FIRST 30 DAYS</h1>
+  <p class="intro">Launch is the start of learning. Keep a steady weekly rhythm and only fix what users actually hit.</p>
+
+  <div class="band b5"><div class="row"><h3>EVERY DAY · 15 MIN</h3></div><ul>
+    <li><span>Reply to every Play review and email (even 1★). Thank people and say what you'll fix</span></li>
+    <li><span>Glance at crashes/ANRs in Android vitals and the Anthropic usage page</span></li></ul></div>
+  <div class="band b2"><div class="row"><h3>EVERY SUNDAY · 1 HOUR</h3></div><ul>
+    <li><span>Write down: installs, day-1 / day-7 / day-30 active, reviews done per user, AI cost</span></li>
+    <li><span>Pick the <b>top 3</b> problems from reviews, the form and analytics. Those are next week's work</span></li></ul></div>
+  <div class="band b3"><div class="row"><h3>EVERY WEEK · ONE UPDATE</h3></div><ul>
+    <li><span>Small, frequent releases (bump <code>versionCode</code>, short "What's new")</span></li>
+    <li><span>One public post a week: a feature, a lesson learned or a number you hit</span></li></ul></div>
+  <div class="band b4"><div class="row"><h3>DAY 30 · DECIDE</h3></div><ul>
+    <li><span>Day-30 retention <b>≥ 25%</b>: keep going and start Stack Plus (Play Billing) in month 2</span></li>
+    <li><span><b>10–25%</b>: interview 10 users; change the core loop, not the marketing</span></li>
+    <li><span><b>&lt; 10%</b>: rethink who Stack is for before adding anything new</span></li></ul></div>
+
+  <h2 class="display">WHEN THINGS GO WRONG</h2>
+  <table>
+    <tr><th style="width:52mm">Problem</th><th>What to do</th></tr>
+    <tr><td>Google sign-in fails on Play installs</td><td>The Play app signing SHA-1 is missing in Firebase (Stage 4, step 4)</td></tr>
+    <tr><td>Play rejects the app</td><td>Read the email carefully, fix only that item, reply through the Policy status page. Don't resubmit unchanged</td></tr>
+    <tr><td>AI bill jumps</td><td>Lower <code>AI_DAILY_LIMIT</code>; check for loops; the Anthropic spend cap stops it anyway</td></tr>
+    <tr><td>A bad release is out</td><td>Halt the staged rollout, fix, upload a higher <code>versionCode</code></td></tr>
+    <tr><td>Lost the upload key</td><td>Play Console → App integrity → request an upload key reset. The app signing key is safe with Google</td></tr>
+  </table>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">10 / 12</span></div>
+</section>
+
+<!-- 11 checklist -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Tick list · print this page</span></div>
+  <h1 class="display">THE CHECKLIST</h1>
+  <p class="intro">Every step from this guide on one page.</p>
+  <ul class="tick">
+    <h4>Stage 1 · Accounts</h4>
+    <li>StackForge trademark search (IP India, classes 9 + 42)</li>
+    <li>Domains bought: stackforge.in + one global</li>
+    <li>Play Console account created and verified ($25)</li>
+    <li>Support email on your domain</li>
+    <li>Anthropic key + monthly spend limit</li>
+    <li>Vercel linked to the GitHub repo</li>
+    <li>15–20 tester emails collected</li>
+    <h4>Stage 2 · App</h4>
+    <li>Play build without MANAGE_EXTERNAL_STORAGE</li>
+    <li>Spotify hidden or "bring your own ID"</li>
+    <li>News: summary + link; full reader for saved items</li>
+    <li>AI on Haiku + daily limit</li>
+    <li>AI URL = https domain; cleartext only in debug</li>
+    <li>Delete account inside the app</li>
+    <li>Analytics for day-1/7/30 active</li>
+    <li>versionCode / versionName set; changes committed</li>
+    <h4>Stage 3 · Server</h4>
+    <li>Vercel env vars set (key is server-only)</li>
+    <li>Domain connected, HTTPS on</li>
+    <li>Firebase authorized domains updated</li>
+    <li>Firestore / Storage rules deployed</li>
+    <li>/privacy, /delete-account and landing page live</li>
+    <li>Smoke test on mobile data passed</li>
+    <h4>Stage 4 · Release build</h4>
+    <li>Upload keystore made and backed up twice</li>
+    <li>keystore.properties gitignored</li>
+    <li>bundleRelease produces app-release.aab</li>
+    <li>Play SHA-1s added to Firebase</li>
+    <h4>Stage 5 · Play Console</h4>
+    <li>Privacy, app access, ads, rating, audience</li>
+    <li>Data safety + account deletion URL</li>
+    <li>Foreground service (media) declared</li>
+    <li>Category: Education / Productivity</li>
+    <li>Icon, feature graphic, screenshots, descriptions</li>
+    <h4>Stage 6 · Testing</h4>
+    <li>Internal test installed and working</li>
+    <li>Closed test live with 15–20 invited</li>
+    <li>12+ opted in for 14 straight days</li>
+    <li>Feedback form sent; 1–2 updates shipped</li>
+    <li>Applied for production</li>
+    <h4>Stage 7 · Launch</h4>
+    <li>Staged rollout 20% → 50% → 100%</li>
+    <li>Repo public with LICENSE + README</li>
+    <li>Launch posts published</li>
+    <li>Testers asked for reviews</li>
+    <li>Sunday numbers routine started</li>
+  </ul>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">11 / 12</span></div>
+</section>
+
+<!-- 12 notes -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Good to know</span></div>
+  <h1 class="display">RULES &amp; NOTES</h1>
+
+  <div class="grid2">
+    <div class="card"><span class="tag t-red label">Never</span><ul>
+      <li>Commit <code>.env.local</code>, <code>google-services.json</code>, the <code>.jks</code> or <code>keystore.properties</code></li>
+      <li>Put <code>ANTHROPIC_API_KEY</code> in a <code>NEXT_PUBLIC_</code> variable (it would ship inside the app)</li>
+      <li>Upload a debug-signed build to Play</li>
+      <li>Change the app ID <code>com.chhari.stack</code> after publishing: it would become a new app</li>
+      <li>Ask testers for fake reviews or pay for installs</li>
+    </ul></div>
+    <div class="card"><span class="tag label">Always</span><ul>
+      <li>Build releases from a clean, committed state and tag them (<code>git tag v1.0.0</code>)</li>
+      <li>Keep a <code>CHANGELOG.md</code>: it becomes the "What's new" text</li>
+      <li>Test every release on a real phone, on mobile data</li>
+      <li>Keep the sideload APK and the Play build on the same version numbers</li>
+      <li>Answer users within a day in the first month</li>
+    </ul></div>
+  </div>
+
+  <h2 class="display">THINGS TO WATCH</h2>
+  <table>
+    <tr><th style="width:52mm">Topic</th><th>Note</th></tr>
+    <tr><td>Organisation account later</td><td>Once StackForge Labs is registered (LLP / Pvt Ltd) and has a D-U-N-S number, you can move the app to an organisation account. New apps from organisation accounts skip the 12-tester rule</td></tr>
+    <tr><td>Sideloaded APK</td><td>Google is rolling out developer verification for apps installed outside Play, starting with a few countries in 2026 and going wider in 2027. Plan to register as a verified developer so your APK keeps installing</td></tr>
+    <tr><td>DPDP Act</td><td>Full rules apply from <b>13 May 2027</b>: clear consent, data export/delete, breach reporting. The privacy page and delete-account flow cover the basics</td></tr>
+    <tr><td>Target SDK</td><td>Play raises the minimum target level every year (usually by 31 August). Update <code>targetSdkVersion</code> each summer</td></tr>
+    <tr><td>Stack Plus billing</td><td>Subscriptions inside the Android app must use <b>Google Play Billing</b> (15% fee on subscriptions). On the web you can use Razorpay</td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:4mm"><span class="label">Related</span><br>
+  <b>StackForge_Stack_Plan.pdf</b>: the business plan and market research · <b>ROADMAP.md</b>: feature roadmap · <b>firebase/README.md</b>: Firebase setup.<br>
+  Play rules change often. Before each stage, check the Play Console Help pages for the latest version of each requirement.</div>
+  <div class="foot"><span class="label">Launch Stack · StackForge Labs</span><span class="label">12 / 12</span></div>
+</section>
+</body>
+</html>

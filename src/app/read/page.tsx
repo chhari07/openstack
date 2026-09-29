@@ -7,6 +7,7 @@ import { BackIcon, BookmarkIcon, ClockIcon, ExternalIcon } from "@/components/ic
 import { useFocus } from "@/components/focus-provider";
 import { SelectionToolbar } from "@/components/selection-toolbar";
 import { QuoteNoteSheet } from "@/components/quote-note-sheet";
+import { AiSummary } from "@/components/ai-summary";
 import { useToast } from "@/components/toast";
 import { addNote, getNotes, getSaved, toggleSaved } from "@/lib/db";
 import { useStore } from "@/lib/use-store";
@@ -202,7 +203,21 @@ function Reader() {
           </div>
         )}
 
-        {failed && (
+        {failed && listed?.url && (
+          <div className="flex flex-col gap-4">
+            {listed.summary && <p className="text-[17px] leading-relaxed">{listed.summary}</p>}
+            <p className="text-[15px] text-muted">This story can’t be shown in reader mode here.</p>
+            <a
+              href={listed.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-12 items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-semibold text-on-ink"
+            >
+              Read on {listed.domain ?? "the site"} <ExternalIcon size={15} />
+            </a>
+          </div>
+        )}
+        {failed && !listed?.url && (
           <p className="text-[15px] text-muted">
             This story couldn’t be loaded. <Link href="/news" className="underline">Back to news</Link>
           </p>
@@ -227,6 +242,7 @@ function Reader() {
 
         {article?.html && (
           <>
+            <AiSummary id={id} title={title ?? article.title} html={article.html} source={article.source} />
             <p className="label mb-5 text-[10px] text-muted">Select text to highlight or add a note</p>
             <div
               ref={bodyRef}

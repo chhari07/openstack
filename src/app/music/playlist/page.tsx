@@ -7,6 +7,7 @@ import { BackIcon, ExternalIcon, PlayIcon } from "@/components/icons";
 import { useSpotify } from "@/components/spotify-provider";
 import { mmss } from "@/lib/format";
 import { api, art, artists, SpotifyError, type SpImage, type SpTrack } from "@/lib/spotify";
+import { HeartFilledIcon } from "@/components/stack-icons";
 
 type Meta = { name: string; owner?: string; total: number; image?: string; uri?: string; web: string };
 type Row = { track?: SpTrack | null; item?: SpTrack | null };
@@ -122,7 +123,11 @@ function Playlist() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={meta.image} alt="" className="size-full object-cover" />
               )}
-              {liked && <span className="display flex size-full items-center justify-center text-[64px] text-white">♥</span>}
+              {liked && (
+                <span className="flex size-full items-center justify-center text-white">
+                  <HeartFilledIcon size={60} />
+                </span>
+              )}
             </div>
             <div className="flex min-w-0 flex-col gap-1">
               <span className="label text-[10px] text-muted">{liked ? "Your library" : "Playlist"}</span>

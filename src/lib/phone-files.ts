@@ -5,7 +5,7 @@
 // See native/android/PhoneFilesPlugin.java.
 import { useCallback, useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { isNative } from "./platform";
+import { isNative, PLAY_BUILD } from "./platform";
 
 export type PhoneFile = { uri: string; name: string; path: string; size: number; modified: number };
 
@@ -53,6 +53,8 @@ export function useAllFiles() {
 
   const refresh = useCallback(async () => {
     if (!isNative()) return;
+    // The Play build has no All files access: PDFs come from a picked folder.
+    if (PLAY_BUILD) return setGranted(false);
     const r = await PhoneFiles.allFilesStatus().catch(() => ({ granted: false }));
     setGranted(r.granted);
   }, []);
@@ -66,6 +68,7 @@ export function useAllFiles() {
   }, [refresh]);
 
   const request = useCallback(async () => {
+    if (PLAY_BUILD) return false;
     const r = await PhoneFiles.requestAllFiles().catch(() => ({ granted: false }));
     setGranted(r.granted);
     return r.granted;

@@ -7,12 +7,17 @@ import { MiniPlayer } from "@/components/mini-player";
 import { LocalView } from "@/components/local-view";
 import { SpotifyView } from "@/components/spotify-view";
 import { useLocalMusic } from "@/components/local-music-provider";
+import { useSpotify } from "@/components/spotify-provider";
+import { PLAY_BUILD } from "@/lib/platform";
 
 type Source = "phone" | "spotify";
 const SOURCE_KEY = "stack.music-source";
 
 export default function Music() {
   const local = useLocalMusic();
+  const sp = useSpotify();
+  // Play build: Spotify appears only after you add your own Spotify app in Settings.
+  const spotifyOn = !PLAY_BUILD || sp.configured;
   const [source, setSourceState] = useState<Source>("spotify");
 
   // The app opens on phone music unless you last used Spotify.
@@ -37,7 +42,7 @@ export default function Music() {
     <main className="overflow-x-hidden px-5 pt-5 pb-[180px] md:px-10 md:pt-8 md:pb-28">
       <div className="flex h-8 items-center justify-between">
         <Logo size={26} className="-ml-1 md:invisible" />
-        {local.available ? (
+        {local.available && spotifyOn ? (
           <div role="tablist" aria-label="Music source" className="flex rounded-full border border-ink/15 p-0.5">
             {(["phone", "spotify"] as Source[]).map((s) => (
               <button
@@ -52,11 +57,11 @@ export default function Music() {
             ))}
           </div>
         ) : (
-          <span className="label text-[10px] text-muted">Spotify</span>
+          <span className="label text-[10px] text-muted">{local.available ? "On phone" : "Spotify"}</span>
         )}
       </div>
 
-      {local.available && source === "phone" ? <LocalView /> : <SpotifyView />}
+      {local.available && (source === "phone" || !spotifyOn) ? <LocalView /> : <SpotifyView />}
 
       <MiniPlayer showTime />
       <TabBar />

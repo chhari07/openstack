@@ -16,7 +16,8 @@ export type Topic =
   | "science"
   | "sports"
   | "entertainment"
-  | "health";
+  | "health"
+  | "mine"; // your own feeds (lib/feeds.ts)
 
 export const TOPICS: { value: Topic; label: string }[] = [
   { value: "top", label: "Top" },
@@ -30,6 +31,7 @@ export const TOPICS: { value: Topic; label: string }[] = [
   { value: "sports", label: "Sports" },
   { value: "entertainment", label: "Entertainment" },
   { value: "health", label: "Health" },
+  { value: "mine", label: "My feeds" },
 ];
 export const isTopic = (t: string): t is Topic => TOPICS.some((x) => x.value === t);
 
@@ -162,29 +164,94 @@ function mediaUrl(item: string) {
   return m ? decode(m[1]) : undefined;
 }
 
-// A small RSS 2.0 reader, good enough for the known feeds above.
-function parseRss(xml: string, source: string): Story[] {
+// A small RSS 2.0 / Atom reader. Built-in feeds only keep links to the sites
+// reader mode may fetch (NEWS_HOSTS); your own feeds keep any http(s) link.
+function atomLink(entry: string) {
+  const links = [...entry.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0]);
+  const pick = links.find((l) => /rel="alternate"/i.test(l)) ?? links.find((l) => !/rel=/i.test(l)) ?? links[0];
+  const href = pick?.match(/\bhref="([^"]+)"/i)?.[1];
+  return href ? decode(href) : undefined;
+}
+
+function firstImage(html?: string) {
+  const m = html?.match(/<img[^>]+src="(https?:[^"]+)"/i) ?? html?.match(/&lt;img[^&]+src=&quot;(https?:[^&]+)&quot;/i);
+  return m ? decode(m[1]) : undefined;
+}
+
+function parseFeed(xml: string, source: string, own = false): Story[] {
   const out: Story[] = [];
-  for (const m of xml.matchAll(/<item[\s>][\s\S]*?<\/item>/gi)) {
+  const atom = !/<item[\s>]/i.test(xml) && /<entry[\s>]/i.test(xml);
+  for (const m of xml.matchAll(atom ? /<entry[\s>][\s\S]*?<\/entry>/gi : /<item[\s>][\s\S]*?<\/item>/gi)) {
     const item = m[0];
     const title = tag(item, "title");
-    const link = tag(item, "link");
-    if (!title || !link || !isNewsHost(link)) continue;
-    const url = link.replace(/[?#].*$/, (q) => (q.includes("at_medium=RSS") || q.includes("traffic_source") ? "" : q));
-    const date = tag(item, "pubDate");
-    const summary = stripTags(tag(item, "description") ?? "");
+    const link = atom ? atomLink(item) : (tag(item, "link") ?? tag(item, "guid"));
+    if (!title || !link) continue;
+    let url: string;
+    try {
+      const u = new URL(link);
+      if (u.protocol !== "https:" && u.protocol !== "http:") continue;
+      url = u.href;
+    } catch {
+      continue;
+    }
+    const known = isNewsHost(url);
+    if (!own && !known) continue;
+    url = url.replace(/[?#].*$/, (q) => (q.includes("at_medium=RSS") || q.includes("traffic_source") ? "" : q));
+    const date = tag(item, "pubDate") ?? tag(item, "published") ?? tag(item, "updated") ?? tag(item, "dc:date");
+    const raw = tag(item, "description") ?? tag(item, "summary") ?? tag(item, "content:encoded") ?? tag(item, "content");
+    const summary = stripTags(decode(raw ?? ""));
     out.push({
-      id: webId(url),
+      // Known news sites open in reader mode everywhere; other links in the app.
+      id: known ? webId(url) : linkId(url),
       source,
-      title: stripTags(title),
+      title: stripTags(decode(title)),
       url,
       domain: new URL(url).hostname.replace(/^www\./, ""),
-      image: mediaUrl(item),
+      image: mediaUrl(item) ?? firstImage(raw),
       summary: summary.length > 20 ? summary.slice(0, 280) : undefined,
       createdAt: date && !Number.isNaN(Date.parse(date)) ? new Date(date).toISOString() : new Date().toISOString(),
     });
   }
   return out;
+}
+const parseRss = (xml: string, source: string) => parseFeed(xml, source);
+
+// ---- Your own feeds ----
+export type FeedInfo = { url: string; title: string; site?: string };
+type GetText = (url: string) => Promise<string | null>;
+
+const looksLikeFeed = (text: string) => /<(rss|feed|rdf:RDF)[\s>]/i.test(text.slice(0, 3000));
+
+// Reads a feed, or finds the feed of a web page (<link rel="alternate">).
+export async function readFeed(
+  input: string,
+  getText: GetText,
+): Promise<{ info: FeedInfo; stories: Story[] } | null> {
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(input.trim()) ? input.trim() : `https://${input.trim()}`);
+  } catch {
+    return null;
+  }
+  let text = await getText(url.href);
+  if (!text) return null;
+  if (!looksLikeFeed(text)) {
+    const alt = [...text.matchAll(/<link\b[^>]*>/gi)]
+      .map((m) => m[0])
+      .find((l) => /rel="?alternate/i.test(l) && /type="application\/(rss|atom)\+xml"/i.test(l));
+    const href = alt?.match(/\bhref="([^"]+)"/i)?.[1];
+    if (!href) return null;
+    url = new URL(decode(href), url);
+    text = await getText(url.href);
+    if (!text || !looksLikeFeed(text)) return null;
+  }
+  const channel = text.match(/<(channel|feed)[\s>][\s\S]*?<title[^>]*>([\s\S]*?)<\/title>/i)?.[2];
+  let title = stripTags(decode(channel ?? "")) || url.hostname.replace(/^www\./, "");
+  // "Articles on Smashing Magazine — For Web Designers…" → "Articles on Smashing Magazine"
+  if (title.length > 28) title = title.split(/\s+[—–|:]\s+/)[0];
+  const siteMatch = text.match(/<channel[\s>][\s\S]*?<link>([^<]+)<\/link>/i)?.[1];
+  const info: FeedInfo = { url: url.href, title: title.slice(0, 80), site: siteMatch ? decode(siteMatch) : url.origin };
+  return { info, stories: parseFeed(text, info.title, true).slice(0, 30) };
 }
 
 // `fresh` (pull to refresh) skips the 5-minute cache.
@@ -332,6 +399,7 @@ async function tech(topic: TechTopic, fresh: boolean) {
 }
 
 export async function getNews(topic: Topic, fresh = false): Promise<Story[]> {
+  if (topic === "mine") return []; // your own feeds are read on the device (lib/feeds.ts)
   if (topic === "tech" || topic === "ai" || topic === "dev") return tech(topic, fresh);
   return rss(FEEDS[topic] ?? [], fresh);
 }

@@ -42,6 +42,9 @@ import {
   type NoteColor,
 } from "@/lib/db";
 import { noteTime } from "@/lib/format";
+import { AiError, aiAvailable, answerText, runAi } from "@/lib/ai";
+import { useAiConsent } from "@/components/ai-kit";
+import { SparkleIcon } from "@/components/stack-icons";
 import { canGoBack } from "@/lib/nav";
 
 export default function Page() {
@@ -239,6 +242,37 @@ function Editor() {
   };
 
   // ---- Actions ----
+  // Stack AI tidies the note: title, clean wording, bullets or a checklist. Undo puts it back.
+  const [tidying, setTidying] = useState(false);
+  const [confirmAi, aiSheet] = useAiConsent();
+  const tidy = async () => {
+    const before = draft;
+    const list = (before.checklist ?? []).map((i) => `[${i.done ? "x" : " "}] ${i.text}`).join("\n");
+    const text = [before.title, before.body, list].filter((x) => x.trim()).join("\n\n");
+    if (!text.trim() || tidying) return;
+    if (!(await confirmAi("tidy", "this note’s text"))) return;
+    setTidying(true);
+    try {
+      const out = answerText(await runAi({ task: "tidy", text }));
+      const [first, ...rest] = out.split("\n");
+      const lines = rest.join("\n").trim().split("\n");
+      const todo = lines.filter((l) => /^\[[ xX]\] /.test(l.trim()));
+      const next: Partial<Draft> =
+        todo.length && todo.length >= lines.filter((l) => l.trim()).length * 0.8
+          ? {
+              title: first.trim(),
+              body: "",
+              checklist: todo.map((l) => ({ id: uid(), text: l.trim().slice(4), done: /^\[[xX]\]/.test(l.trim()) })),
+            }
+          : { title: first.trim(), body: lines.join("\n").trim(), checklist: undefined };
+      change(next);
+      toast({ text: "Note tidied", action: "Undo", onAction: () => change(before) });
+    } catch (e) {
+      toast({ text: e instanceof AiError ? e.message : "Couldn’t tidy the note" });
+    }
+    setTidying(false);
+  };
+
   const share = async () => {
     const text = noteText({
       ...(note ?? { id: "", kind: "idea", createdAt: 0 }),
@@ -454,6 +488,11 @@ function Editor() {
           <span className="label grow text-center text-[10px] opacity-60">
             {edited ? `Edited ${noteTime(edited)}` : "New note"}
           </span>
+          {aiAvailable() && !note?.quote && (
+            <button aria-label="Tidy with Stack AI" onClick={tidy} disabled={tidying} className={`${iconBtn} disabled:animate-pulse`}>
+              <SparkleIcon size={20} />
+            </button>
+          )}
           <button aria-label="Share note" onClick={share} className={iconBtn}>
             <ShareIcon size={20} />
           </button>
@@ -462,6 +501,7 @@ function Editor() {
           </button>
         </div>
       </div>
+      {aiSheet}
     </main>
   );
 }

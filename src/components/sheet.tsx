@@ -50,7 +50,7 @@ export function Chips<T extends string>({
   onChange,
   label,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; icon?: ReactNode }[];
   value: T;
   onChange: (v: T) => void;
   label: string;
@@ -65,10 +65,11 @@ export function Chips<T extends string>({
             role="radio"
             aria-checked={on}
             onClick={() => onChange(o.value)}
-            className={`label h-8 shrink-0 rounded-full px-3 text-[10px] ${
+            className={`label flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[10px] ${
               on ? "bg-ink text-on-ink" : "border border-ink/20"
-            }`}
+            } ${o.icon ? "pl-2.5" : ""}`}
           >
+            {o.icon}
             {o.label}
           </button>
         );

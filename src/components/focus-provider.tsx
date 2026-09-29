@@ -22,6 +22,7 @@ import {
   saveSession,
   type FocusSession,
   type FocusTarget,
+  type Pomodoro,
 } from "@/lib/focus";
 import { isNative } from "@/lib/platform";
 import { askForNotifications, notificationsAllowed } from "@/lib/reminders";
@@ -32,7 +33,7 @@ const NOTIFY_ID = 1002;
 
 type Ctx = {
   session: FocusSession | null;
-  start: (target: FocusTarget, minutes: number, music: boolean) => Promise<void>;
+  start: (target: FocusTarget, minutes: number, music: boolean, pomo?: Pomodoro) => Promise<void>;
   pause: () => void;
   resume: () => void;
   finish: () => Promise<void>;
@@ -67,8 +68,12 @@ async function scheduleEnd(s: FocusSession | null) {
     notifications: [
       {
         id: NOTIFY_ID,
-        title: "Focus session complete",
-        body: `${s.minutes} minutes on ${s.target.title}. See what you got done.`,
+        title: s.pomo?.brk ? "Break’s over" : s.pomo ? `Round ${s.pomo.round} done` : "Focus session complete",
+        body: s.pomo?.brk
+          ? "Ready for the next round?"
+          : s.pomo
+            ? "Time for a break. Stretch, drink some water."
+            : `${s.minutes} minutes on ${s.target.title}. See what you got done.`,
         schedule: { at: new Date(Date.now() + remainingMs(s)), allowWhileIdle: true },
         // Never ask for the exact-alarm permission; Android may deliver it a little late.
         isExactNotification: false,
@@ -109,7 +114,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
   };
 
   const start = useCallback(
-    async (target: FocusTarget, minutes: number, withMusic: boolean) => {
+    async (target: FocusTarget, minutes: number, withMusic: boolean, pomo?: Pomodoro) => {
       let startPage: number | undefined;
       if (target.kind === "pdf") {
         startPage = (await getPdfs()).find((p) => p.id === target.id)?.lastPage;
@@ -123,6 +128,7 @@ export function FocusProvider({ children }: { children: ReactNode }) {
         startedAt: Date.now(),
         pausedMs: 0,
         startPage,
+        pomo,
       });
       if (withMusic) music(true);
     },
@@ -155,6 +161,11 @@ export function FocusProvider({ children }: { children: ReactNode }) {
     const over = Math.max(0, focusedMs(s, t) - s.minutes * 60_000);
     const ended: FocusSession = { ...s, endedAt: s.pausedAt ?? t - over, pausedAt: undefined };
     if (s.music) music(false);
+    // A Pomodoro break isn't focus time: nothing to record.
+    if (s.pomo?.brk) {
+      commit(ended);
+      return;
+    }
     const [notes, pdfs] = await Promise.all([getNotes(), getPdfs()]);
     const during = notes.filter((n) => n.createdAt >= s.startedAt && n.createdAt <= t);
     const endPage = pdfs.find((p) => p.id === s.target.id)?.lastPage;
@@ -183,7 +194,11 @@ export function FocusProvider({ children }: { children: ReactNode }) {
       navigator.vibrate?.([200, 100, 200]);
       // On the focus screen the summary is already showing.
       if (!window.location.pathname.startsWith("/focus"))
-        toast({ text: "Focus session complete", href: "/focus", action: "Summary" });
+        toast({
+          text: session.pomo?.brk ? "Break’s over" : session.pomo ? `Round ${session.pomo.round} done: take a break` : "Focus session complete",
+          href: "/focus",
+          action: session.pomo ? "Open" : "Summary",
+        });
     });
   }, [running, session, tick, finish, toast]);
 
@@ -208,9 +223,13 @@ function FocusPill({ session }: { session: FocusSession | null }) {
       aria-label="Focus session in progress"
       className="fixed top-[calc(env(safe-area-inset-top)+64px)] right-3 z-40 flex h-9 items-center gap-2 rounded-full bg-ink px-3.5 text-on-ink shadow-[0_6px_18px_rgba(0,0,0,.22)] md:right-6"
     >
-      <span className={`size-2 rounded-full ${session.pausedAt ? "bg-pdf" : "animate-pulse bg-music"}`} />
+      <span className={`size-2 rounded-full ${session.pausedAt ? "bg-pdf" : session.pomo?.brk ? "animate-pulse bg-news" : "animate-pulse bg-music"}`} />
       <span className="text-[14px] font-semibold tabular-nums">{clockText(remainingMs(session, tick))}</span>
-      {session.pausedAt && <span className="label text-[9px] opacity-70">Paused</span>}
+      {session.pausedAt ? (
+        <span className="label text-[9px] opacity-70">Paused</span>
+      ) : (
+        session.pomo && <span className="label text-[9px] opacity-70">{session.pomo.brk ? "Break" : `Round ${session.pomo.round}`}</span>
+      )}
     </Link>
   );
 }

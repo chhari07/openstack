@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StackForge × Stack: the plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 46pt; }
+  h2 { margin: 6mm 0 1.5mm; font-size: 22pt; }
+  h3 { margin: 0; font-size: 13pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 4mm; font-size: 10pt; line-height: 1.5; max-width: 176mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; font-size: 8.4pt; line-height: 1.45; }
+  .card ul { margin: 1.6mm 0 0; padding-left: 3.6mm; }
+  .card li { margin-bottom: .6mm; }
+  .tag { display: inline-block; font-size: 6.3pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+
+  .stat { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm 3mm; }
+  .stat .n { font-size: 25pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.03em; line-height: .95; }
+  .stat .d { font-size: 7.6pt; line-height: 1.35; margin-top: 1.2mm; }
+  .stat .s { font-size: 6.2pt; color: var(--muted); margin-top: 1.4mm; }
+  .g { color: var(--news); } .r { color: var(--music); } .o { color: var(--pdf-deep); } .bl { color: var(--blue-deep); } .v { color: var(--violet); }
+
+  .band { border-radius: 4mm; padding: 4mm 5mm; margin-bottom: 3mm; font-size: 8.8pt; line-height: 1.48; }
+  .band .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.4mm; }
+  .band ul { list-style: none; margin: 1.6mm 0 0; padding: 0; }
+  .band li { display: flex; gap: 2.4mm; margin-bottom: 1.1mm; }
+  .band li::before { content: ""; flex-shrink: 0; width: 3mm; height: 3mm; margin-top: .7mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .b1 { background: var(--yellow-tint); color: #3a2a00; }
+  .b2 { background: var(--pdf-tint); color: #3d2200; }
+  .b3 { background: var(--blue-tint); color: #0e2a4a; }
+  .b4 { background: var(--violet-tint); color: #2a1a66; }
+  .b5 { background: var(--news-tint); color: #06321a; }
+  .b6 { background: var(--music-tint); color: #4a1210; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4.2mm 5mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+
+  .verdict { display: grid; grid-template-columns: 30mm 1fr; gap: 0; background: var(--card); border-radius: 3.5mm; margin-bottom: 2.4mm; overflow: hidden; }
+  .verdict .v1 { padding: 3.4mm; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1mm; }
+  .verdict .v1 .big { font-size: 17pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; line-height: .9; }
+  .verdict .v2 { padding: 3.4mm 4mm; font-size: 8.8pt; line-height: 1.48; border-left: 1px solid var(--rule); }
+
+  .meter { display: inline-flex; gap: .7mm; vertical-align: middle; }
+  .meter i { display: block; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--rule); }
+  .meter.m1 i:nth-child(-n+1), .meter.m2 i:nth-child(-n+2), .meter.m3 i:nth-child(-n+3), .meter.m4 i:nth-child(-n+4), .meter.m5 i:nth-child(-n+5) { background: var(--ink); }
+
+  .quad { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.6mm; height: 118mm; position: relative; }
+  .quad > div { border-radius: 4mm; padding: 3.6mm 4mm; font-size: 8.4pt; line-height: 1.4; }
+  .chip { display: inline-block; background: var(--card); border-radius: 2.4mm; padding: 1.2mm 2.4mm; margin: 0 1.2mm 1.4mm 0; font-size: 8pt; font-weight: 600; }
+  .chip small { font-weight: 400; color: var(--muted); }
+
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .src { font-size: 7.2pt; line-height: 1.45; columns: 2; column-gap: 7mm; }
+  .src p { break-inside: avoid; margin-bottom: 1.4mm; }
+  .src a { color: var(--blue-deep); text-decoration: none; word-break: break-all; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<!-- ===== 01 Cover ===== -->
+<section class="page cover">
+  <div class="top">
+    <svg width="34" height="34" fill="#fff"><use href="#logo"/></svg>
+    <span class="label">Business plan · market research · 29.09.2026</span>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; top:62mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">StackForge Labs × Stack</div>
+    <div class="display" style="font-size:92pt">THE<br>PLAN.</div>
+    <p class="serif" style="font-size:22pt; margin-top:8mm; line-height:1.2">Read it. Keep it. Build on it.<br>And then, one real problem at a time.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(4,1fr); gap:3mm;">
+    <div style="background:var(--news); border-radius:4mm; padding:4mm; height:30mm"><div class="label" style="color:#fff; font-size:7pt">01 · Verdict</div><div style="font-size:9pt; margin-top:2mm">Go, with a new name and a narrower Stack</div></div>
+    <div style="background:var(--music); border-radius:4mm; padding:4mm; height:30mm"><div class="label" style="color:#fff; font-size:7pt">02 · Market</div><div style="font-size:9pt; margin-top:2mm">20 data points on where the money and users are</div></div>
+    <div style="background:var(--pdf); border-radius:4mm; padding:4mm; height:30mm; color:#111"><div class="label" style="color:#3d2200; font-size:7pt">03 · Options</div><div style="font-size:9pt; margin-top:2mm">Every path for Stack and for the company</div></div>
+    <div style="background:var(--blue); border-radius:4mm; padding:4mm; height:30mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:7pt">04 · Roadmap</div><div style="font-size:9pt; margin-top:2mm">12 months, metrics, risks, first 30 days</div></div>
+  </div>
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 14</span></div>
+</section>
+
+<!-- ===== 02 Verdict ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">01 · The verdict</span></div>
+  <h1 class="display">THE SHORT ANSWER</h1>
+  <p class="intro">Is a company building Stack as its first app a good idea for the market? <b>Yes, with a narrower Stack.</b>
+  The market is moving your way. Indians are starting to pay for apps, AI and productivity lead that growth, and Pocket's shutdown left readers looking for a new home.
+  The old working name, "openstack", clashed with a trademark and is now <b>StackForge</b>. Stack still tries to be four apps at once. Five decisions:</p>
+
+  <div class="verdict"><div class="v1"><span class="tag t-red label">Renamed</span><span class="big">STACK&shy;FORGE</span></div>
+    <div class="v2">The company is now <b>StackForge Labs</b>. "OpenStack" is a registered trademark of the OpenInfra Foundation (Linux Foundation), so the old working name had to go. StackForge keeps <b>Stack</b> at the centre and says what the company does: <b>it forges (builds) apps on one shared stack</b>. Finish the trademark and domain checks <b>before</b> the Play Store listing and company registration (page 5).</div></div>
+
+  <div class="verdict"><div class="v1"><span class="tag t-org label">Narrow</span><span class="big">STACK</span></div>
+    <div class="v2">Keep the core that no giant owns: <b>save anything → highlight → Stack brings it back so you remember it</b>. Move music and the general news reader to the background. They compete with Spotify and Google News and create legal and policy problems (page 6).</div></div>
+
+  <div class="verdict"><div class="v1"><span class="tag label">Build</span><span class="big">OPEN CORE</span></div>
+    <div class="v2">The company identity should be <b>"an open, India-first stack of useful apps"</b>. The apps are free and open source at the core, and people pay for sync, AI and team features. This is how Obsidian, Readwise and many open-source companies earn money, and it builds trust for a new brand (page 8).</div></div>
+
+  <div class="verdict"><div class="v1"><span class="tag t-blue label">Sequence</span><span class="big">ONE AT A TIME</span></div>
+    <div class="v2">Your report lists 14 problem areas. Build them <b>in order, on one shared engine</b> ("AI reads → code decides → a person confirms"). Stack first, <b>BillBook</b> second (a clear buyer who pays), then <b>ScamShield</b> (page 10).</div></div>
+
+  <div class="verdict"><div class="v1"><span class="tag t-vio label">Measure</span><span class="big">USERS, NOT FEATURES</span></div>
+    <div class="v2">You've already built six products. The next step is <b>getting them to people</b>, not writing more code. Set clear numbers and a date to decide: continue, change or stop (page 12).</div></div>
+
+  <div class="inked" style="margin-top:3mm">
+    <span class="label">One-line strategy</span><br>
+    <b>An open-source, India-first company that turns AI into small, trusted tools for everyday problems, starting with a reading app that makes you remember what you read.</b>
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">02 / 14</span></div>
+</section>
+
+<!-- ===== 03 Market numbers ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">02 · Market research · the numbers</span></div>
+  <h1 class="display">WHAT THE MARKET SAYS</h1>
+  <p class="intro">Figures are from public reports as of September 2026. Market-size studies disagree a lot, so treat them as direction, not precision. Every source is listed on page 14.</p>
+
+  <div class="label sub" style="margin-bottom:2mm">India · users and money</div>
+  <div class="grid4">
+    <div class="stat"><div class="n g">958M</div><div class="d">active internet users in India, growing ~8% a year; rural grows ~4× faster than urban</div><div class="s label">IAMAI-Kantar, Jan 2026</div></div>
+    <div class="stat"><div class="n g">$345M</div><div class="d">app spending in India in Q2 2026, <b>+35% YoY</b>, the fastest of any major market (US: −3%)</div><div class="s label">Sensor Tower via TechCrunch</div></div>
+    <div class="stat"><div class="n g">68%</div><div class="d">of India's app revenue is now non-gaming (58% three years ago). AI, streaming and productivity lead</div><div class="s label">Sensor Tower, H1 2026</div></div>
+    <div class="stat"><div class="n g">2×</div><div class="d">revenue per download has more than doubled in 3.5 years while downloads stayed flat (~6.3B/quarter)</div><div class="s label">Sensor Tower</div></div>
+  </div>
+
+  <div class="label sub" style="margin:4mm 0 2mm">Reading, notes and learning</div>
+  <div class="grid4">
+    <div class="stat"><div class="n o">$11B→28B</div><div class="d">note-taking app market 2025 → 2030 (~20.5% CAGR). Other studies say $8–17B today</div><div class="s label">Business Research Co.</div></div>
+    <div class="stat"><div class="n o">Jul 2025</div><div class="d"><b>Pocket shut down</b>, and its data was deleted in Oct 2025. Omnivore closed in 2024. Former users moved to Raindrop, Instapaper, Matter and Readwise</div><div class="s label">Mozilla · TechCrunch</div></div>
+    <div class="stat"><div class="n o">$9.99</div><div class="d">per month for Readwise Reader, a bootstrapped highlight-and-review app. Third-party estimate: ~$14M a year in revenue</div><div class="s label">readwise.io · Fueler (estimate)</div></div>
+    <div class="stat"><div class="n o">$7.5B</div><div class="d">India edtech in 2025. Test prep is ~25%, upskilling ~20%. PhysicsWallah made ₹2,887 cr in FY25</div><div class="s label">Skydo · industry reports</div></div>
+  </div>
+
+  <div class="label sub" style="margin:4mm 0 2mm">AI, trust and infrastructure</div>
+  <div class="grid4">
+    <div class="stat"><div class="n bl">1 in 4</div><div class="d">Indian startups is now an AI company. Vertical (domain) AI gets 2–3× higher valuations than non-AI peers</div><div class="s label">Tracxn 2026</div></div>
+    <div class="stat"><div class="n bl">$329M</div><div class="d">raised by Indian voice-AI startups by Aug 2026, vs $12.9M a year earlier. Sarvam became a unicorn in Jun 2026</div><div class="s label">Tracxn</div></div>
+    <div class="stat"><div class="n r">₹22,495 cr</div><div class="d">lost to cyber fraud in India in 2025. 28 lakh cases reported; 75%+ of losses came from investment scams</div><div class="s label">ThePrint · I4C data</div></div>
+    <div class="stat"><div class="n bl">2.9B</div><div class="d">Account Aggregator transactions by Jul 2026; 748 lenders and others can request consented bank data</div><div class="s label">Sahamati</div></div>
+  </div>
+
+  <div class="label sub" style="margin:4mm 0 2mm">Rules that change your plan</div>
+  <div class="grid4">
+    <div class="stat"><div class="n r">250K</div><div class="d">monthly users that <b>only registered businesses</b> must have before Spotify lifts the 25-user limit (since May 2025)</div><div class="s label">Spotify for Developers</div></div>
+    <div class="stat"><div class="n r">12 × 14</div><div class="d">new personal Play Console accounts need 12 testers opted in for 14 days in a row before going public</div><div class="s label">Play Console Help</div></div>
+    <div class="stat"><div class="n r">13 May 2027</div><div class="d">deadline for the full DPDP Act (data protection) rules. Consent-manager rules start Nov 2026</div><div class="s label">MeitY DPDP Rules 2025</div></div>
+    <div class="stat"><div class="n r">File mgrs</div><div class="d">Play allows "All files access" mainly for file managers, backup and antivirus apps. A reading app will most likely be refused</div><div class="s label">Play policy</div></div>
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">03 / 14</span></div>
+</section>
+
+<!-- ===== 04 Trends -> meaning ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">02 · Market research · what it means</span></div>
+  <h1 class="display">SIX TRENDS, SIX MOVES</h1>
+  <p class="intro">Each global or Indian trend and what StackForge should do about it.</p>
+  <table>
+    <tr><th style="width:44mm">Trend</th><th>Evidence</th><th style="width:66mm">What we do</th></tr>
+    <tr><td>India has started paying for apps</td><td>+35% spend, revenue per download 2×, UPI makes paying easy. Google One and AI apps top the charts</td><td><b>Charge from day one</b> for a small Plus plan (₹99/month or ₹799/year). Don't wait for "scale" to learn whether people will pay</td></tr>
+    <tr><td>AI moves from chatbots to vertical tools</td><td>ChatGPT and Claude earn 83% of India's AI app revenue. VCs pay 2–3× more for domain AI</td><td>Don't compete with general chatbots. <b>AI is a feature inside a job</b>: summarise my PDF, quiz my highlights, read this bill</td></tr>
+    <tr><td>Read-later apps are dying or getting expensive</td><td>Pocket and Omnivore are gone. Readwise costs $9.99/month, too much for most Indian users</td><td>Stack becomes the <b>affordable, open-source "read it and remember it" app</b>, with Pocket and Readwise import</td></tr>
+    <tr><td>Voice and Indian languages go mainstream</td><td>Voice-AI funding up ~25×. Sarvam and Bhashini offer Indian-language models</td><td>Add <b>Hindi read-aloud and Hindi summaries</b> to Stack. Build voice-first into every later app (BillBook, ScamShield)</td></tr>
+    <tr><td>India's public digital "stack" keeps growing</td><td>UPI, Account Aggregator (2.9B transactions), DigiLocker, ONDC</td><td>Later apps <b>plug into public rails</b> instead of scraping. The Cash-flow Report uses Account Aggregator</td></tr>
+    <tr><td>Privacy and trust are regulated now</td><td>The DPDP Act is fully in force by May 2027. There are 28 lakh cyber-fraud cases a year</td><td><b>Local-first + open source = trust.</b> Stack already works without an account. Publish a privacy page and data-export tool</td></tr>
+  </table>
+
+  <h2 class="display">WHO WE COMPETE WITH</h2>
+  <table>
+    <tr><th style="width:34mm">App</th><th>What it does well</th><th style="width:30mm">Price</th><th style="width:52mm">Stack's opening</th></tr>
+    <tr><td>Readwise Reader</td><td>Best highlights and spaced review</td><td>$9.99/mo</td><td>Around a tenth of the price, Android-first, PDFs + Hindi</td></tr>
+    <tr><td>Raindrop / Instapaper</td><td>Free bookmarking, clean reader</td><td>Free + Pro</td><td>They save; Stack <b>makes you remember</b></td></tr>
+    <tr><td>Google Keep / Notion</td><td>Notes everyone already has</td><td>Free</td><td>Notes are linked to their source and come back for review</td></tr>
+    <tr><td>Gemini Notebook (NotebookLM)</td><td>AI over your documents, quizzes</td><td>Free / Google One</td><td>Works offline, owns your reading habit, open source. <b>Biggest threat</b>: Google can bundle it free</td></tr>
+    <tr><td>Anki</td><td>Serious flashcards</td><td>Free (iOS paid)</td><td>No card-making: cards come from your own highlights</td></tr>
+  </table>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">04 / 14</span></div>
+</section>
+
+<!-- ===== 05 Name ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">03 · The name</span></div>
+  <h1 class="display">THE NEW NAME</h1>
+  <div style="display:flex; align-items:center; gap:6mm; background:var(--ink); color:#fff; border-radius:4mm; padding:7mm 7mm; margin:5mm 0 4mm">
+    <svg width="64" height="64" fill="#fff"><use href="#logo"/></svg>
+    <div><div class="display" style="font-size:44pt">STACKFORGE</div><div class="label" style="font-size:8pt; color:#BDBAB2; margin-top:2mm">StackForge Labs · makers of Stack</div></div>
+  </div>
+  <p class="intro" style="margin-top:0">The company was called <b>openstack</b> as a working name. OpenStack® is a registered trademark of the OpenStack Foundation (OpenInfra), now under the Linux Foundation, so the company is now <b>StackForge Labs</b>. Stack stays the main brand: the company <i>forges</i> apps, and each one is built on the same shared stack.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="tag label">Why it works</span>
+      <ul>
+        <li><b>Stack comes first</b>, so the company and its main app share one brand</li>
+        <li><b>"Forge" = a place where things are built</b>. It sounds like an engineering company and works in India and abroad</li>
+        <li>It fits every future app: <b>Stack</b>, <b>BillBook by StackForge</b>, <b>ScamShield by StackForge</b></li>
+        <li>The block logo (stacked blocks) matches the idea of forging blocks</li>
+      </ul></div>
+    <div class="card"><span class="tag t-red label">Watch out</span>
+      <ul>
+        <li>"StackForge" was also the name of OpenStack's old project area (retired in 2015). It's not an active brand, but check it isn't still registered as a trademark</li>
+        <li>Short "stack" names are popular, so <b>stackforge.com may be taken</b>. Plan for <b>stackforge.in</b>, <b>stackforgelabs.com</b> or <b>stackforge.app</b></li>
+        <li>Register the company as <b>"StackForge Labs"</b>, not just "StackForge", so the name is more distinctive</li>
+      </ul></div>
+  </div>
+
+  <h2 class="display">HOW THE BRAND LOOKS</h2>
+  <table>
+    <tr><th style="width:44mm">Where</th><th>Name</th></tr>
+    <tr><td>Company (registration)</td><td>StackForge Labs LLP / StackForge Labs Pvt Ltd</td></tr>
+    <tr><td>Main app</td><td>Stack: Read, Keep, Remember</td></tr>
+    <tr><td>Next apps</td><td>BillBook by StackForge · ScamShield by StackForge</td></tr>
+    <tr><td>Web, GitHub, social</td><td>stackforge.in (or stackforgelabs.com) · github.com/stackforge-labs · @stackforgelabs</td></tr>
+    <tr><td>Android app ID</td><td>Stays <code>com.chhari.stack</code> (changing it would make a new app on Play)</td></tr>
+  </table>
+
+  <h2 class="display">NAME CHECKLIST</h2>
+  <div class="band b1"><ul>
+    <li><span><b>IP India trademark search</b> for "StackForge" (ipindiaonline.gov.in) in classes 9 (software) and 42 (SaaS)</span></li>
+    <li><span><b>MCA name check</b> for "StackForge Labs" and buy the <b>.in + one .com/.app</b> domain</span></li>
+    <li><span>Claim the <b>Play Store developer name, GitHub org, X and Instagram</b> handles with the same spelling</span></li>
+    <li><span>Update the README banner, Firebase display name (project ID <code>openstack-28bf7</code> can't change, and that's fine) and the store listing</span></li>
+  </ul></div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">05 / 14</span></div>
+</section>
+
+<!-- ===== 06 Stack audit ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">04 · Stack · honest audit</span></div>
+  <h1 class="display">STACK TODAY</h1>
+  <p class="intro">Stack is well built: tested on emulators, with offline mode, sync, AI and native Android features. The risk isn't the code. <b>It's focus, platform rules and getting it to users.</b></p>
+
+  <div class="grid2">
+    <div class="card"><span class="tag label">Strengths</span>
+      <ul>
+        <li><b>Highlight → note → daily review</b>: the one loop no big app does for free on Android</li>
+        <li>Local-first and works without an account: a privacy advantage</li>
+        <li>Share to Stack from any app, PDF reader, focus sessions, streaks</li>
+        <li>AI already wired in: Summarize, Ask this PDF, Ask your Stack, Tidy note</li>
+        <li>Web + Android + tablet from one codebase; backup and restore</li>
+      </ul></div>
+    <div class="card"><span class="tag t-red label">Weaknesses</span>
+      <ul>
+        <li><b>Four apps in one</b> (news, music, PDFs, notes), so the store listing can't explain it in one line</li>
+        <li>Music and news are the least unique parts, and each fights a giant</li>
+        <li>No real users yet, so no data on what people actually use</li>
+        <li>AI defaults to Opus, which costs too much for a ₹99 plan</li>
+        <li>Solo founder with limited time</li>
+      </ul></div>
+  </div>
+
+  <h2 class="display">BLOCKERS BEFORE LAUNCH</h2>
+  <table>
+    <tr><th style="width:38mm">Blocker</th><th>Why it matters</th><th style="width:62mm">Fix</th></tr>
+    <tr><td>All files access</td><td>Play restricts <code>MANAGE_EXTERNAL_STORAGE</code> to file managers and similar apps. Stack will most likely be rejected</td><td>Ship a Play build with the <b>folder picker (SAF)</b> only; keep the "scan all" build for sideloading</td></tr>
+    <tr><td>Spotify</td><td>Capped at 25 users unless you're a business with 250K+ monthly users</td><td>Hide Spotify behind "bring your own Client ID" or remove it. Keep <b>phone music</b> for focus sessions</td></tr>
+    <tr><td>News full text</td><td>Reader mode shows other publishers' full articles, a copyright and policy risk</td><td>Show headline + summary + link. Full reader only for <b>items the user saved themselves</b> (read-later is common practice)</td></tr>
+    <tr><td>Play testing rule</td><td>12 testers × 14 days before going public (personal account)</td><td>Start closed testing <b>this week</b>, or register a company and use an organisation account</td></tr>
+    <tr><td>AI cost</td><td>Opus 5.5 costs $4/$20 per million tokens</td><td>Default to <b>Haiku 4.5</b> ($1/$5), cache results, and set a daily limit per user</td></tr>
+    <tr><td>Privacy page</td><td>Play requires one, and the DPDP Act will too</td><td>Write a simple page: what's stored, where, how to export or delete</td></tr>
+  </table>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">06 / 14</span></div>
+</section>
+
+<!-- ===== 07 Stack options ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">04 · Stack · all the possibilities</span></div>
+  <h1 class="display">FIVE WAYS STACK CAN GO</h1>
+  <p class="intro">Scored 1–5 on market size, ease of reaching users, willingness to pay, how well it fits what's already built, and competition (5 = weak competition).</p>
+  <table>
+    <tr><th style="width:44mm">Option</th><th>Who & what</th><th style="width:15mm">Market</th><th style="width:15mm">Reach</th><th style="width:15mm">Pay</th><th style="width:15mm">Fit</th><th style="width:15mm">Comp.</th></tr>
+    <tr><td>A · Read it &amp; remember it <span class="tag label">Pick</span></td><td>Students, developers and self-learners in India who save articles and PDFs and forget them. Highlights come back as review and quizzes</td><td><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+    <tr><td>B · Pocket replacement (global)</td><td>Former Pocket and Omnivore users worldwide: open-source, cheap, Pocket import</td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m2"><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+    <tr><td>C · Developer learning workspace</td><td>Devs reading HN, dev.to, docs and PDFs; notes that link back to sources; GitHub-friendly export</td><td><span class="meter m2"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+    <tr><td>D · Stack for institutes (B2B)</td><td>Coaching centres, bootcamps and colleges push PDFs to a batch; students highlight, get quizzed; teacher sees progress</td><td><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m2"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+    <tr><td>E · Keep it all-in-one</td><td>News + music + PDFs + notes for everyone, as today</td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m1"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m1"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td><span class="meter m1"><i></i><i></i><i></i><i></i><i></i></span></td></tr>
+  </table>
+
+  <div class="grid3" style="margin-top:4mm">
+    <div class="card"><span class="tag label">Start with A</span><p style="margin-top:1.6mm">Largest reachable group, matches what's already built, and the message fits in one line: <b>"Stack makes you remember what you read."</b></p></div>
+    <div class="card"><span class="tag t-blue label">Add B cheaply</span><p style="margin-top:1.6mm">A Pocket/Readwise/CSV importer plus an English store listing costs a week and opens global users who pay in dollars.</p></div>
+    <div class="card"><span class="tag t-org label">D once A works</span><p style="margin-top:1.6mm">After 1,000+ active users, sell a "batch" plan to 3–5 institutes. This is the most reliable money in Indian edtech.</p></div>
+  </div>
+
+  <h2 class="display">STACK A, IN ONE PICTURE</h2>
+  <div class="grid4">
+    <div class="band b5" style="margin:0"><div class="label" style="font-size:7pt">1 · Save</div>Share from Chrome, WhatsApp, Telegram, YouTube. PDFs and links land on a shelf</div>
+    <div class="band b2" style="margin:0"><div class="label" style="font-size:7pt">2 · Read</div>Clean reader + PDF viewer, focus timer, read-aloud (Hindi/English)</div>
+    <div class="band b6" style="margin:0"><div class="label" style="font-size:7pt">3 · Highlight</div>Select a line → note with its source. AI summary on tap</div>
+    <div class="band b3" style="margin:0"><div class="label" style="font-size:7pt">4 · Remember</div>Morning review: 3 highlights + a 3-question quiz. Streaks, weekly report</div>
+  </div>
+  <p class="note" style="margin-top:3mm">Music stays only as background audio in focus sessions. News becomes one optional source of things to save, not a headline feature.</p>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">07 / 14</span></div>
+</section>
+
+<!-- ===== 08 Business model ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">05 · How it makes money</span></div>
+  <h1 class="display">OPEN CORE, PAID EXTRAS</h1>
+  <p class="intro">Everything that works on the phone alone stays <b>free and open source</b>. People pay for what costs you money to run (sync, AI, storage) and for teams.</p>
+
+  <div class="grid3">
+    <div class="card" style="border-top:2mm solid var(--news)"><span class="tag label">Free · open source</span>
+      <div class="display" style="font-size:24pt; margin:2mm 0 1mm">₹0</div>
+      <ul><li>Save, read, highlight, notes</li><li>PDF reader, focus timer, streaks</li><li>Daily review (no AI quiz)</li><li>Backup/restore to a file</li><li>No account needed</li></ul></div>
+    <div class="card" style="border-top:2mm solid var(--music)"><span class="tag t-red label">Stack Plus</span>
+      <div class="display" style="font-size:24pt; margin:2mm 0 1mm">₹99<span style="font-size:11pt">/mo</span></div>
+      <div class="note">or ₹799/year · students ₹499/year · global $3.99/mo</div>
+      <ul><li>Cloud sync across phone, tablet, web</li><li>AI: summaries, quiz from highlights, Ask this PDF</li><li>Hindi read-aloud and summaries</li><li>Weekly learning report</li></ul></div>
+    <div class="card" style="border-top:2mm solid var(--blue)"><span class="tag t-blue label">Stack for Teams</span>
+      <div class="display" style="font-size:24pt; margin:2mm 0 1mm">₹30–50</div>
+      <div class="note">per student per month · min. 50 seats</div>
+      <ul><li>Teacher shares PDFs to a batch</li><li>Auto quizzes from the material</li><li>Progress dashboard</li><li>Institute branding</li></ul></div>
+  </div>
+
+  <h2 class="display">DOES THE MATHS WORK?</h2>
+  <table>
+    <tr><th style="width:62mm">Cost per Plus user / month</th><th>Assumption</th><th style="width:32mm">Approx.</th></tr>
+    <tr><td>AI on Haiku 4.5 ($1 in / $5 out per 1M tokens)</td><td>~60 AI actions a month × ~3K tokens in + 500 out ≈ $0.33, before caching</td><td>~₹30</td></tr>
+    <tr><td>Firebase (Firestore, Auth, hosting)</td><td>Light text data; free tier covers the first few thousand users</td><td>~₹0–5</td></tr>
+    <tr><td>Play billing fee</td><td>15% on subscriptions</td><td>~₹15</td></tr>
+    <tr><td><b>Gross margin on ₹99</b></td><td>Before tax and marketing. Caching and daily limits push AI cost lower</td><td><b>~50%+</b></td></tr>
+  </table>
+  <p class="note">Exchange rate ≈ ₹88/$. The same tasks on Opus 5.5 would cost ~4× more and wipe out the margin, so keep Opus for rare, hard tasks only.</p>
+
+  <h2 class="display">TARGETS</h2>
+  <div class="grid4">
+    <div class="stat"><div class="n g">1,000</div><div class="d">installs by end of Dec 2026</div></div>
+    <div class="stat"><div class="n o">25%</div><div class="d">still active on day 30 (a good consumer benchmark)</div></div>
+    <div class="stat"><div class="n r">3–5%</div><div class="d">of active users pay for Plus</div></div>
+    <div class="stat"><div class="n bl">₹1 lakh</div><div class="d">monthly revenue by Sep 2027 (e.g. ~700 Plus + 1 institute)</div></div>
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">08 / 14</span></div>
+</section>
+
+<!-- ===== 09 Company models ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">06 · StackForge · all the company possibilities</span></div>
+  <h1 class="display">WHAT KIND OF COMPANY?</h1>
+  <p class="intro">Six realistic shapes for the company. They can be combined. The recommended mix is at the bottom.</p>
+  <table>
+    <tr><th style="width:40mm">Model</th><th>How it earns</th><th style="width:40mm">Good</th><th style="width:40mm">Hard</th></tr>
+    <tr><td>1 · Product studio</td><td>Several small apps on one shared engine, each with a paid tier</td><td>Reuses code; a failed app doesn't sink the company</td><td>Spread too thin if more than one app is built at a time</td></tr>
+    <tr><td>2 · Open-source company</td><td>Free open core; paid sync, AI, hosting, support</td><td>Trust, free contributors, GitHub as marketing</td><td>Others can copy; needs a clear line between free and paid</td></tr>
+    <tr><td>3 · B2B SaaS</td><td>Monthly fees from businesses (institutes, accountants, banks)</td><td>Bigger, steadier cheques; buyers can say what they need</td><td>Slow sales, demos, support, invoices</td></tr>
+    <tr><td>4 · Services to fund products</td><td>Build apps for local shops and startups (you built Orderly, CloseBy, BillBook)</td><td>Cash now; finds real problems to turn into products</td><td>Eats the time meant for products</td></tr>
+    <tr><td>5 · Grants and incubators</td><td>Startup India Seed Fund (via incubators), state programmes such as iStart Rajasthan, MeitY schemes</td><td>Non-dilutive money, mentors, credibility</td><td>Paperwork; needs a registered entity and DPIIT recognition</td></tr>
+    <tr><td>6 · Venture-backed</td><td>Raise from angels or VCs to grow fast</td><td>Speed, hiring</td><td>Needs traction first; pressure to chase scale over usefulness</td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:4mm">
+    <span class="label">Recommended mix for the next 12 months</span><br>
+    <b>2 + 1 + a little 4.</b> An open-source product studio: one app at a time, the open core as marketing, paid Plus and Teams plans for revenue.
+    Take 1–2 small freelance builds only when cash is needed. Apply for <b>5</b> once you have a registered company and 1,000+ users. Consider <b>6</b> only after revenue proves people want it.
+  </div>
+
+  <h2 class="display">THE SHARED ENGINE</h2>
+  <p style="font-size:9pt; line-height:1.5">This is what makes the "stack" name meaningful. Every app reuses the same layers, so app #2 takes weeks, not months.</p>
+  <div class="grid3">
+    <div class="band b5" style="margin:0"><b>Capture</b><br>Share-in, camera/OCR, PDF, voice (Hindi + English)</div>
+    <div class="band b2" style="margin:0"><b>AI reads</b><br>Summarise, extract fields, explain in simple words (Haiku by default)</div>
+    <div class="band b3" style="margin:0"><b>Code decides</b><br>Rules engines: GST maths, policy limits, scam lists</div>
+    <div class="band b4" style="margin:0"><b>Person confirms</b><br>Clear screens that show why and let the user check</div>
+    <div class="band b6" style="margin:0"><b>Account &amp; sync</b><br>Firebase auth, local-first storage, export/delete (DPDP)</div>
+    <div class="band b1" style="margin:0"><b>Delivery</b><br>Next.js web + Capacitor Android, notifications, backup</div>
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">09 / 14</span></div>
+</section>
+
+<!-- ===== 10 App map ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">06 · StackForge · every app it could build</span></div>
+  <h1 class="display">THE APP MAP</h1>
+  <p class="intro">All 14 ideas from your <i>India's Real Problems</i> report plus Stack, sorted by <b>how much it helps and earns</b> against <b>how hard it is for a small team</b>.</p>
+  <div class="quad">
+    <div class="b5"><div class="row" style="display:flex; justify-content:space-between"><h3>BUILD NOW / NEXT</h3><span class="label" style="font-size:6.5pt">High value · doable</span></div>
+      <div style="margin-top:2.4mm">
+      <span class="chip">Stack <small>reading + memory</small></span>
+      <span class="chip">BillBook <small>GST reconciliation · accountants pay</small></span>
+      <span class="chip">ScamShield <small>₹22,495 cr lost in 2025</small></span>
+      <span class="chip">jobfit <small>already built</small></span>
+      </div></div>
+    <div class="b3"><div class="row" style="display:flex; justify-content:space-between"><h3>LATER, WITH PARTNERS</h3><span class="label" style="font-size:6.5pt">High value · hard</span></div>
+      <div style="margin-top:2.4mm">
+      <span class="chip">ClaimCheck <small>insurance · liability</small></span>
+      <span class="chip">Cash-flow Report <small>needs Account Aggregator licence partner</small></span>
+      <span class="chip">Mandi Board <small>farmer reach</small></span>
+      <span class="chip">Cold Store Finder</span>
+      <span class="chip">Golden-hour Help <small>108 integration</small></span>
+      </div></div>
+    <div class="b1"><div class="row" style="display:flex; justify-content:space-between"><h3>QUICK SIDE PROJECTS</h3><span class="label" style="font-size:6.5pt">Smaller value · easy</span></div>
+      <div style="margin-top:2.4mm">
+      <span class="chip">Complaint Builder <small>consumer helpline</small></span>
+      <span class="chip">Family Money Finder <small>unclaimed deposits</small></span>
+      <span class="chip">Clean Hours <small>air-quality alerts</small></span>
+      <span class="chip">Reading Buddy <small>kids' reading, could grow from Stack</small></span>
+      <span class="chip">Project Watch <small>housing delays</small></span>
+      </div></div>
+    <div class="b6"><div class="row" style="display:flex; justify-content:space-between"><h3>AVOID FOR NOW</h3><span class="label" style="font-size:6.5pt">Risky · hard</span></div>
+      <div style="margin-top:2.4mm">
+      <span class="chip">Care Finder <small>mental health, harm risk</small></span>
+      <span class="chip">Referral Helper <small>medical triage</small></span>
+      <span class="chip">Case Tracker <small>eCourts captcha, no API</small></span>
+      </div>
+      <p class="note" style="margin-top:2mm; color:#4a1210">Come back to these only with a doctor, lawyer or NGO partner.</p></div>
+  </div>
+
+  <h2 class="display">ORDER OF BUILDS</h2>
+  <table>
+    <tr><th style="width:18mm">#</th><th style="width:34mm">App</th><th>Why this order</th><th style="width:36mm">Money</th></tr>
+    <tr><td>1</td><td>Stack</td><td>Already built; teaches you launch, billing and support</td><td>Plus + Teams</td></tr>
+    <tr><td>2</td><td>BillBook</td><td>Clear buyer (CA firms, shops), a real monthly pain, and the plan is already written</td><td>₹299–999/mo per firm</td></tr>
+    <tr><td>3</td><td>ScamShield</td><td>Huge reach, reuses ScanCart's trust score; free for people, paid API for banks and fintechs</td><td>B2B API</td></tr>
+    <tr><td>4</td><td>ClaimCheck</td><td>Once there's revenue and a legal review; partner with a TPA or insurance broker</td><td>Per check / broker</td></tr>
+  </table>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">10 / 14</span></div>
+</section>
+
+<!-- ===== 11 Roadmap ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">07 · 12-month roadmap · Oct 2026 → Sep 2027</span></div>
+  <h1 class="display">TWELVE MONTHS</h1>
+  <p class="intro">Each quarter ends with a number to hit. If it's missed, the next quarter changes; don't just push the dates.</p>
+
+  <div class="band b1"><div class="row"><h3>Q4 2026 · FOCUS &amp; LAUNCH</h3><span class="label" style="font-size:7.5pt">Oct–Dec</span></div>
+    <ul>
+      <li><span>Lock in <b>StackForge</b>: trademark search, domain and handles; update README and banner</span></li>
+      <li><span>Narrow Stack to <b>Save → Read → Highlight → Remember</b>; hide Spotify; news becomes a source, not a tab-one feature</span></li>
+      <li><span>Fix Play blockers: folder picker build, privacy page, Haiku default, AI daily limits</span></li>
+      <li><span>Add <b>quiz from highlights</b> + <b>Pocket/Readwise import</b>; start <b>closed testing (12 × 14)</b> in week 1</span></li>
+      <li><span>Public launch on Play + web; open-source the repo; post on Reddit, dev.to, Product Hunt, college groups</span></li>
+    </ul><p style="margin-top:1.4mm"><b>Goal:</b> 1,000 installs · 25% active on day 30</p></div>
+
+  <div class="band b2"><div class="row"><h3>Q1 2027 · CHARGE &amp; LEARN</h3><span class="label" style="font-size:7.5pt">Jan–Mar</span></div>
+    <ul>
+      <li><span>Launch <b>Stack Plus</b> (Play Billing + web with Razorpay); student pricing</span></li>
+      <li><span>Hindi read-aloud and summaries; weekly learning report</span></li>
+      <li><span>Interview 20 users a month; drop features nobody uses</span></li>
+      <li><span>Start <b>BillBook</b> discovery: 10 conversations with CA firms and shop owners</span></li>
+    </ul><p style="margin-top:1.4mm"><b>Goal:</b> 3,000 installs · first 50 paying users</p></div>
+
+  <div class="band b3"><div class="row"><h3>Q2 2027 · REGISTER &amp; COMPLY</h3><span class="label" style="font-size:7.5pt">Apr–Jun</span></div>
+    <ul>
+      <li><span>Register an <b>LLP or Pvt Ltd</b>; apply for <b>DPIIT Startup India</b> recognition; organisation Play account</span></li>
+      <li><span><b>DPDP compliance by 13 May 2027</b>: consent screens, data export/delete, breach plan</span></li>
+      <li><span>Pilot <b>Stack for Teams</b> with 1–2 institutes or bootcamps</span></li>
+      <li><span>BillBook MVP with 5 pilot firms; apply to an incubator / Seed Fund</span></li>
+    </ul><p style="margin-top:1.4mm"><b>Goal:</b> 200 paying users · 1 paid institute · 5 BillBook pilots</p></div>
+
+  <div class="band b4"><div class="row"><h3>Q3 2027 · DECIDE &amp; EXPAND</h3><span class="label" style="font-size:7.5pt">Jul–Sep</span></div>
+    <ul>
+      <li><span>Review: is Stack growing on its own? Then double down. If not, make it a free tool and focus on BillBook</span></li>
+      <li><span>BillBook paid launch; start ScamShield prototype on the shared engine</span></li>
+      <li><span>First hire or co-founder only if revenue covers ~6 months of costs</span></li>
+    </ul><p style="margin-top:1.4mm"><b>Goal:</b> ₹1 lakh monthly revenue across products</p></div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">11 / 14</span></div>
+</section>
+
+<!-- ===== 12 Metrics + risks ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">08 · Metrics &amp; major problems</span></div>
+  <h1 class="display">NUMBERS TO WATCH</h1>
+  <table>
+    <tr><th style="width:48mm">Metric</th><th>Why it matters</th><th style="width:28mm">Healthy</th><th style="width:28mm">Rethink if</th></tr>
+    <tr><td>Day-30 retention</td><td>Do people come back after the first excitement?</td><td>≥ 25%</td><td>&lt; 10%</td></tr>
+    <tr><td>Reviews done / active user / week</td><td>Is the "remember" loop actually used?</td><td>≥ 4</td><td>&lt; 1</td></tr>
+    <tr><td>Items saved via Share</td><td>Has Stack become a habit in other apps?</td><td>≥ 5 / week</td><td>&lt; 1 / week</td></tr>
+    <tr><td>Free → Plus conversion</td><td>Will people pay?</td><td>3–5%</td><td>&lt; 1%</td></tr>
+    <tr><td>AI cost / paying user</td><td>Does each sale make money?</td><td>&lt; ₹35</td><td>&gt; ₹60</td></tr>
+  </table>
+
+  <h2 class="display">MAJOR PROBLEMS &amp; HOW TO HANDLE THEM</h2>
+  <table>
+    <tr><th style="width:40mm">Problem</th><th>What could happen</th><th style="width:64mm">What to do</th></tr>
+    <tr><td>Name / trademark</td><td>Forced rename after launch; lost search ranking</td><td>Renamed to StackForge; finish the checks on page 5</td></tr>
+    <tr><td>Big-tech bundling</td><td>Google ships Gemini Notebook free with Android</td><td>Win on habit, offline use, Hindi, open source and price; stay small and fast</td></tr>
+    <tr><td>Platform rules</td><td>Play rejects the app; Spotify caps users</td><td>Folder picker, no Spotify dependency, privacy page (page 6)</td></tr>
+    <tr><td>Low willingness to pay</td><td>Users love it but won't pay ₹99</td><td>Student price, yearly plan, UPI; Teams plan for institutes; global pricing in dollars</td></tr>
+    <tr><td>AI cost and mistakes</td><td>Bills grow faster than revenue; wrong summaries</td><td>Haiku default, caching, limits; always show the source; "AI reads, code decides, person confirms"</td></tr>
+    <tr><td>Copyright</td><td>Publisher complaints about full-text news</td><td>Summaries + links; full text only for saves the user made</td></tr>
+    <tr><td>Data protection (DPDP)</td><td>Fines, loss of trust</td><td>Local-first, minimal data, export/delete, consent screens by May 2027</td></tr>
+    <tr><td>Distribution</td><td>Great app, no users; the most common failure</td><td>Build in public, open-source repo, college and dev communities, weekly posts, referral rewards</td></tr>
+    <tr><td>Solo founder, split time</td><td>Burnout; job search competes with the company</td><td>Fixed weekly hours, one app at a time, look for a co-founder among early users</td></tr>
+    <tr><td>Doing too much</td><td>Building a new app before Stack has users</td><td><b>Rule:</b> no new product until the current one hits its quarter goal</td></tr>
+  </table>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">12 / 14</span></div>
+</section>
+
+<!-- ===== 13 First 30 days ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">09 · Start here</span></div>
+  <h1 class="display">THE FIRST 30 DAYS</h1>
+  <p class="intro">Small, concrete steps. By day 30 Stack is in real people's hands and you have your first real numbers.</p>
+
+  <div class="band b5"><div class="row"><h3>WEEK 1 · NAME &amp; TESTERS</h3><span class="label" style="font-size:7.5pt">1–7 Oct</span></div>
+    <ul>
+      <li><span>Shortlist 3 names → IP India + domain + handle check → pick one</span></li>
+      <li><span>Create the Play Console account; upload a folder-picker build to <b>closed testing</b>; invite 15+ testers (the clock starts now)</span></li>
+      <li><span>Switch the AI default to Haiku 4.5; set a daily limit</span></li>
+    </ul></div>
+  <div class="band b2"><div class="row"><h3>WEEK 2 · NARROW</h3><span class="label" style="font-size:7.5pt">8–14 Oct</span></div>
+    <ul>
+      <li><span>New home screen: <b>Continue reading · Today's review · Saved</b>. Music moves inside Focus; Spotify hidden</span></li>
+      <li><span>News → summary + link; reader only for saved items</span></li>
+      <li><span>Privacy page + data export/delete in Settings</span></li>
+    </ul></div>
+  <div class="band b3"><div class="row"><h3>WEEK 3 · THE NEW LOOP</h3><span class="label" style="font-size:7.5pt">15–21 Oct</span></div>
+    <ul>
+      <li><span><b>Quiz from highlights</b> in the morning review (3 questions, cached)</span></li>
+      <li><span><b>Import</b> from Pocket CSV / Readwise / browser bookmarks</span></li>
+      <li><span>Simple analytics: installs, day-1/7/30 active, reviews done</span></li>
+    </ul></div>
+  <div class="band b4"><div class="row"><h3>WEEK 4 · LAUNCH &amp; LISTEN</h3><span class="label" style="font-size:7.5pt">22–31 Oct</span></div>
+    <ul>
+      <li><span>Store listing: <b>"Stack: Read, Keep, Remember"</b>, 5 screenshots, 30-second video</span></li>
+      <li><span>Open-source the repo with a clean README; post a build story on dev.to, Reddit and LinkedIn</span></li>
+      <li><span>Talk to 10 users; write down the top 3 complaints; fix only those</span></li>
+    </ul></div>
+
+  <div class="inked" style="margin-top:3mm">
+    <span class="label">Rules for yourself</span><br>
+    1 · No new features until 10 real users have given feedback. &nbsp; 2 · One product at a time. &nbsp;
+    3 · Every change must make <b>save → highlight → remember</b> better. &nbsp; 4 · Look at the numbers every Sunday.
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">13 / 14</span></div>
+</section>
+
+<!-- ===== 14 Sources ===== -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">10 · Sources · checked 29.09.2026</span></div>
+  <h1 class="display">SOURCES</h1>
+  <p class="intro">Market-size reports come from paid research firms and often disagree. Figures marked "estimate" come from third-party blogs, not the company. The AI prices are Anthropic's list prices from September 2026.</p>
+  <div class="src">
+    <p><b>India app spending, non-gaming share, revenue per download</b><br><a href="https://techcrunch.com/2026/07/31/india-is-starting-to-pay-for-apps-not-just-download-them/">techcrunch.com/2026/07/31/india-is-starting-to-pay-for-apps…</a><br><a href="https://sensortower.com/blog/india-mobile-market-q1-2026">sensortower.com/blog/india-mobile-market-q1-2026</a></p>
+    <p><b>Internet users in India</b><br><a href="https://bestmediainfo.com/insights/indias-internet-users-near-one-billion-in-2025-rural-india-leads-growth-iamai-11056899">bestmediainfo.com · IAMAI-Kantar 2025</a></p>
+    <p><b>Note-taking app market</b><br><a href="https://www.thebusinessresearchcompany.com/report/note-taking-app-global-market-report">thebusinessresearchcompany.com · note-taking app report</a><br><a href="https://www.marketresearchfuture.com/reports/note-taking-app-market-27737">marketresearchfuture.com · note-taking app market</a></p>
+    <p><b>Pocket shutdown and alternatives</b><br><a href="https://9to5mac.com/2025/05/28/pocket-read-it-later-alternatives/">9to5mac.com/2025/05/28/pocket-read-it-later-alternatives</a><br><a href="https://techcrunch.com/2026/08/14/read-it-later-app-pocket-is-shutting-down-here-are-the-best-alternatives/">techcrunch.com · Pocket alternatives</a></p>
+    <p><b>Readwise pricing and estimates</b><br><a href="https://readwise.io/pricing/reader">readwise.io/pricing/reader</a><br><a href="https://www.fueler.io/blog/readwise-usage-revenue-valuation-growth-statistics">fueler.io · Readwise statistics (estimate)</a></p>
+    <p><b>India edtech</b><br><a href="https://www.skydo.com/blog/edtech-market-india">skydo.com/blog/edtech-market-india</a><br><a href="https://www.entrepreneurindia.com/blog/en/news/from-physicswallah-to-great-learning-indias-edtech-sector-enters-a-new-race-for-sustainable-growth.60795">entrepreneurindia.com · PhysicsWallah to Great Learning</a></p>
+    <p><b>AI startups, vertical AI and voice AI in India</b><br><a href="https://india.entrepreneur.com/technology/one-fourth-startups-in-india-is-now-an-ai-company-tracxn-report-2026">entrepreneur.com · Tracxn report 2026</a><br><a href="https://marketbites.substack.com/p/why-india-suddenly-has-so-many-voice">marketbites.substack.com · voice AI startups</a></p>
+    <p><b>Cyber fraud losses 2025</b><br><a href="https://theprint.in/india/cybercrime-saw-24-spike-in-2025-indians-lost-rs-22495-crore-mainly-in-investment-scams/2859930/">theprint.in · ₹22,495 crore lost in 2025</a></p>
+    <p><b>Account Aggregator</b><br><a href="https://sahamati.org.in/">sahamati.org.in</a><br><a href="https://www.business-standard.com/finance/news/nbfcs-lead-account-aggregator-consents-in-fy25-with-60-share-125100600872_1.html">business-standard.com · AA consents FY25</a></p>
+    <p><b>OpenStack trademark</b><br><a href="https://openinfra.org/legal/trademark-policy/">openinfra.org/legal/trademark-policy</a><br><a href="https://www.linuxfoundation.org/press/open-infrastructure-foundation-board-announces-intent-to-join-the-linux-foundation">linuxfoundation.org · OpenInfra joins LF</a></p>
+    <p><b>Spotify Web API quota rules</b><br><a href="https://community.spotify.com/t5/Spotify-for-Developers/Clarification-on-Extended-Quota-Mode-Eligibility/td-p/7503072">community.spotify.com · extended quota eligibility</a></p>
+    <p><b>Google Play rules</b><br><a href="https://support.google.com/googleplay/android-developer/answer/10467955">Play Console Help · All files access</a><br><a href="https://support.google.com/googleplay/android-developer/answer/14151465">Play Console Help · testing for new personal accounts</a></p>
+    <p><b>DPDP Rules 2025</b><br><a href="https://static.pib.gov.in/WriteReadData/specificdocs/documents/2025/nov/doc20251117695301.pdf">pib.gov.in · DPDP Rules 2025 notified</a><br><a href="https://en.wikipedia.org/wiki/Digital_Personal_Data_Protection_Rules,_2025">wikipedia · DPDP Rules 2025</a></p>
+    <p><b>Open-core business model</b><br><a href="https://en.wikipedia.org/wiki/Open-core_model">wikipedia · Open-core model</a></p>
+    <p><b>MSME billing apps (BillBook context)</b><br><a href="https://vyaparapp.in/">vyaparapp.in</a></p>
+    <p><b>Problem areas and app ideas</b><br>India's Real Problems report (Sept 2026), same folder: <code>India_Problems_Report.pdf</code></p>
+  </div>
+  <div class="foot"><span class="label">StackForge × Stack · the plan</span><span class="label">14 / 14</span></div>
+</section>
+</body>
+</html>

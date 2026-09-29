@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "./logo";
-import { DiscIcon, HomeIcon, MenuIcon, NewsIcon, NoteIcon, ShelfIcon } from "./icons";
+import { DiscIcon, HomeIcon, MenuIcon, NewsIcon, NoteIcon, SearchIcon, ShelfIcon } from "./icons";
 
 const TABS = [
   { href: "/", label: "Today", Icon: HomeIcon, dot: "bg-music" },
@@ -71,10 +71,20 @@ export function NavRail() {
         );
       })}
       <Link
+        href="/search"
+        aria-label="Search everything"
+        aria-current={path.startsWith("/search") ? "page" : undefined}
+        className={`mt-auto flex size-12 items-center justify-center rounded-2xl ${
+          path.startsWith("/search") ? "bg-card text-ink" : "text-muted"
+        }`}
+      >
+        <SearchIcon size={22} />
+      </Link>
+      <Link
         href="/settings"
         aria-label="Settings"
         aria-current={path.startsWith("/settings") ? "page" : undefined}
-        className={`mt-auto flex size-12 items-center justify-center rounded-2xl ${
+        className={`flex size-12 items-center justify-center rounded-2xl ${
           path.startsWith("/settings") ? "bg-card text-ink" : "text-muted"
         }`}
       >

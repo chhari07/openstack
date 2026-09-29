@@ -16,6 +16,8 @@ import { useStore } from "@/lib/use-store";
 import { openPdf, pdfjs } from "@/lib/pdf";
 import { paintHighlights } from "@/lib/highlights";
 import { clock } from "@/lib/format";
+import { ZoomInIcon, ZoomOutIcon } from "@/components/stack-icons";
+import { AiPdfButton } from "@/components/ai-pdf-chat";
 
 const MIN_PER_PAGE = 1.5; // rough reading pace for the "time left" pill
 
@@ -204,13 +206,14 @@ function PdfReader() {
               <ClockIcon size={20} />
             </Link>
           )}
+          {meta && <AiPdfButton id={id} title={meta.title} page={page} onPage={setPage} />}
           <button
             aria-label={zoom === 1 ? "Zoom in" : "Fit to width"}
             aria-pressed={zoom !== 1}
             onClick={() => setZoom((z) => (z === 1 ? 1.6 : 1))}
-            className="size-11 text-[16px] font-semibold"
+            className="flex size-11 items-center justify-center"
           >
-            Aa
+            {zoom === 1 ? <ZoomInIcon size={21} /> : <ZoomOutIcon size={21} />}
           </button>
         </div>
         <div className="mt-1.5 h-0.5 bg-rule">

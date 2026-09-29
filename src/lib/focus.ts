@@ -23,7 +23,14 @@ export type FocusSession = {
   pausedMs: number; // total time spent paused
   endedAt?: number; // set when finished (time up or ended early)
   startPage?: number; // PDF page when the session began
+  pomo?: Pomodoro; // set when this session is part of a Pomodoro cycle
 };
+
+// Pomodoro: ROUNDS focus rounds with short breaks between them and a long
+// break after the last. Breaks are sessions too, but aren't counted as focus.
+export type Pomodoro = { round: number; brk?: boolean; music?: boolean }; // music: play it again after a break
+export const POMO = { rounds: 4, focus: 25, short: 5, long: 15 };
+export const breakMinutes = (round: number) => (round >= POMO.rounds ? POMO.long : POMO.short);
 
 export type FocusRecord = {
   id: string;

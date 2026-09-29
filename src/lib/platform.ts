@@ -8,8 +8,17 @@ import type { Story, Topic } from "./news";
 // True inside the Android app (Capacitor), false on the website.
 export const isNative = () => Capacitor.isNativePlatform();
 
+// The Google Play build (`./build-aab.sh`). Play doesn't allow "All files
+// access" for a reading app, and Spotify caps small apps at 25 users, so that
+// build leaves both out. The sideloaded APK and the website keep them.
+export const PLAY_BUILD = process.env.NEXT_PUBLIC_STACK_STORE === "play";
+
 // Website: ask our API routes. App: fetch the sources straight from the phone.
 export async function loadNews(topic: Topic, fresh = false): Promise<Story[]> {
+  if (topic === "mine") {
+    const { loadMyFeeds } = await import("./feeds");
+    return loadMyFeeds(fresh);
+  }
   if (isNative()) {
     const { getNews } = await import("./news");
     return getNews(topic, fresh);

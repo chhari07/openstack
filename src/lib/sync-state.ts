@@ -5,7 +5,7 @@
 // them. Kept separate from sync.ts so the storage layer doesn't load Firebase.
 import { get, update } from "idb-keyval";
 
-export type Collection = "notes" | "saved" | "pdfs" | "playlists" | "focus" | "profile";
+export type Collection = "notes" | "saved" | "pdfs" | "playlists" | "focus" | "profile" | "feeds";
 
 // v: bumped on every change, so a change made during an upload isn't cleared.
 export type Change = { op: "put" | "del"; v: number };

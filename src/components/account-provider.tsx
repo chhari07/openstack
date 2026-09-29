@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
-import { cloud, cloudConfigured, signOutCloud } from "@/lib/cloud";
+import { cloud, cloudConfigured, deleteAccount as deleteCloudAccount, signOutCloud } from "@/lib/cloud";
 import { getProfile, saveProfile } from "@/lib/profile";
 import { squareJpeg } from "@/lib/image";
 import { onChange, pendingChanges } from "@/lib/sync-state";
@@ -50,6 +50,8 @@ type Ctx = {
   // Resolves to the number of changes that couldn't be uploaded; with
   // removeFromDevice (and not force) nothing is signed out if that isn't 0.
   signOut: (removeFromDevice: boolean, force?: boolean) => Promise<{ unsynced: number }>;
+  // Deletes the account and everything in it, then Stack's data on this device.
+  deleteAccount: (password?: string) => Promise<void>;
 };
 
 const AccountCtx = createContext<Ctx | null>(null);
@@ -138,8 +140,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     return { unsynced };
   }, []);
 
+  const deleteAccount = useCallback(async (password?: string) => {
+    await deleteCloudAccount(password);
+    await clearLocalData();
+    try {
+      localStorage.removeItem(OWNER_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   return (
-    <AccountCtx.Provider value={{ configured, ready, user, sync, syncNow, signOut }}>
+    <AccountCtx.Provider value={{ configured, ready, user, sync, syncNow, signOut, deleteAccount }}>
       {children}
     </AccountCtx.Provider>
   );

@@ -17,6 +17,8 @@ import { AddToPlaylistSheet, PlaylistsRail } from "./playlist-parts";
 import { mmss, plural } from "@/lib/format";
 import { LocalMusic, type LocalTrack } from "@/lib/local-music";
 import { PhoneFiles } from "@/lib/phone-files";
+import { PLAY_BUILD } from "@/lib/platform";
+import { MusicNoteIcon } from "./stack-icons";
 
 type Sort = "title" | "artist" | "recent";
 
@@ -115,21 +117,36 @@ export function LocalView() {
             <p className="text-[14px] leading-relaxed">
               Stack can play the songs stored on this phone, with controls in
               the notification and on the lock screen.
-              <b> All files access</b> lets it find your music and every PDF;
-              Android shows a switch for Stack.
+              {!PLAY_BUILD && (
+                <>
+                  <b> All files access</b> lets it find your music and every
+                  PDF; Android shows a switch for Stack.
+                </>
+              )}
             </p>
-            <button
-              onClick={() => PhoneFiles.requestAllFiles().catch(() => {})}
-              className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink"
-            >
-              Allow access to all files
-            </button>
-            <button
-              onClick={ask}
-              className="h-11 rounded-full border border-ink/15 text-[14px] font-semibold"
-            >
-              Music only
-            </button>
+            {PLAY_BUILD ? (
+              <button
+                onClick={ask}
+                className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink"
+              >
+                Allow music
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => PhoneFiles.requestAllFiles().catch(() => {})}
+                  className="h-12 rounded-full bg-ink text-[15px] font-semibold text-on-ink"
+                >
+                  Allow access to all files
+                </button>
+                <button
+                  onClick={ask}
+                  className="h-11 rounded-full border border-ink/15 text-[14px] font-semibold"
+                >
+                  Music only
+                </button>
+              </>
+            )}
             {permission === "denied" && (
               <p className="text-[12px] text-muted">
                 If nothing happens, Android has blocked the prompt: open
@@ -160,7 +177,7 @@ export function LocalView() {
                   />
                 ) : (
                   <span className="display text-[120px] text-white/90">
-                    {(s.title ?? "♪").slice(0, 1).toUpperCase()}
+                    {s.title ? s.title.slice(0, 1).toUpperCase() : <MusicNoteIcon size={110} />}
                   </span>
                 )}
               </div>

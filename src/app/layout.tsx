@@ -8,6 +8,7 @@ import { LocalMusicProvider } from "@/components/local-music-provider";
 import { FocusProvider } from "@/components/focus-provider";
 import { AccountProvider } from "@/components/account-provider";
 import { FirstRun } from "@/components/first-run";
+import { StatusScrim } from "@/components/status-scrim";
 import { THEME_BOOT } from "@/lib/theme-boot";
 import "./globals.css";
 
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NativeBoot />
               <FirstRun />
               <NavRail />
+              <StatusScrim />
               {/* Phones: one column (centred on the "desk" on wide screens without the rail).
                   Tablets (768px+): full width beside the navigation rail. */}
               <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-paper pt-[env(safe-area-inset-top)] shadow-[0_0_60px_rgba(0,0,0,.06)] md:max-w-none md:pl-[var(--rail)] md:shadow-none">

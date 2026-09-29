@@ -4,16 +4,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/toast";
 import { useAccount } from "@/components/account-provider";
-import { ProfileEditor } from "@/components/profile-editor";
+import { explainAuth, SignInCancelled, signInMethod } from "@/lib/cloud";
+import { MeStatsView, ProfileHero } from "@/components/me-profile";
 import { SignInPanel } from "@/components/sign-in";
 import { Sheet } from "@/components/sheet";
 import { BackIcon } from "@/components/icons";
 import { canGoBack } from "@/lib/nav";
 import { noteTime } from "@/lib/format";
+import { SignOutIcon, SyncIcon } from "@/components/stack-icons";
 
 export default function Account() {
   const router = useRouter();
-  const { configured, ready, user, sync, syncNow, signOut } = useAccount();
+  const { configured, ready, user, sync, syncNow, signOut, deleteAccount } = useAccount();
+  const [deleting, setDeleting] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
   const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState<"keep" | "remove" | null>(null);
   const [unsynced, setUnsynced] = useState(0); // changes that would be lost
@@ -27,6 +33,20 @@ export default function Account() {
     setLeaving(false);
     setUnsynced(0);
     toast({ text: remove ? "Signed out and removed from this phone" : "Signed out. Your things are still on this phone." });
+  };
+  const removeAccount = async () => {
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount(password || undefined);
+      setDeleting(false);
+      setPassword("");
+      toast({ text: "Your account and its data have been deleted" });
+    } catch (e) {
+      if (!(e instanceof SignInCancelled)) setDeleteError(explainAuth(e));
+    } finally {
+      setDeleteBusy(false);
+    }
   };
   const back = () => (canGoBack() ? router.back() : router.push("/"));
 
@@ -51,9 +71,10 @@ export default function Account() {
       <div className="mx-auto max-w-[560px]">
         <h1 className="display -ml-1.5 mt-3 text-[clamp(84px,28vw,150px)]">YOU</h1>
 
-        <section className="mt-7">
-          <ProfileEditor />
-        </section>
+        <div className="mt-7">
+          <ProfileHero />
+          <MeStatsView />
+        </div>
 
         <h2 className="label mt-9 text-[11px] font-medium">Account &amp; sync</h2>
         {ready && user && (
@@ -78,14 +99,25 @@ export default function Account() {
               <button
                 onClick={() => syncNow()}
                 disabled={sync.state === "syncing"}
-                className="h-12 grow rounded-full bg-ink text-[15px] font-semibold text-on-ink disabled:opacity-50"
+                className="flex h-12 grow items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-semibold text-on-ink disabled:opacity-50"
               >
+                <SyncIcon size={18} className={sync.state === "syncing" ? "animate-spin" : ""} />
                 Sync now
               </button>
-              <button onClick={() => setLeaving(true)} className="h-12 grow rounded-full border border-ink/20 text-[15px] font-semibold">
+              <button
+                onClick={() => setLeaving(true)}
+                className="flex h-12 grow items-center justify-center gap-2 rounded-full border border-ink/20 text-[15px] font-semibold"
+              >
+                <SignOutIcon size={18} />
                 Sign out
               </button>
             </div>
+            <button
+              onClick={() => setDeleting(true)}
+              className="self-start text-[12px] text-muted underline"
+            >
+              Delete account
+            </button>
           </div>
         )}
         {ready && !user && (
@@ -157,6 +189,55 @@ export default function Account() {
             </button>
           </>
         )}
+      </Sheet>
+
+      <Sheet
+        open={deleting}
+        onClose={() => {
+          if (deleteBusy) return;
+          setDeleting(false);
+          setDeleteError(null);
+          setPassword("");
+        }}
+        title="Delete your account?"
+      >
+        <p className="text-[15px] leading-relaxed">
+          This deletes your Stack account for good: every synced note, highlight, saved article, playlist, your
+          profile and any PDFs stored in your account. Stack’s data on this phone is removed too. It can’t be undone.
+        </p>
+        <p className="text-[13px] leading-relaxed text-muted">
+          Want a copy first? Settings → Backup saves everything to a file.
+        </p>
+        {signInMethod() === "password" && (
+          <input
+            type="password"
+            autoComplete="current-password"
+            aria-label="Password"
+            placeholder="Your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-12 rounded-full border border-ink/15 bg-card px-4 text-[15px] outline-none"
+          />
+        )}
+        {deleteError && <p className="text-[13px] text-music-deep">{deleteError}</p>}
+        <button
+          disabled={deleteBusy || (signInMethod() === "password" && !password)}
+          onClick={removeAccount}
+          className="h-12 rounded-full bg-music text-[15px] font-semibold text-white disabled:opacity-50"
+        >
+          {deleteBusy
+            ? "Deleting…"
+            : signInMethod() === "google"
+              ? "Confirm with Google and delete"
+              : "Delete my account"}
+        </button>
+        <button
+          disabled={deleteBusy}
+          onClick={() => setDeleting(false)}
+          className="h-12 rounded-full border border-ink/15 text-[15px] font-semibold disabled:opacity-50"
+        >
+          Keep my account
+        </button>
       </Sheet>
     </main>
   );

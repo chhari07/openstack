@@ -8,10 +8,17 @@ import { NewsCards } from "@/components/news-cards";
 import { RefreshLogo, usePullToRefresh } from "@/components/pull-refresh";
 import { useToast } from "@/components/toast";
 import { Logo } from "@/components/logo";
-import { CloseIcon, SearchIcon } from "@/components/icons";
+import { CloseIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { useNews, type Topic } from "@/lib/use-news";
 import { isTopic, TOPICS } from "@/lib/news";
 import { dayStamp } from "@/lib/format";
+import { getProfile } from "@/lib/profile";
+import { useStore } from "@/lib/use-store";
+import { CardsIcon, ListViewIcon } from "@/components/stack-icons";
+import { TopicIcon } from "@/components/topic-icon";
+import { FeedsSheet } from "@/components/feeds-sheet";
+import { RssIcon } from "@/components/stack-icons";
+import { getFeeds } from "@/lib/feeds";
 
 const TOPIC_KEY = "stack.news-topic";
 const VIEW_KEY = "stack.news-view";
@@ -53,6 +60,22 @@ export default function News() {
   );
   const searchRef = useRef<HTMLInputElement>(null);
   const news = useNews(topic);
+  // Your profile interests come right after "Top".
+  const [profile] = useStore(getProfile, { id: "me", updatedAt: 0 });
+  const [feeds, feedsReady] = useStore(getFeeds, []);
+  const [managing, setManaging] = useState(false);
+  const noFeeds = topic === "mine" && feedsReady && feeds.length === 0;
+  const topics = useMemo(() => {
+    const mine = profile.interests ?? [];
+    return [
+      TOPICS[0],
+      ...mine.flatMap((t) => TOPICS.filter((x) => x.value === t && x.value !== "top")),
+      // Your own feeds come right after your interests.
+      ...TOPICS.slice(1)
+        .filter((x) => !mine.includes(x.value))
+        .sort((a, b) => Number(b.value === "mine") - Number(a.value === "mine")),
+    ].map((t) => ({ ...t, icon: <TopicIcon topic={t.value} size={14} /> }));
+  }, [profile.interests]);
   const toast = useToast();
   const page = useRef<HTMLElement>(null);
   const [busy, setBusy] = useState(false);
@@ -128,9 +151,10 @@ export default function News() {
                 role="tab"
                 aria-selected={view === v}
                 onClick={() => setView(v)}
-                className={`label h-7 rounded-full px-2.5 text-[10px] ${view === v ? "bg-ink text-on-ink" : ""}`}
+                aria-label={v === "cards" ? "Cards" : "List"}
+                className={`flex h-7 w-9 items-center justify-center rounded-full ${view === v ? "bg-ink text-on-ink" : ""}`}
               >
-                {v === "cards" ? "Cards" : "List"}
+                {v === "cards" ? <CardsIcon size={16} /> : <ListViewIcon size={16} />}
               </button>
             ))}
           </div>
@@ -188,11 +212,41 @@ export default function News() {
       <div className={cards ? "mt-3 mb-3 shrink-0" : "mt-4"}>
         <Chips
           label="Topic"
-          options={TOPICS}
+          options={topics}
           value={topic}
           onChange={setTopic}
         />
       </div>
+
+      {topic === "mine" && feeds.length > 0 && (
+        <div className={`flex items-center justify-between ${cards ? "-mt-1 mb-2 shrink-0" : "mt-3"}`}>
+          <span className="label truncate text-[10px] text-muted">
+            {feeds.length} feed{feeds.length === 1 ? "" : "s"} · {feeds.map((f) => f.title).join(", ")}
+          </span>
+          <button onClick={() => setManaging(true)} className="label shrink-0 pl-3 text-[10px] underline">
+            Manage
+          </button>
+        </div>
+      )}
+
+      {noFeeds ? (
+        <div className="flex grow flex-col items-center justify-center gap-3 py-12 text-center">
+          <span className="flex size-16 items-center justify-center rounded-full bg-news-tint text-news-deep">
+            <RssIcon size={30} />
+          </span>
+          <p className="text-[19px] font-bold">Your own news feeds</p>
+          <p className="max-w-[300px] text-[14px] leading-relaxed text-muted">
+            Follow any blog, magazine or site with an RSS feed. Their stories show up here.
+          </p>
+          <button
+            onClick={() => setManaging(true)}
+            className="mt-2 flex h-12 items-center gap-2 rounded-full bg-ink px-6 text-[15px] font-semibold text-on-ink"
+          >
+            <PlusIcon size={16} /> Add a feed
+          </button>
+        </div>
+      ) : (
+        <>
 
       {cards && (
         <>
@@ -260,6 +314,10 @@ export default function News() {
         </>
       )}
 
+        </>
+      )}
+
+      <FeedsSheet open={managing} onClose={() => setManaging(false)} onChange={() => topic === "mine" && news.refresh()} />
       <RefreshLogo pull={pull} busy={busy} />
       <TabBar />
     </main>

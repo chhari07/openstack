@@ -18,6 +18,7 @@ import {
   type SpPlaylist,
   type SpTrack,
 } from "@/lib/spotify";
+import { HeartFilledIcon } from "./stack-icons";
 
 type Queue = { queue: SpTrack[] };
 type Recent = { items: { track: SpTrack; played_at: string }[] };
@@ -325,8 +326,8 @@ export function SpotifyView() {
                 href="/music/playlist?id=liked"
                 className="flex w-[120px] shrink-0 flex-col gap-1.5 text-left"
               >
-                <span className="flex size-[120px] items-center justify-center bg-[#5B3F7A] text-[48px] text-white">
-                  ♥
+                <span className="flex size-[120px] items-center justify-center bg-[#5B3F7A] text-white">
+                  <HeartFilledIcon size={46} />
                 </span>
                 <span className="song truncate text-[13px]">
                   Liked Songs

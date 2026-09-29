@@ -13,7 +13,7 @@ import { getNotes, getPdfs } from "@/lib/db";
 import { useStore } from "@/lib/use-store";
 import { useNews } from "@/lib/use-news";
 import { dayStamp } from "@/lib/format";
-import { ClockIcon, MenuIcon, PlayIcon, PlusIcon } from "@/components/icons";
+import { ClockIcon, MenuIcon, PlayIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { NotifyPrompt } from "@/components/notify-prompt";
 import { useFocus, useTick } from "@/components/focus-provider";
 import { clockText, remainingMs } from "@/lib/focus";
@@ -128,6 +128,9 @@ export default function Today() {
       <div className="flex h-8 items-center justify-between md:hidden">
         <Logo size={30} animate className="-ml-1.5" />
         <div className="-mr-2.5 flex items-center">
+          <Link href="/search" aria-label="Search everything" className="flex size-11 items-center justify-center">
+            <SearchIcon size={22} />
+          </Link>
           <Link href="/account" aria-label="Your account" className="flex size-11 items-center justify-center">
             <Avatar size={30} />
           </Link>

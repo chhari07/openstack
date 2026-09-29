@@ -16,10 +16,13 @@ import {
   getHistory,
   remainingMs,
   stats,
+  breakMinutes,
+  POMO,
   type FocusSession,
   type FocusTarget,
 } from "@/lib/focus";
 import { canGoBack } from "@/lib/nav";
+import { DEFAULT_GOAL, getProfile } from "@/lib/profile";
 import { useStore } from "@/lib/use-store";
 
 const LENGTHS = [
@@ -27,6 +30,7 @@ const LENGTHS = [
   { value: "25", label: "25 min" },
   { value: "45", label: "45 min" },
   { value: "60", label: "60 min" },
+  { value: "pomo", label: "Pomodoro" },
 ] as const;
 type Length = (typeof LENGTHS)[number]["value"];
 
@@ -58,7 +62,7 @@ function Focus() {
       <div className="mx-auto max-w-[640px]">
         {!session && <Setup />}
         {session && !session.endedAt && <Running session={session} />}
-        {session?.endedAt && <Summary session={session} />}
+        {session?.endedAt && (session.pomo?.brk ? <BreakOver session={session} /> : <Summary session={session} />)}
       </div>
     </main>
   );
@@ -67,14 +71,17 @@ function Focus() {
 function Stats() {
   const { session } = useFocus();
   const [s, setS] = useState<ReturnType<typeof stats> | null>(null);
+  const [profile] = useStore(getProfile, { id: "me", updatedAt: 0 });
   // Re-read after a session ends.
   useEffect(() => {
     getHistory().then((h) => setS(stats(h)));
   }, [session?.endedAt]);
   if (!s || s.sessions === 0) return null;
+  const goal = profile.dailyGoal ?? DEFAULT_GOAL;
   return (
     <span className="label text-[10px]">
-      {s.todayMinutes} min today{s.streak > 1 ? ` · ${s.streak}-day streak` : ""}
+      {s.todayMinutes}/{goal} min today{s.todayMinutes >= goal ? " ✓" : ""}
+      {s.streak > 1 ? ` · ${s.streak}-day streak` : ""}
     </span>
   );
 }
@@ -157,6 +164,12 @@ function Setup() {
       <div className="mt-3">
         <Chips label="Session length" options={[...LENGTHS]} value={length} onChange={setLength} />
       </div>
+      {length === "pomo" && (
+        <p className="mt-3 rounded-2xl bg-card p-4 text-[14px] leading-relaxed text-muted">
+          <b className="text-ink">{POMO.rounds} rounds of {POMO.focus} minutes.</b> A {POMO.short}-minute break after
+          each round and a {POMO.long}-minute break after the last. Music pauses during breaks.
+        </p>
+      )}
 
       <h2 className="label mt-7 text-[11px] font-medium">03 — Music</h2>
       <label className="mt-3 flex items-center gap-3 rounded-2xl bg-card p-4">
@@ -180,10 +193,12 @@ function Setup() {
       )}
 
       <button
-        onClick={() => start(target, Number(length), music)}
+        onClick={() =>
+          length === "pomo" ? start(target, POMO.focus, music, { round: 1 }) : start(target, Number(length), music)
+        }
         className="mt-8 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-on-ink"
       >
-        <PlayIcon size={18} /> Start {length} minutes
+        <PlayIcon size={18} /> {length === "pomo" ? `Start Pomodoro · round 1 of ${POMO.rounds}` : `Start ${length} minutes`}
       </button>
     </>
   );
@@ -201,6 +216,7 @@ function Running({ session }: { session: FocusSession }) {
   const left = remainingMs(session, tick);
   const pct = 100 - (left / (session.minutes * 60_000)) * 100;
   const during = notes.filter((n) => n.createdAt >= session.startedAt);
+  const brk = !!session.pomo?.brk;
 
   const capture = async () => {
     if (!thought.trim()) return;
@@ -216,8 +232,13 @@ function Running({ session }: { session: FocusSession }) {
 
   return (
     <>
-      <p className="label mt-6 text-[11px] text-muted">{paused ? "Paused" : "Focusing on"}</p>
-      <p className="mt-1 line-clamp-2 font-serif text-[24px] leading-tight font-semibold">{session.target.title}</p>
+      {session.pomo && <PomoDots session={session} />}
+      <p className="label mt-6 text-[11px] text-muted">
+        {paused ? "Paused" : brk ? "Break" : session.pomo ? `Round ${session.pomo.round} of ${POMO.rounds} · focusing on` : "Focusing on"}
+      </p>
+      <p className="mt-1 line-clamp-2 font-serif text-[24px] leading-tight font-semibold">
+        {brk ? "Stand up, stretch, drink some water." : session.target.title}
+      </p>
 
       <div
         role="timer"
@@ -227,10 +248,13 @@ function Running({ session }: { session: FocusSession }) {
         {clockText(left)}
       </div>
       <div className="mt-4 h-1 rounded-full bg-rule">
-        <div className="h-1 rounded-full bg-music transition-[width] duration-1000 ease-linear" style={{ width: `${pct}%` }} />
+        <div
+          className={`h-1 rounded-full transition-[width] duration-1000 ease-linear ${brk ? "bg-news" : "bg-music"}`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
       <div className="label mt-2 flex justify-between text-[10px] text-muted">
-        <span>{Math.floor(focusedMs(session, tick) / 60_000)} min done</span>
+        <span>{Math.floor(focusedMs(session, tick) / 60_000)} min {brk ? "of break" : "done"}</span>
         <span>{session.minutes} min</span>
       </div>
 
@@ -245,10 +269,10 @@ function Running({ session }: { session: FocusSession }) {
           onClick={finish}
           className="h-14 rounded-full border border-ink/20 px-6 text-[15px] font-semibold"
         >
-          End
+          {brk ? "Skip break" : "End"}
         </button>
       </div>
-      {session.target.href && (
+      {!brk && session.target.href && (
         <Link
           href={session.target.href}
           className="mt-2.5 flex h-12 items-center justify-center rounded-full bg-card text-[15px] font-semibold"
@@ -274,6 +298,8 @@ function Running({ session }: { session: FocusSession }) {
         </div>
       )}
 
+      {!brk && (
+        <>
       <h2 className="label mt-7 text-[11px] font-medium">Capture a thought</h2>
       <div className="mt-2.5 flex gap-2">
         <input
@@ -301,6 +327,8 @@ function Running({ session }: { session: FocusSession }) {
             </li>
           ))}
         </ul>
+      )}
+        </>
       )}
     </>
   );
@@ -382,6 +410,8 @@ function Summary({ session }: { session: FocusSession }) {
         </>
       )}
 
+      {session.pomo && <PomoNext session={session} />}
+
       <div className="mt-8 flex flex-col gap-2.5">
         <button
           onClick={saveSummary}
@@ -391,7 +421,98 @@ function Summary({ session }: { session: FocusSession }) {
           {savedId ? "Saved to Notes" : "Save summary to Notes"}
         </button>
         <button onClick={clear} className="h-12 rounded-full border border-ink/20 text-[15px] font-semibold">
-          Start another session
+          {session.pomo ? "Stop Pomodoro" : "Start another session"}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ---- Pomodoro ----
+// One dot per round: done, current, to come.
+function PomoDots({ session }: { session: FocusSession }) {
+  const round = session.pomo!.round;
+  return (
+    <div className="mt-6 flex items-center gap-2" aria-label={`Round ${round} of ${POMO.rounds}`}>
+      {Array.from({ length: POMO.rounds }, (_, i) => {
+        const r = i + 1;
+        const done = r < round || (r === round && (session.pomo!.brk || !!session.endedAt));
+        return (
+          <span
+            key={r}
+            className={`h-2 grow rounded-full ${done ? "bg-music" : r === round ? "bg-music/40" : "bg-rule"}`}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// After a focus round: take the break, or skip straight to the next round.
+function PomoNext({ session }: { session: FocusSession }) {
+  const { start } = useFocus();
+  const round = session.pomo!.round;
+  const mins = breakMinutes(round);
+  const last = round >= POMO.rounds;
+  return (
+    <div className="mt-6 flex flex-col gap-2.5 rounded-[22px] bg-card p-4">
+      <PomoDots session={session} />
+      <p className="text-[15px] leading-snug">
+        {last ? (
+          <>
+            <b>All {POMO.rounds} rounds done.</b> You’ve earned a long break.
+          </>
+        ) : (
+          <>
+            <b>Round {round} of {POMO.rounds} done.</b> Take a short break before the next one.
+          </>
+        )}
+      </p>
+      <button
+        onClick={() => start(session.target, mins, false, { round, brk: true, music: session.music })}
+        className="h-12 rounded-full bg-news text-[15px] font-semibold text-white"
+      >
+        Start {mins}-minute break
+      </button>
+      {!last && (
+        <button
+          onClick={() => start(session.target, POMO.focus, session.music, { round: round + 1 })}
+          className="h-11 rounded-full text-[14px] font-semibold underline"
+        >
+          Skip break, start round {round + 1}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// A break has ended: on to the next round, or the cycle is complete.
+function BreakOver({ session }: { session: FocusSession }) {
+  const { start, clear } = useFocus();
+  const round = session.pomo!.round;
+  const done = round >= POMO.rounds;
+  return (
+    <>
+      <h1 className="display -ml-1.5 mt-3 text-[clamp(64px,21vw,140px)]">{done ? "CYCLE DONE" : "BREAK’S OVER"}</h1>
+      <PomoDots session={session} />
+      <p className="mt-4 font-serif text-[22px] leading-snug italic">
+        {done
+          ? `${POMO.rounds} rounds, ${POMO.rounds * POMO.focus} minutes of focus. Brilliant.`
+          : `Round ${round + 1} of ${POMO.rounds} is next.`}
+      </p>
+      <div className="mt-8 flex flex-col gap-2.5">
+        <button
+          onClick={() =>
+            done
+              ? start(session.target, POMO.focus, session.pomo!.music ?? true, { round: 1 })
+              : start(session.target, POMO.focus, session.pomo!.music ?? true, { round: round + 1 })
+          }
+          className="flex h-14 items-center justify-center gap-2 rounded-full bg-ink text-[16px] font-semibold text-on-ink"
+        >
+          <PlayIcon size={18} /> {done ? "Start a new cycle" : `Start round ${round + 1}`}
+        </button>
+        <button onClick={clear} className="h-12 rounded-full border border-ink/20 text-[15px] font-semibold">
+          {done ? "Done" : "Stop Pomodoro"}
         </button>
       </div>
     </>

@@ -37,7 +37,7 @@ import {
   type Collection,
 } from "./sync-state";
 
-const COLLECTIONS: Collection[] = ["notes", "saved", "pdfs", "playlists", "focus", "profile"];
+const COLLECTIONS: Collection[] = ["notes", "saved", "pdfs", "playlists", "focus", "profile", "feeds"];
 type Row = { collection: Collection; id: string; data: Record<string, unknown> | null; deleted: boolean; updatedAt: Timestamp };
 type Item = { id: string } & Record<string, unknown>;
 type Since = { s: number; ns: number }; // exact server time of the last download

@@ -27,7 +27,7 @@ export function MiniPlayer({ showTime = false }: { showTime?: boolean }) {
             {local.available ? "Play music" : sp.connected ? "Nothing playing" : "Connect Spotify"}
           </span>
           <span className="label truncate text-[10px] text-muted">
-            {local.available ? "From your phone or Spotify" : "Your music, next to your reading"}
+            {local.available ? (sp.configured ? "From your phone or Spotify" : "From your phone") : "Your music, next to your reading"}
           </span>
         </span>
       </Link>

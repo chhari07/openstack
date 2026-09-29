@@ -10,9 +10,13 @@ import {
   browserPopupRedirectResolver,
   connectAuthEmulator,
   createUserWithEmailAndPassword,
+  deleteUser,
+  EmailAuthProvider,
   GoogleAuthProvider,
   indexedDBLocalPersistence,
   initializeAuth,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
   sendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
@@ -20,8 +24,17 @@ import {
   signOut,
   type Auth,
 } from "firebase/auth";
-import { connectFirestoreEmulator, initializeFirestore, type Firestore } from "firebase/firestore";
-import { connectStorageEmulator, getStorage, type FirebaseStorage } from "firebase/storage";
+import {
+  collection,
+  connectFirestoreEmulator,
+  getDocs,
+  initializeFirestore,
+  limit,
+  query,
+  writeBatch,
+  type Firestore,
+} from "firebase/firestore";
+import { connectStorageEmulator, deleteObject, getStorage, listAll, ref, type FirebaseStorage } from "firebase/storage";
 import { registerPlugin } from "@capacitor/core";
 import { isNative } from "./platform";
 
@@ -96,6 +109,8 @@ const CODES: Record<string, string> = {
   "auth/account-exists-with-different-credential": "This email signs in another way. Try Continue with Google.",
   "auth/operation-not-allowed": "This sign-in method isn’t switched on in Firebase yet.",
   "auth/unauthorized-domain": "This website isn’t on Firebase’s list of authorised domains.",
+  "auth/requires-recent-login": "For safety, confirm it’s you again, then try once more.",
+  "auth/user-mismatch": "That’s a different account. Pick the account you’re signed in with.",
 };
 
 export function explainAuth(e: unknown) {
@@ -152,4 +167,58 @@ export async function resetPassword(email: string) {
 export async function signOutCloud() {
   const c = cloud();
   if (c) await signOut(c.auth);
+}
+
+// How the signed-in person logs in: deleting an account asks them to confirm
+// the same way first.
+export function signInMethod(): "google" | "password" | null {
+  const u = cloud()?.auth.currentUser;
+  if (!u) return null;
+  return u.providerData.some((p) => p.providerId === "google.com") ? "google" : "password";
+}
+
+// Firebase only deletes an account that signed in moments ago, so confirm
+// with Google (the same account) or the password first.
+async function confirmIdentity(password?: string) {
+  const { auth } = need();
+  const user = auth.currentUser;
+  if (!user) throw new Error("You’re not signed in.");
+  try {
+    if (signInMethod() === "google") {
+      if (isNative()) {
+        if (!GOOGLE_WEB_CLIENT_ID) throw new Error("Google sign-in isn’t set up in this build of Stack.");
+        const { idToken } = await GoogleSignIn.signIn({ serverClientId: GOOGLE_WEB_CLIENT_ID });
+        await reauthenticateWithCredential(user, GoogleAuthProvider.credential(idToken));
+      } else {
+        await reauthenticateWithPopup(user, new GoogleAuthProvider());
+      }
+    } else {
+      if (!password) throw new Error("Enter your password.");
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email ?? "", password));
+    }
+  } catch (e) {
+    if (cancelled(e)) throw new SignInCancelled();
+    throw e;
+  }
+}
+
+// Deletes the account for good: every synced item, the PDF files and the
+// login itself. (Removing Stack's data from this device is the caller's job.)
+export async function deleteAccount(password?: string) {
+  await confirmIdentity(password);
+  const { auth, db, storage } = need();
+  const user = auth.currentUser!;
+  if (storage) {
+    const files = await listAll(ref(storage, `users/${user.uid}/pdfs`)).catch(() => null);
+    for (const f of files?.items ?? []) await deleteObject(f).catch(() => {});
+  }
+  const items = collection(db, "users", user.uid, "items");
+  for (;;) {
+    const page = await getDocs(query(items, limit(400)));
+    if (page.empty) break;
+    const batch = writeBatch(db);
+    page.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+  await deleteUser(user);
 }

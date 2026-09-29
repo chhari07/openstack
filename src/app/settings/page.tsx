@@ -10,7 +10,7 @@ import { useStore } from "@/lib/use-store";
 import { useSpotify } from "@/components/spotify-provider";
 import { SpotifyLoginNote, SpotifySetup, SpotifyTroubleshooting } from "@/components/spotify-setup";
 import { useToast } from "@/components/toast";
-import { useIsNative } from "@/lib/platform";
+import { PLAY_BUILD, useIsNative } from "@/lib/platform";
 import { PhoneFiles, useAllFiles } from "@/lib/phone-files";
 import { LocalMusic } from "@/lib/local-music";
 import {
@@ -24,6 +24,7 @@ import {
 import { login, setClientId } from "@/lib/spotify";
 import { getTheme, setTheme, type Theme } from "@/lib/theme";
 import { AppSettings } from "@/lib/app-settings";
+import { BackupSection } from "@/components/backup-section";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -204,6 +205,7 @@ export default function Settings() {
             </p>
           ) : (
             <>
+              {!PLAY_BUILD && (
               <AccessRow
                 name="All files"
                 why="Finds every PDF and song on this phone"
@@ -227,6 +229,7 @@ export default function Settings() {
                   </button>
                 }
               />
+              )}
               <AccessRow
                 name="Notifications"
                 why="Daily digest and music controls"
@@ -323,7 +326,21 @@ export default function Settings() {
         </Section>
 
         <Section title="03 — Spotify">
-          {!sp.configured || showSpotifySetup ? (
+          {PLAY_BUILD && !sp.configured && !showSpotifySetup ? (
+            <>
+              <p className="text-[14px] text-muted">
+                Spotify only lets each app have a few users, so Stack can’t sign
+                you in by itself. If you have a Spotify developer app, add its
+                Client ID to use your playlists here.
+              </p>
+              <button
+                onClick={() => setShowSpotifySetup(true)}
+                className="self-start text-[12px] text-muted underline"
+              >
+                Advanced: use my own Spotify app
+              </button>
+            </>
+          ) : !sp.configured || showSpotifySetup ? (
             <SpotifySetup compact />
           ) : sp.connected ? (
             <>
@@ -438,9 +455,13 @@ export default function Settings() {
             </>
           )}
         </Section>
+
+        <Section title="05 — Backup">
+          <BackupSection />
+        </Section>
       </div>
       <p className="label mt-8 text-center text-[10px] text-muted">
-        Notes, PDFs and settings are stored only on this device
+        Everything is stored on this device, in your account when you’re signed in, and in backups you save
       </p>
     </main>
   );
