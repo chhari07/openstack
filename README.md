@@ -125,6 +125,7 @@ src/lib/          storage, sync, news, feeds, search, backup, AI client, musicâ€
 native/android/   Java plugins copied into the Android project
 firebase/         Firestore/Storage rules and setup guide
 docs/             roadmap, diagrams, banner, screenshots
+website/          soft-launch landing page and tester sign-up (its own Next.js project)
 ```
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for what's next.
