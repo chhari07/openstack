@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+/* Same palette and type as the Stack app (stack/src/app/globals.css). */
+@theme {
+  --color-paper: #f7f5f0;
+  --color-paper-2: #eeece8;
+  --color-desk: #e4e1da;
+  --color-ink: #111111;
+  --color-on-ink: #ffffff;
+  --color-card: #ffffff;
+  --color-prose: #22211f;
+  --color-muted: #6b6862;
+  --color-line: rgb(17 17 17 / 0.1);
+  --color-rule: #e2dfd8;
+
+  --color-news: #0a8a3a;
+  --color-news-text: #087a33;
+  --color-news-tint: #d6eedc;
+  --color-music: #d62f26;
+  --color-music-text: #c42a21;
+  --color-music-tint: #f8d8d5;
+  --color-pdf: #f2a246;
+  --color-pdf-tint: #fce3c4;
+  --color-pdf-deep: #8a4b00;
+  --color-blue: #4e9ee6;
+  --color-blue-tint: #d7e8f8;
+  --color-blue-deep: #1f5796;
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-serif: var(--font-bodoni), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+/* The site follows the phone or computer's own light/dark setting. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-paper: #141413;
+    --color-paper-2: #0f0f0e;
+    --color-desk: #050505;
+    --color-ink: #f1efe9;
+    --color-on-ink: #141413;
+    --color-card: #1f1f1d;
+    --color-muted: #a39f97;
+    --color-line: rgb(241 239 233 / 0.12);
+    --color-rule: #34332f;
+    --color-prose: #e4e1da;
+    --color-news-text: #4fc07a;
+    --color-news-tint: #173d25;
+    --color-music-text: #ff6b61;
+    --color-music-tint: #4a1d1a;
+    --color-pdf-tint: #4a3214;
+    --color-pdf-deep: #f6c88a;
+    --color-blue-tint: #183454;
+    --color-blue-deep: #9cc8f2;
+  }
+}
+
+html {
+  background: var(--color-paper);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Small uppercase mono labels, the app's "metadata" voice */
+.label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The huge condensed wordmark: STACK */
+.display {
+  font-weight: 800;
+  font-stretch: 75%;
+  letter-spacing: -0.04em;
+  line-height: 0.8;
+}
+
+/* ─── Animation ───────────────────────────────────────────────────────────
+   All CSS, no JavaScript: the page works the same with scripts blocked, and
+   the CSP never has to allow inline code. Everything stops for people who
+   ask their device for reduced motion (bottom of the file). */
+
+/* Hero, on load: lines rise into place one after another */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 800ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* STACK wordmark: each letter slides up out of its own line */
+@keyframes letter-up {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+.letters > span {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* room for the letters' tops, which the tight line-height would clip */
+  padding-top: 0.08em;
+}
+.letters > span > span {
+  display: inline-block;
+  animation: letter-up 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* A highlighter pen sweeps across the key words, like a highlight in the app */
+@keyframes marker {
+  to {
+    background-size: 100% 100%;
+  }
+}
+.marker {
+  background-color: transparent;
+  background-image: linear-gradient(rgb(242 162 70 / 0.45), rgb(242 162 70 / 0.45));
+  background-repeat: no-repeat;
+  background-position: 0 85%;
+  background-size: 0% 100%;
+  animation: marker 900ms 1300ms cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  padding: 0 0.1em;
+  border-radius: 0.15em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  color: inherit;
+}
+
+/* The phone drops in with a slight tilt, then the small cards float around it */
+@keyframes phone-in {
+  from {
+    opacity: 0;
+    transform: translateY(60px) rotate(6deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-3deg);
+  }
+}
+.phone-in {
+  animation: phone-in 1100ms 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.float {
+  animation:
+    rise 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both,
+    float 6s 1.5s ease-in-out infinite;
+}
+
+/* Scroll cue: a short line that keeps dropping */
+@keyframes cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  51% {
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+.cue {
+  animation: cue 1.8s ease-in-out infinite;
+}
+
+/* Scroll-driven parts: only in browsers that support scroll timelines.
+   Elsewhere everything is simply shown, fully visible. */
+@supports (animation-timeline: view()) {
+  /* Each section fades up as it comes into view */
+  .reveal {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 28%;
+  }
+  /* Screenshots in the flow tilt up into place */
+  .reveal-phone {
+    animation: phone-scroll linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+  /* Reading progress along the top of the page */
+  .progress {
+    animation: grow-right linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes phone-scroll {
+  from {
+    opacity: 0;
+    transform: translateY(80px) rotate(4deg) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes grow-right {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@supports not (animation-timeline: scroll()) {
+  .progress {
+    display: none;
+  }
+}
+
+/* Logo: each block drops in and settles, base first (as in the app) */
+@keyframes logo-drop {
+  0% {
+    transform: translateY(-140px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(4px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.logo-drop > g {
+  animation: logo-drop 520ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .logo-drop > g,
+  .rise,
+  .letters > span > span,
+  .phone-in,
+  .float,
+  .cue,
+  .reveal,
+  .reveal-phone {
+    animation: none;
+  }
+  .phone-in {
+    transform: rotate(-3deg);
+  }
+  .marker {
+    animation: none;
+    background-size: 100% 100%;
+  }
+  .progress {
+    display: none;
+  }
+}
