@@ -27,7 +27,12 @@ export type LocalState = {
   hasPrevious?: boolean;
   shuffle?: boolean;
   repeat?: "off" | "all" | "one";
+  speed?: number;
+  sleepAt?: number; // ms since epoch, 0 = no timer
+  sleepEndOfTrack?: boolean;
 };
+
+export type QueueItem = { index: number; uri: string; title: string; artist: string };
 
 type Permission = "granted" | "denied" | "prompt" | "prompt-with-rationale";
 
@@ -44,6 +49,13 @@ type LocalMusicPlugin = {
   seek(opts: { position: number }): Promise<LocalState>;
   setShuffle(opts: { on: boolean }): Promise<LocalState>;
   setRepeat(opts: { mode: "off" | "all" | "one" }): Promise<LocalState>;
+  setSpeed(opts: { speed: number }): Promise<LocalState>;
+  setSleepTimer(opts: { minutes?: number; endOfTrack?: boolean }): Promise<LocalState>;
+  queue(): Promise<{ items: QueueItem[] }>;
+  jump(opts: { index: number }): Promise<LocalState>;
+  removeFromQueue(opts: { index: number }): Promise<LocalState>;
+  enqueue(opts: { track: LocalTrack; next?: boolean }): Promise<LocalState>;
+  listen(opts: { title: string; source: string; chunks: string[]; lang?: string }): Promise<{ parts: number }>;
   addListener(event: "state", fn: (s: LocalState) => void): Promise<PluginListenerHandle>;
 };
 

@@ -14,6 +14,8 @@ import { useToast } from "@/components/toast";
 import { addNote, getNotes, getPdf, updatePdf, type PdfMeta } from "@/lib/db";
 import { useStore } from "@/lib/use-store";
 import { openPdf, pdfjs } from "@/lib/pdf";
+import { markPageRead, useReadingTimer } from "@/lib/reading";
+import { ListenButton } from "@/components/listen-button";
 import { paintHighlights } from "@/lib/highlights";
 import { clock } from "@/lib/format";
 import { ZoomInIcon, ZoomOutIcon } from "@/components/stack-icons";
@@ -118,6 +120,14 @@ function PdfReader() {
     };
   }, [doc, page, zoom]);
 
+  // Reading stats: time in the PDF, and a page counts as read after 8 seconds on it.
+  useReadingTimer(!!doc);
+  useEffect(() => {
+    if (!doc) return;
+    const t = setTimeout(() => markPageRead(id, page), 8000);
+    return () => clearTimeout(t);
+  }, [doc, id, page]);
+
   // Remember where the reader is.
   useEffect(() => {
     if (!meta) return;
@@ -205,6 +215,14 @@ function PdfReader() {
             >
               <ClockIcon size={20} />
             </Link>
+          )}
+          {meta && doc && (
+            <ListenButton
+              label="Listen from this page"
+              title={`${meta.title} · from p. ${page}`}
+              source="PDF"
+              getText={() => pdfText(doc, page, Math.min(doc.numPages, page + 29))}
+            />
           )}
           {meta && <AiPdfButton id={id} title={meta.title} page={page} onPage={setPage} />}
           <button
@@ -315,4 +333,19 @@ function PdfReader() {
       />
     </main>
   );
+}
+
+// The text of pages `from`..`to`, for Listen mode.
+async function pdfText(doc: PDFDocumentProxy, from: number, to: number) {
+  const pages: string[] = [];
+  for (let i = from; i <= to; i++) {
+    const content = await (await doc.getPage(i)).getTextContent();
+    pages.push(
+      content.items
+        .map((it) => ("str" in it ? it.str + (it.hasEOL ? "\n" : " ") : ""))
+        .join("")
+        .replace(/-\n(?=[a-z])/g, ""),
+    );
+  }
+  return pages.join("\n\n");
 }

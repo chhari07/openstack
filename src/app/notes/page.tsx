@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { TabBar } from "@/components/tab-bar";
 import { Logo } from "@/components/logo";
-import { Chips } from "@/components/sheet";
+import { Chips, Sheet } from "@/components/sheet";
+import { useToast } from "@/components/toast";
+import { DownloadIcon } from "@/components/stack-icons";
+import { ShareIcon } from "@/components/icons";
+import { notesToMarkdown, saveMarkdown, shareMarkdown } from "@/lib/export-md";
 import { NoteCard } from "@/components/note-card";
 import { ListIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { getNotes, type Note, type NoteKind } from "@/lib/db";
@@ -40,6 +44,8 @@ export default function Notes() {
   const [notes, ready] = useStore(getNotes, []);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const toast = useToast();
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -64,9 +70,20 @@ export default function Notes() {
     <main className="px-5 pt-5 pb-[180px] md:px-10 md:pt-8">
       <div className="flex h-8 items-center justify-between">
         <Logo size={26} className="-ml-1 md:invisible" />
-        <span className="label text-[10px]">
-          {notes.length} notes · {sourcesToday} sources today
-        </span>
+        <div className="flex items-center gap-1">
+          <span className="label text-[10px]">
+            {notes.length} notes · {sourcesToday} sources today
+          </span>
+          {notes.length > 0 && (
+            <button
+              aria-label="Export notes as Markdown"
+              onClick={() => setExporting(true)}
+              className="-mr-2.5 flex size-11 items-center justify-center"
+            >
+              <DownloadIcon size={20} />
+            </button>
+          )}
+        </div>
       </div>
       <h1 className="mt-2 font-serif text-[92px] leading-[0.95] font-medium tracking-[-0.02em]">
         Notes
@@ -128,7 +145,63 @@ export default function Notes() {
         </Link>
       </div>
 
+      <ExportSheet
+        open={exporting}
+        onClose={() => setExporting(false)}
+        notes={shown}
+        all={shown.length === notes.length}
+        onDone={(text) => toast({ text })}
+      />
       <TabBar />
     </main>
+  );
+}
+
+// Export as Markdown: a .md file, or straight into another app.
+function ExportSheet({
+  open,
+  onClose,
+  notes,
+  all,
+  onDone,
+}: {
+  open: boolean;
+  onClose: () => void;
+  notes: Note[];
+  all: boolean;
+  onDone: (text: string) => void;
+}) {
+  const row = "flex h-14 items-center gap-3 rounded-xl px-1 text-left text-[15px]";
+  const what = `${all ? "All " : ""}${notes.length} note${notes.length === 1 ? "" : "s"}`;
+  return (
+    <Sheet open={open} onClose={onClose} title="Export as Markdown">
+      <p className="text-[14px] leading-relaxed text-muted">
+        {what}
+        {all ? "" : " (the ones shown now)"}. Highlights are grouped by article or PDF, with a link to the original. Works
+        with Obsidian, Notion, Logseq and any text editor.
+      </p>
+      <div className="flex flex-col">
+        <button
+          onClick={async () => {
+            const r = await saveMarkdown(notesToMarkdown(notes));
+            onClose();
+            if (r === "saved") onDone("Notes exported as a .md file");
+          }}
+          className={row}
+        >
+          <DownloadIcon size={20} /> Save as a .md file
+        </button>
+        <button
+          onClick={async () => {
+            onClose();
+            const shared = await shareMarkdown(notesToMarkdown(notes)).catch(() => true);
+            if (!shared) onDone("Markdown copied");
+          }}
+          className={row}
+        >
+          <ShareIcon size={20} /> Share to another app
+        </button>
+      </div>
+    </Sheet>
   );
 }

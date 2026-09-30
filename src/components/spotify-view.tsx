@@ -8,6 +8,7 @@ import { SpotifyLoginNote, SpotifySetup, SpotifyTroubleshooting } from "./spotif
 import { useToast } from "./toast";
 import { NoteIcon, RepeatIcon } from "./icons";
 import { ModeButton } from "./local-view";
+import { Vinyl } from "./vinyl";
 import { addNote } from "@/lib/db";
 import { mmss } from "@/lib/format";
 import {
@@ -165,35 +166,25 @@ export function SpotifyView() {
         {sp.connected && (
           <>
             <span className="label mt-[18px] block text-[10px]">01</span>
-            <div className="relative mt-1.5 h-[230px]">
-              {/* Vinyl peeking out from behind the cover */}
-              <div
-                className={`absolute top-3 left-[110px] flex size-[206px] items-center justify-center rounded-full bg-[#111] ${
-                  sp.player?.is_playing
-                    ? "animate-[spin_6s_linear_infinite]"
-                    : ""
-                }`}
-              >
-                <div className="size-[190px] rounded-full border border-[#2B2B2A]" />
-                <div className="absolute size-14 rounded-full bg-music" />
+            {track ? (
+              <div className="mt-1.5">
+                <Vinyl
+                  cover={cover}
+                  title={track.name}
+                  artist={artists(track)}
+                  playing={!!sp.player?.is_playing}
+                  progress={track.duration_ms ? sp.progress / track.duration_ms : 0}
+                  trackKey={track.id}
+                  onToggle={sp.toggle}
+                />
               </div>
-              <div className="absolute top-0 left-0 size-[230px] overflow-hidden bg-music shadow-[0_10px_24px_rgba(0,0,0,.18)]">
-                {cover ? (
-                                    <img
-                    src={cover}
-                    alt={`${track?.album.name} cover`}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center p-6 text-center">
-                    <span className="label text-[11px] text-white">
-                      Nothing playing on Spotify. Start music on a device or
-                      pick a playlist below.
-                    </span>
-                  </div>
-                )}
+            ) : (
+              <div className="mt-1.5 flex size-[230px] items-center justify-center bg-music p-6 text-center shadow-[0_10px_24px_rgba(0,0,0,.18)]">
+                <span className="label text-[11px] text-white">
+                  Nothing playing on Spotify. Start music on a device or pick a playlist below.
+                </span>
               </div>
-            </div>
+            )}
 
             <div className="mt-3 flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-0.5">

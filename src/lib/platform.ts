@@ -31,13 +31,35 @@ export async function loadNews(topic: Topic, fresh = false): Promise<Story[]> {
   return (await res.json()).stories;
 }
 
-export async function loadArticle(id: string): Promise<Article | null> {
+// Straight from the network.
+export async function fetchArticle(id: string): Promise<Article | null> {
   if (isNative()) {
     const { getArticleNative } = await import("./article-native");
     return getArticleNative(id);
   }
   const res = await fetch(`/api/article?id=${encodeURIComponent(id)}`);
   return res.ok ? res.json() : null;
+}
+
+// The network first, falling back to the offline copy (lib/offline.ts);
+// `offlineAt` is set when the copy is what you get. A kept copy is refreshed.
+export async function loadArticle(id: string): Promise<(Article & { offlineAt?: number }) | null> {
+  const { getCachedArticle, getOfflineIndex, cacheArticle } = await import("./offline");
+  const [cached, index] = await Promise.all([getCachedArticle(id), getOfflineIndex()]);
+  const fromCache = () => (cached ? { ...cached, offlineAt: index[id]?.at ?? Date.now() } : null);
+  if (cached && typeof navigator !== "undefined" && !navigator.onLine) return fromCache();
+  let fresh: Article | null = null;
+  try {
+    fresh = await fetchArticle(id);
+  } catch (e) {
+    if (cached) return fromCache();
+    throw e;
+  }
+  if (fresh?.html) {
+    if (index[id]?.keep) cacheArticle(fresh, true).catch(() => {});
+    return fresh;
+  }
+  return fromCache() ?? fresh;
 }
 
 const noSubscribe = () => () => {};

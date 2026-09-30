@@ -7,7 +7,6 @@ import {
   PauseIcon,
   PlayIcon,
   PrevIcon,
-  PlusIcon,
   RepeatIcon,
   SearchIcon,
   ShuffleIcon,
@@ -18,7 +17,9 @@ import { mmss, plural } from "@/lib/format";
 import { LocalMusic, type LocalTrack } from "@/lib/local-music";
 import { PhoneFiles } from "@/lib/phone-files";
 import { PLAY_BUILD } from "@/lib/platform";
-import { MusicNoteIcon } from "./stack-icons";
+import { MoreVerticalIcon, QueueIcon, TimerIcon } from "./stack-icons";
+import { Vinyl } from "./vinyl";
+import { QueueSheet, SleepSheet, SongActionsSheet, SpeedSheet, useCountdown } from "./player-sheets";
 
 type Sort = "title" | "artist" | "recent";
 
@@ -35,6 +36,9 @@ export function LocalView() {
   // Songs waiting to go into a playlist (sheet open), and "new playlist" mode.
   const [adding, setAdding] = useState<LocalTrack[] | null>(null);
   const [newOnly, setNewOnly] = useState(false);
+  const [menuFor, setMenuFor] = useState<LocalTrack | null>(null);
+  const [sheet, setSheet] = useState<"speed" | "sleep" | "queue" | null>(null);
+  const sleepLeft = useCountdown(s.sleepAt);
 
   const load = useCallback(async () => {
     try {
@@ -158,29 +162,16 @@ export function LocalView() {
 
         {s.uri && (
           <>
-            <div className="relative mt-5 h-[230px]">
-              <div
-                className={`absolute top-3 left-[110px] flex size-[206px] items-center justify-center rounded-full bg-[#111] ${
-                  s.playing ? "animate-[spin_6s_linear_infinite]" : ""
-                }`}
-              >
-                <div className="size-[190px] rounded-full border border-[#2B2B2A]" />
-                <div className="absolute size-14 rounded-full bg-music" />
-              </div>
-              <div className="absolute top-0 left-0 flex size-[230px] items-center justify-center overflow-hidden bg-music shadow-[0_10px_24px_rgba(0,0,0,.18)]">
-                {player.art ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={player.art}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <span className="display text-[120px] text-white/90">
-                    {s.title ? s.title.slice(0, 1).toUpperCase() : <MusicNoteIcon size={110} />}
-                  </span>
-                )}
-              </div>
+            <div className="mt-5">
+              <Vinyl
+                cover={player.art}
+                title={s.title}
+                artist={s.artist}
+                playing={!!s.playing}
+                progress={pct / 100}
+                trackKey={s.uri}
+                onToggle={player.toggle}
+              />
             </div>
             <div className="mt-4 flex flex-col gap-1">
               <span className="song truncate text-[20px]">{s.title}</span>
@@ -246,6 +237,34 @@ export function LocalView() {
               >
                 <RepeatIcon size={22} one={s.repeat === "one"} />
               </ModeButton>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-ink/10 pt-2">
+              <Extra label="Back 10 seconds" onClick={() => player.seek(Math.max(0, (s.position ?? 0) - 10000))}>
+                <span className="label text-[11px] font-medium">−10s</span>
+              </Extra>
+              <Extra label="Playback speed" on={(s.speed || 1) !== 1} onClick={() => setSheet("speed")}>
+                <span className="label text-[11px] font-medium">{s.speed || 1}×</span>
+              </Extra>
+              <Extra
+                label={sleepLeft > 0 ? `Sleep timer: ${mmss(sleepLeft)} left` : s.sleepEndOfTrack ? "Sleep timer: end of song" : "Sleep timer"}
+                on={sleepLeft > 0 || !!s.sleepEndOfTrack}
+                onClick={() => setSheet("sleep")}
+              >
+                <TimerIcon size={20} />
+                {(sleepLeft > 0 || s.sleepEndOfTrack) && (
+                  <span className="label text-[9px]">{s.sleepEndOfTrack ? "END" : mmss(sleepLeft)}</span>
+                )}
+              </Extra>
+              <Extra label="Up next" onClick={() => setSheet("queue")}>
+                <QueueIcon size={20} />
+                {!!s.count && <span className="label text-[9px]">{(s.index ?? 0) + 1}/{s.count}</span>}
+              </Extra>
+              <Extra
+                label="Forward 10 seconds"
+                onClick={() => player.seek(Math.min(s.duration ?? 0, (s.position ?? 0) + 10000))}
+              >
+                <span className="label text-[11px] font-medium">+10s</span>
+              </Extra>
             </div>
           </>
         )}
@@ -336,14 +355,11 @@ export function LocalView() {
                       </span>
                     </button>
                     <button
-                      aria-label={`Add ${t.title} to a playlist`}
-                      onClick={() => {
-                        setNewOnly(false);
-                        setAdding([t]);
-                      }}
+                      aria-label={`More for ${t.title}`}
+                      onClick={() => setMenuFor(t)}
                       className="-mr-2 flex size-11 shrink-0 items-center justify-center text-muted"
                     >
-                      <PlusIcon size={18} />
+                      <MoreVerticalIcon size={18} />
                     </button>
                   </li>
                 );
@@ -361,6 +377,17 @@ export function LocalView() {
         )}
       </div>
       <AddToPlaylistSheet songs={adding} newOnly={newOnly} onClose={() => setAdding(null)} />
+      <SongActionsSheet
+        song={menuFor}
+        onClose={() => setMenuFor(null)}
+        onAddToPlaylist={(t) => {
+          setNewOnly(false);
+          setAdding([t]);
+        }}
+      />
+      <SpeedSheet open={sheet === "speed"} onClose={() => setSheet(null)} />
+      <SleepSheet open={sheet === "sleep"} onClose={() => setSheet(null)} />
+      <QueueSheet open={sheet === "queue"} onClose={() => setSheet(null)} />
     </div>
   );
 }
@@ -389,6 +416,30 @@ export function ModeButton({
       {on && (
         <span className="absolute bottom-1 size-1 rounded-full bg-music" />
       )}
+    </button>
+  );
+}
+
+// Secondary player control: seek, speed, sleep timer, queue.
+function Extra({
+  label,
+  on = false,
+  onClick,
+  children,
+}: {
+  label: string;
+  on?: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={`flex h-12 min-w-12 flex-col items-center justify-center gap-0.5 ${on ? "text-music-text" : "text-muted"}`}
+    >
+      {children}
     </button>
   );
 }

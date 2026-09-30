@@ -20,6 +20,7 @@ export default function Account() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [password, setPassword] = useState("");
+  const [method, setMethod] = useState<"google" | "password" | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState<"keep" | "remove" | null>(null);
   const [unsynced, setUnsynced] = useState(0); // changes that would be lost
@@ -113,7 +114,10 @@ export default function Account() {
               </button>
             </div>
             <button
-              onClick={() => setDeleting(true)}
+              onClick={() => {
+                setMethod(signInMethod());
+                setDeleting(true);
+              }}
               className="self-start text-[12px] text-muted underline"
             >
               Delete account
@@ -208,7 +212,7 @@ export default function Account() {
         <p className="text-[13px] leading-relaxed text-muted">
           Want a copy first? Settings → Backup saves everything to a file.
         </p>
-        {signInMethod() === "password" && (
+        {method === "password" && (
           <input
             type="password"
             autoComplete="current-password"
@@ -221,13 +225,13 @@ export default function Account() {
         )}
         {deleteError && <p className="text-[13px] text-music-deep">{deleteError}</p>}
         <button
-          disabled={deleteBusy || (signInMethod() === "password" && !password)}
+          disabled={deleteBusy || (method === "password" && !password)}
           onClick={removeAccount}
           className="h-12 rounded-full bg-music text-[15px] font-semibold text-white disabled:opacity-50"
         >
           {deleteBusy
             ? "Deleting…"
-            : signInMethod() === "google"
+            : method === "google"
               ? "Confirm with Google and delete"
               : "Delete my account"}
         </button>

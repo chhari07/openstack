@@ -25,6 +25,8 @@ import { login, setClientId } from "@/lib/spotify";
 import { getTheme, setTheme, type Theme } from "@/lib/theme";
 import { AppSettings } from "@/lib/app-settings";
 import { BackupSection } from "@/components/backup-section";
+import { NewsAlertsSection } from "@/components/news-alerts-section";
+import { AiSection } from "@/components/ai-section";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -456,7 +458,15 @@ export default function Settings() {
           )}
         </Section>
 
-        <Section title="05 — Backup">
+        <Section title="05 — Breaking news">
+          <NewsAlertsSection />
+        </Section>
+
+        <Section title="06 — Stack AI">
+          <AiSection />
+        </Section>
+
+        <Section title="07 — Backup">
           <BackupSection />
         </Section>
       </div>

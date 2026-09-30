@@ -14,6 +14,11 @@ import { useStore } from "@/lib/use-store";
 import { paintHighlights } from "@/lib/highlights";
 import { safeImage } from "@/lib/use-news";
 import { loadArticle } from "@/lib/platform";
+import { markArticleRead, useReadingTimer } from "@/lib/reading";
+import { cacheArticle, forgetArticle, getOfflineIndex } from "@/lib/offline";
+import { CheckCircleIcon, DownloadIcon } from "@/components/stack-icons";
+import { newsTime } from "@/lib/format";
+import { ListenButton } from "@/components/listen-button";
 import type { Article } from "@/lib/article";
 import type { Story } from "@/lib/news";
 
@@ -53,13 +58,21 @@ function Reader() {
   const { session: focus } = useFocus();
   const toast = useToast();
   const bodyRef = useRef<HTMLDivElement>(null);
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<(Article & { offlineAt?: number }) | null>(null);
+  const [offline] = useStore(getOfflineIndex, {});
+  const kept = !!offline[id]?.keep;
   const [failed, setFailed] = useState(false);
   const [noteQuote, setNoteQuote] = useState<string | null>(null);
   const [notes] = useStore(getNotes, []);
   const [saved] = useStore(getSaved, []);
 
+  // Saved videos (Library, search) link here too; play them instead.
   useEffect(() => {
+    if (id.startsWith("yt-")) router.replace(`/watch?v=${id.slice(3)}`);
+  }, [id, router]);
+
+  useEffect(() => {
+    if (id.startsWith("yt-")) return;
     let alive = true;
     loadArticle(id)
       .then((a) => {
@@ -82,6 +95,22 @@ function Reader() {
     return () => paintHighlights("stack-article", null, []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [article, quotesKey]);
+
+  // Reading stats: time on the page, and "read" once the end comes into view.
+  useReadingTimer(!!article?.html);
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = endRef.current;
+    if (!article?.html || !el) return;
+    const seen = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        markArticleRead(id);
+        seen.disconnect();
+      }
+    });
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, [article, id]);
 
   const isSaved = saved.some((s) => s.id === id);
   // What the news list knew about this story (headline, image, summary).
@@ -121,7 +150,20 @@ function Reader() {
   const bookmark = async () => {
     if (!article) return;
     const now = await toggleSaved({ id, title: title ?? article.title, source: article.source, image: img });
-    toast(now ? { text: "Saved to your Library", href: "/library" } : { text: "Removed from saved" });
+    // Saved articles stay readable offline.
+    if (now && article.html) await cacheArticle(article, true);
+    toast(now ? { text: "Saved to your Library · available offline", href: "/library" } : { text: "Removed from saved" });
+  };
+
+  const download = async () => {
+    if (!article?.html) return;
+    if (kept) {
+      await forgetArticle(id);
+      toast({ text: "Removed the offline copy" });
+    } else {
+      await cacheArticle(article, true);
+      toast({ text: "Downloaded · you can read this offline" });
+    }
   };
 
   return (
@@ -152,6 +194,23 @@ function Reader() {
               >
                 <ClockIcon size={20} />
               </Link>
+            )}
+            {article?.html && (
+              <ListenButton
+                title={title ?? article.title}
+                source={article.source}
+                getText={() => `${title ?? article.title}.\n\n${bodyRef.current?.innerText ?? ""}`}
+              />
+            )}
+            {article?.html && (
+              <button
+                aria-label={kept ? "Available offline (tap to remove)" : "Download for offline"}
+                aria-pressed={kept}
+                onClick={download}
+                className="flex size-11 items-center justify-center"
+              >
+                {kept ? <CheckCircleIcon size={20} /> : <DownloadIcon size={20} />}
+              </button>
             )}
             <button
               aria-label={isSaved ? "Remove bookmark" : "Bookmark"}
@@ -243,6 +302,11 @@ function Reader() {
         {article?.html && (
           <>
             <AiSummary id={id} title={title ?? article.title} html={article.html} source={article.source} />
+            {article.offlineAt && (
+              <p className="label mb-3 rounded-xl bg-news-tint px-3.5 py-2.5 text-[10px] text-news-deep">
+                Offline copy · saved {newsTime(article.offlineAt)}
+              </p>
+            )}
             <p className="label mb-5 text-[10px] text-muted">Select text to highlight or add a note</p>
             <div
               ref={bodyRef}
@@ -250,6 +314,7 @@ function Reader() {
               // Sanitised on the server (see api/article/route.ts).
               dangerouslySetInnerHTML={{ __html: article.html }}
             />
+            <div ref={endRef} aria-hidden className="h-px" />
           </>
         )}
       </div>

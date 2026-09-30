@@ -3,6 +3,10 @@
 import { cpSync, readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 
 const res = "android/app/src/main/res";
+// `STACK_STORE=play` (build-aab.sh): the Google Play build. It leaves out "All
+// files access", which Play only allows for file managers and the like, and
+// plain-http access to the laptop's dev server.
+const PLAY = process.env.STACK_STORE === "play";
 const patch = (path, fn) => writeFileSync(path, fn(readFileSync(path, "utf8")));
 
 // 1. Icons: launcher icon, white notification icon (ic_stat_stack) and the
@@ -86,6 +90,18 @@ patch("android/app/build.gradle", (s) =>
       ),
 );
 
+// WorkManager: breaking-news alerts are checked in the background (NewsAlertWorker).
+patch("android/app/build.gradle", (s) =>
+  s.includes("androidx.work:work-runtime")
+    ? s
+    : s.replace(
+        "    implementation project(':capacitor-android')",
+        `    implementation project(':capacitor-android')
+    // Background checks for breaking-news alerts
+    implementation "androidx.work:work-runtime:2.10.5"`,
+      ),
+);
+
 // Android's Google account picker (Credential Manager) for "Continue with Google".
 patch("android/app/build.gradle", (s) =>
   s.includes("androidx.credentials:credentials")
@@ -99,6 +115,51 @@ patch("android/app/build.gradle", (s) =>
     implementation "com.google.android.libraries.identity.googleid:googleid:1.1.1"`,
       ),
 );
+
+// Version and release signing. versionName comes from package.json's
+// "version" (e.g. 1.0.0 → versionCode 10000); raise it before every Play
+// upload. The upload key is read from android/keystore.properties (gitignored;
+// see docs/Stack_Launch_Guide.pdf, stage 4), so debug builds work without it.
+{
+  const version = JSON.parse(readFileSync("package.json", "utf8")).version;
+  const [major, minor, patchNo] = version.split(".").map(Number);
+  const code = major * 10000 + minor * 100 + patchNo;
+  patch("android/app/build.gradle", (s) => {
+    s = s
+      .replace(/versionCode \d+/, `versionCode ${code}`)
+      .replace(/versionName "[^"]*"/, `versionName "${version}"`);
+    if (!s.includes("keystore.properties")) {
+      s = s
+        .replace(
+          "android {\n",
+          `def keystoreFile = rootProject.file("keystore.properties")
+def keystore = new Properties()
+if (keystoreFile.exists()) keystore.load(new FileInputStream(keystoreFile))
+
+android {
+`,
+        )
+        .replace(
+          "    buildTypes {\n        release {\n",
+          `    signingConfigs {
+        release {
+            if (keystoreFile.exists()) {
+                storeFile file(keystore["storeFile"])
+                storePassword keystore["storePassword"]
+                keyAlias keystore["keyAlias"]
+                keyPassword keystore["keyPassword"]
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (keystoreFile.exists()) signingConfig signingConfigs.release
+`,
+        );
+    }
+    return s;
+  });
+}
 
 // 5. Manifest.
 const manifestPath = "android/app/src/main/AndroidManifest.xml";
@@ -180,25 +241,49 @@ if (!manifest.includes('<package android:name="com.spotify.music"')) {
     `    <queries>\n        <package android:name="com.spotify.music" />\n    </queries>\n</manifest>`,
   );
 }
+// Listen mode uses the phone's text-to-speech engine, which Android 11+ also hides unless declared.
+if (!manifest.includes("android.intent.action.TTS_SERVICE")) {
+  manifest = manifest.replace(
+    "</queries>",
+    `    <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>`,
+  );
+}
 const permissions = [
   '<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />',
   '<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />',
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
   // "All files access": lets Stack find every PDF and song on the phone (user-granted in Settings).
-  '<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />',
+  // Not in the Play build.
+  ...(PLAY ? [] : ['<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />']),
   '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />',
 ];
+if (PLAY) manifest = manifest.replace(/\n\s*<uses-permission android:name="android\.permission\.MANAGE_EXTERNAL_STORAGE" \/>/, "");
+// The notifications plugin asks for exact alarms, which Play reviews closely;
+// the daily digest doesn't need them (it's scheduled inexact), so drop it there.
+const noExactAlarm = '<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />';
+if (PLAY) {
+  if (!manifest.includes("xmlns:tools")) manifest = manifest.replace("<manifest ", '<manifest xmlns:tools="http://schemas.android.com/tools" ');
+  if (!manifest.includes(noExactAlarm)) manifest = manifest.replace("</manifest>", `    ${noExactAlarm}\n</manifest>`);
+} else {
+  manifest = manifest.replace(`    ${noExactAlarm}\n`, "");
+}
 for (const p of permissions) {
   const name = p.match(/android:name="([^"]+)"/)[1];
   if (!manifest.includes(`"${name}"`)) manifest = manifest.replace("</manifest>", `    ${p}\n</manifest>`);
 }
 // Stack AI calls the Next.js server. In development that's the laptop's dev
 // server over plain http (10.0.2.2 is the laptop from the emulator); every
-// other address still needs https.
+// other address still needs https. The Play build allows https only.
 mkdirSync("android/app/src/main/res/xml", { recursive: true });
 writeFileSync(
   "android/app/src/main/res/xml/network_security_config.xml",
-  `<?xml version="1.0" encoding="utf-8"?>
+  PLAY
+    ? `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
+`
+    : `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="false">10.0.2.2</domain>

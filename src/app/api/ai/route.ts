@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { pageRefs } from "@/lib/ai-cites";
 
 // Stack AI: the only place that talks to the AI engine. It keeps the API key
 // (never sent to the app), checks the Firebase sign-in, applies a daily limit
@@ -217,9 +218,8 @@ async function runOpenAI(job: Job, emit: Emit) {
       return "";
     });
   if (job.task === "pdf")
-    text = raw.replace(/\s?\(p(?:p|age)?\.?\s*(\d{1,4})(?:\s*[–-]\s*\d{1,4})?\)/gi, (_, n) => {
-      cites.push({ page: Number(n), cited: "" });
-      return "";
+    text = pageRefs(raw, (page) => {
+      if (!cites.some((c) => c.page === page)) cites.push({ page, cited: "" });
     });
   emit({ t: "done", blocks: [{ text, cites }], cut: res.incomplete_details?.reason === "max_output_tokens" });
 }
