@@ -1,10 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { ago } from "@/lib/format";
+import { ago, newsTime } from "@/lib/format";
 import { safeImage, type Story } from "@/lib/use-news";
+import { PlayIcon } from "./icons";
 
-const readHref = (s: Story) => `/read?id=${s.id}`;
+// Videos play on /watch; everything else opens in the reader.
+export const storyHref = (s: Story) => (s.video ? `/watch?v=${s.video}` : `/read?id=${s.id}`);
+const readHref = storyHref;
+
+// Round play badge over a video's thumbnail.
+export function PlayBadge({ size = 44 }: { size?: number }) {
+  return (
+    <span
+      aria-hidden
+      style={{ width: size, height: size }}
+      className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white ring-2 ring-white/80"
+    >
+      <PlayIcon size={size * 0.45} />
+    </span>
+  );
+}
 
 // The reader gets the headline, image and summary from the list, so a page
 // that can't be fetched still shows something useful.
@@ -31,6 +47,7 @@ export function HeroStory({ story, height = 200 }: { story: Story; height?: numb
         <img src={img} alt="" decoding="async" className="absolute inset-0 size-full object-cover opacity-55" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      {story.video && <PlayBadge />}
       <span className="label absolute top-4 left-[18px] rounded-full bg-news px-2 py-1 text-[10px]">
         {story.source} · {ago(story.createdAt)}
       </span>
@@ -38,7 +55,10 @@ export function HeroStory({ story, height = 200 }: { story: Story; height?: numb
         <span className="label absolute top-4 right-[18px] text-[10px] text-[#8C8A84]">{story.domain}</span>
       )}
       <span className="relative line-clamp-3 text-[20px] leading-[1.22] font-bold">{story.title}</span>
-      <span className="label relative mt-2.5 text-[10px] text-[#BDBAB2]">
+      <time dateTime={story.createdAt} className="label relative mt-2 text-[10px] text-white/85">
+        {newsTime(story.createdAt)}
+      </time>
+      <span className="label relative mt-1 truncate text-[10px] text-[#BDBAB2]">
         {story.points !== undefined
           ? `${story.points} pts · ${story.comments ?? 0} comments`
           : story.summary
@@ -69,8 +89,9 @@ export function StoryCard({ story }: { story: Story }) {
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-      <span className="label absolute top-3 left-3.5 max-w-[80%] truncate rounded-full bg-black/45 px-2 py-1 text-[9px]">
-        {story.source} · {ago(story.createdAt)}
+      {story.video && <PlayBadge size={38} />}
+      <span className="label absolute top-3 left-3.5 max-w-[88%] truncate rounded-full bg-black/45 px-2 py-1 text-[9px]">
+        {story.source} · {newsTime(story.createdAt)}
       </span>
       <span className="relative line-clamp-3 text-[15px] leading-[1.25] font-bold">{story.title}</span>
     </Link>
@@ -88,11 +109,15 @@ export function StoryRow({ story, index }: { story: Story; index: number }) {
         <span className="label text-[10px] text-muted">
           {meta(story)} · {ago(story.createdAt)}
         </span>
+        <time dateTime={story.createdAt} className="label -mt-1 text-[10px] text-muted">
+          {newsTime(story.createdAt)}
+        </time>
       </div>
       <div
-        className="flex h-[72px] w-[92px] shrink-0 items-end overflow-hidden rounded-[10px] p-2"
+        className="relative flex h-[72px] w-[92px] shrink-0 items-end overflow-hidden rounded-[10px] p-2"
         style={{ background: THUMBS[index % THUMBS.length] }}
       >
+        {story.video && <PlayBadge size={30} />}
         {img ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={img} alt="" loading="lazy" decoding="async" className="-m-2 h-[72px] w-[92px] max-w-none object-cover" />

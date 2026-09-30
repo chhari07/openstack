@@ -17,6 +17,7 @@ import {
 
 const ICONS: Record<Topic, (p: SVGProps<SVGSVGElement> & { size?: number }) => React.ReactNode> = {
   top: TrendingIcon,
+  video: ClapperIcon,
   india: FlagIcon,
   world: GlobeIcon,
   tech: ChipIcon,

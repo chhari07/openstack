@@ -90,6 +90,18 @@ patch("android/app/build.gradle", (s) =>
       ),
 );
 
+// WorkManager: breaking-news alerts are checked in the background (NewsAlertWorker).
+patch("android/app/build.gradle", (s) =>
+  s.includes("androidx.work:work-runtime")
+    ? s
+    : s.replace(
+        "    implementation project(':capacitor-android')",
+        `    implementation project(':capacitor-android')
+    // Background checks for breaking-news alerts
+    implementation "androidx.work:work-runtime:2.10.5"`,
+      ),
+);
+
 // Android's Google account picker (Credential Manager) for "Continue with Google".
 patch("android/app/build.gradle", (s) =>
   s.includes("androidx.credentials:credentials")
@@ -227,6 +239,13 @@ if (!manifest.includes('<package android:name="com.spotify.music"')) {
   manifest = manifest.replace(
     "</manifest>",
     `    <queries>\n        <package android:name="com.spotify.music" />\n    </queries>\n</manifest>`,
+  );
+}
+// Listen mode uses the phone's text-to-speech engine, which Android 11+ also hides unless declared.
+if (!manifest.includes("android.intent.action.TTS_SERVICE")) {
+  manifest = manifest.replace(
+    "</queries>",
+    `    <intent>\n            <action android:name="android.intent.action.TTS_SERVICE" />\n        </intent>\n    </queries>`,
   );
 }
 const permissions = [

@@ -8,6 +8,7 @@ import { getNotes, getPdfs, getSaved } from "./db";
 import { getHistory, stats as focusStats } from "./focus";
 import { getPlaylists } from "./playlists";
 import { reviewStreak } from "./review";
+import { readingDays } from "./reading";
 
 export const HEAT_WEEKS = 18;
 const DAY = 86_400_000;
@@ -95,6 +96,7 @@ export async function getMeStats(now = Date.now()): Promise<MeStats> {
     ...pdfs.flatMap((p) => [p.addedAt, p.lastOpenedAt ?? 0]),
     ...history.map((r) => r.startedAt),
     ...playlists.map((p) => p.createdAt),
+    ...readingDays(),
   ].filter((t) => t > 0 && t <= now);
 
   // Heatmap: whole weeks (Sunday to Saturday) so the columns line up.

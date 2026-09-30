@@ -12,6 +12,8 @@ import { useStore } from "@/lib/use-store";
 import { inspectPdf } from "@/lib/pdf";
 import { safeImage } from "@/lib/use-news";
 import { PhoneShelf } from "@/components/phone-shelf";
+import { TelegramImport } from "@/components/telegram-import";
+import { getOfflineIndex } from "@/lib/offline";
 
 // Translucent acrylic shelves from the Books reference, one colour per shelf.
 const SHELVES = [
@@ -54,6 +56,7 @@ export default function Library() {
   const toast = useToast();
   const [pdfs] = useStore(getPdfs, []);
   const [saved] = useStore(getSaved, []);
+  const [offline] = useStore(getOfflineIndex, {});
   const [editing, setEditing] = useState(false);
   const [pending, setPending] = useState<File | null>(null);
   const [pendingUri, setPendingUri] = useState<string | undefined>();
@@ -151,6 +154,7 @@ export default function Library() {
         );
       })}
 
+      <TelegramImport />
       <PhoneShelf added={fromPhone} onPick={choose} />
 
       <section className="mt-5">
@@ -173,7 +177,10 @@ export default function Library() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {img && <img src={img} alt="" className="absolute inset-0 size-full object-cover opacity-40" />}
                     <span className="relative line-clamp-4 text-[11px] leading-tight font-semibold">{a.title}</span>
-                    <span className="label relative mt-1 text-[7px] text-[#BDBAB2]">{a.source}</span>
+                    <span className="label relative mt-1 text-[7px] text-[#BDBAB2]">
+                      {a.source}
+                      {offline[a.id]?.keep ? " · offline" : ""}
+                    </span>
                   </Link>
                   {editing && (
                     <button

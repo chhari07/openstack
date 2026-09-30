@@ -28,6 +28,9 @@ const LOCAL = [
   "stack.spotify.clientId",
   "stack.search.recent",
   "stack.onboarded",
+  "stack.reading",
+  "stack.news-alerts",
+  "stack.ai.off",
 ];
 
 type Item = { id: string } & Record<string, unknown>;

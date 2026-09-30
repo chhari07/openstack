@@ -2,11 +2,13 @@
 // - Tech topics: Hacker News (Algolia search API) and dev.to
 // - Everything else: RSS feeds from BBC, The Hindu, Times of India, Indian
 //   Express, Al Jazeera, Mint and The Guardian.
+// - Video: news channels' public YouTube feeds (no API key).
 // The website runs this on the server (/api/news); the Android app runs it
 // directly, since it has no server.
 
 export type Topic =
   | "top"
+  | "video"
   | "india"
   | "world"
   | "tech"
@@ -21,6 +23,7 @@ export type Topic =
 
 export const TOPICS: { value: Topic; label: string }[] = [
   { value: "top", label: "Top" },
+  { value: "video", label: "Video" },
   { value: "india", label: "India" },
   { value: "world", label: "World" },
   { value: "tech", label: "Tech" },
@@ -48,6 +51,7 @@ export type Story = {
   readMinutes?: number;
   points?: number;
   comments?: number;
+  video?: string; // YouTube video id (Video topic); plays on /watch
 };
 
 const REVALIDATE = 300; // seconds
@@ -78,6 +82,13 @@ const FEEDS: Partial<Record<Topic, Feed[]>> = {
   sports: [BBC("sport")],
   entertainment: [BBC("news/entertainment_and_arts")],
   health: [BBC("news/health")],
+};
+
+// Topics that can send breaking-news alerts (RSS topics), and their feeds.
+export const ALERT_TOPICS: Topic[] = ["top", "india", "world", "business", "science", "sports", "entertainment", "health"];
+export const alertFeeds = (topics: Topic[]) => {
+  const seen = new Set<string>();
+  return topics.flatMap((t) => FEEDS[t] ?? []).filter((f) => !seen.has(f.url) && seen.add(f.url));
 };
 
 // Reader mode may only fetch pages from these sites (plus HN-linked pages,
@@ -398,8 +409,63 @@ async function tech(topic: TechTopic, fresh: boolean) {
   return out;
 }
 
+// ---- Video: news channels on YouTube ----
+
+const CHANNELS: { source: string; id: string }[] = [
+  { source: "BBC News", id: "UC16niRr50-MSBwiO3YDb3RA" },
+  { source: "Al Jazeera", id: "UCNye-wNBqNL5ZzHSJj3l8Bg" },
+  { source: "DW News", id: "UCknLrEdhRCp1aegoMqRaCZg" },
+  { source: "Reuters", id: "UChqUTb7kYRX8-EiaN3XFrSQ" },
+  { source: "WION", id: "UC_gUM8rL-Lrg6O3adPW9K1g" },
+  { source: "NDTV", id: "UCZFMm1mMw0F81Z37aaEzTUA" },
+  { source: "India Today", id: "UCYPvAwZP8pZhSMW8qs7cVCw" },
+];
+
+export const isVideoId = (id: string) => /^[\w-]{11}$/.test(id);
+
+function parseChannel(xml: string, source: string): Story[] {
+  const out: Story[] = [];
+  for (const m of xml.matchAll(/<entry[\s>][\s\S]*?<\/entry>/gi)) {
+    const entry = m[0];
+    const id = tag(entry, "yt:videoId");
+    const title = tag(entry, "title");
+    // Shorts are vertical clips without context; keep full reports only.
+    if (!id || !isVideoId(id) || !title || /\/shorts\//.test(atomLink(entry) ?? "")) continue;
+    const date = tag(entry, "published");
+    const about = stripTags(tag(entry, "media:description") ?? "")
+      .replace(/#\S+/g, "")
+      .trim();
+    out.push({
+      id: `yt-${id}`,
+      source,
+      title: stripTags(decode(title)),
+      url: `https://www.youtube.com/watch?v=${id}`,
+      domain: "youtube.com",
+      image: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+      summary: about.length > 20 ? (about.length > 600 ? about.slice(0, 600).replace(/\s+\S*$/, "") + "…" : about) : undefined,
+      createdAt: date && !Number.isNaN(Date.parse(date)) ? new Date(date).toISOString() : new Date().toISOString(),
+      video: id,
+    });
+  }
+  return out;
+}
+
+async function videos(fresh: boolean): Promise<Story[]> {
+  const lists = await Promise.all(
+    CHANNELS.map(async (c) => {
+      const xml = await fetchText(`https://www.youtube.com/feeds/videos.xml?channel_id=${c.id}`, fresh);
+      return xml ? parseChannel(xml, c.source).slice(0, 8) : [];
+    }),
+  );
+  return lists
+    .flat()
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    .slice(0, 40);
+}
+
 export async function getNews(topic: Topic, fresh = false): Promise<Story[]> {
   if (topic === "mine") return []; // your own feeds are read on the device (lib/feeds.ts)
+  if (topic === "video") return videos(fresh);
   if (topic === "tech" || topic === "ai" || topic === "dev") return tech(topic, fresh);
   return rss(FEEDS[topic] ?? [], fresh);
 }

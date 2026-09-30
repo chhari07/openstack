@@ -25,7 +25,7 @@ public class BackupPlugin extends Plugin {
     public void create(PluginCall call) {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
+        intent.setType(call.getString("mime", "application/json"));
         intent.putExtra(Intent.EXTRA_TITLE, call.getString("name", "stack-backup.json"));
         startActivityForResult(call, intent, "created");
     }
@@ -60,5 +60,18 @@ public class BackupPlugin extends Plugin {
         } catch (Exception e) {
             call.reject("write failed: " + e.getMessage());
         }
+    }
+
+    /** Hands text to another app (Obsidian, Notion, Keep, email…) through Android's share sheet. */
+    @PluginMethod
+    public void shareText(PluginCall call) {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType("text/plain");
+        send.putExtra(Intent.EXTRA_SUBJECT, call.getString("title", "Stack notes"));
+        send.putExtra(Intent.EXTRA_TEXT, call.getString("text", ""));
+        Intent chooser = Intent.createChooser(send, call.getString("title", "Share"));
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(chooser);
+        call.resolve();
     }
 }

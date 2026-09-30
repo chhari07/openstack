@@ -28,7 +28,26 @@ export class AiError extends Error {
 const endpoint = () => `${isNative() ? (process.env.NEXT_PUBLIC_AI_URL ?? "") : ""}/api/ai`;
 
 // AI needs an account (to keep the shared key safe) and, in the app, a server address.
-export const aiAvailable = () => cloudConfigured() && (!isNative() || !!process.env.NEXT_PUBLIC_AI_URL);
+export const aiSetUp = () => cloudConfigured() && (!isNative() || !!process.env.NEXT_PUBLIC_AI_URL);
+
+// Settings → Stack AI: off hides every AI button (summaries, PDF questions,
+// "Ask your Stack", tidy note) and nothing is ever sent.
+const OFF_KEY = "stack.ai.off";
+export function aiTurnedOn() {
+  try {
+    return localStorage.getItem(OFF_KEY) !== "1";
+  } catch {
+    return true;
+  }
+}
+export function setAiTurnedOn(on: boolean) {
+  try {
+    if (on) localStorage.removeItem(OFF_KEY);
+    else localStorage.setItem(OFF_KEY, "1");
+  } catch {}
+}
+
+export const aiAvailable = () => aiSetUp() && aiTurnedOn();
 
 export async function runAi(body: AiTask, onText?: (textSoFar: string) => void, signal?: AbortSignal): Promise<Answer> {
   const user = cloud()?.auth.currentUser;

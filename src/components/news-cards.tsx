@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ago } from "@/lib/format";
+import { ago, newsTime } from "@/lib/format";
 import { getSaved, toggleSaved } from "@/lib/db";
 import { useStore } from "@/lib/use-store";
 import { safeImage, type Story } from "@/lib/use-news";
-import { rememberStory } from "./story";
+import { PlayBadge, rememberStory, storyHref } from "./story";
 import { useToast } from "./toast";
-import { BookmarkIcon, ExternalIcon } from "./icons";
+import { downloadArticle } from "@/lib/offline";
+import { BookmarkIcon, ClockIcon, ExternalIcon } from "./icons";
 
 const TINTS = ["#2F4B3A", "#54473A", "#2C3E57", "#4A2F3A", "#3A3A37"];
 const HINT_KEY = "stack.cards-hint-seen";
@@ -106,6 +107,11 @@ export function NewsCards({ stories }: { stories: Story[] }) {
                       {s.source}
                     </span>
                   )}
+                  {s.video && (
+                    <Link href={storyHref(s)} onClick={() => rememberStory(s)} aria-label={`Watch ${s.title}`}>
+                      <PlayBadge size={64} />
+                    </Link>
+                  )}
                   <span className="label absolute top-3 left-3 rounded-full bg-news px-2.5 py-1 text-[10px] text-white">
                     {s.source} · {ago(s.createdAt)}
                   </span>
@@ -115,13 +121,20 @@ export function NewsCards({ stories }: { stories: Story[] }) {
                 </div>
                 <div className="flex min-h-0 grow flex-col px-5 pt-4 pb-4">
                   <Link
-                    href={`/read?id=${s.id}`}
+                    href={storyHref(s)}
                     onClick={() => rememberStory(s)}
                   >
                     <h2 className="line-clamp-4 text-[22px] leading-[1.18] font-bold">
                       {s.title}
                     </h2>
                   </Link>
+                  <time
+                    dateTime={s.createdAt}
+                    className="label mt-2 flex items-center gap-1.5 text-[10px] text-muted"
+                  >
+                    <ClockIcon size={13} />
+                    {newsTime(s.createdAt)}
+                  </time>
                   {summary && (
                     <p className="mt-3 line-clamp-6 min-h-0 text-[15px] leading-[1.55] text-muted">
                       {summary}
@@ -129,11 +142,11 @@ export function NewsCards({ stories }: { stories: Story[] }) {
                   )}
                   <div className="mt-auto flex items-center gap-2 pt-3">
                     <Link
-                      href={`/read?id=${s.id}`}
+                      href={storyHref(s)}
                       onClick={() => rememberStory(s)}
                       className="flex h-11 grow items-center justify-center rounded-full bg-ink text-[14px] font-semibold text-on-ink"
                     >
-                      Read full story
+                      {s.video ? "Watch video" : "Read full story"}
                     </Link>
                     <button
                       aria-label={
@@ -155,6 +168,8 @@ export function NewsCards({ stories }: { stories: Story[] }) {
                               }
                             : { text: "Removed from saved" },
                         );
+                        // Keep a copy to read offline.
+                        if (now) downloadArticle(s.id).catch(() => {});
                       }}
                       className="flex size-11 shrink-0 items-center justify-center rounded-full border border-ink/15"
                     >

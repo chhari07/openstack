@@ -3,7 +3,7 @@
 import { Capacitor } from "@capacitor/core";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { isNative } from "@/lib/platform";
-import { LocalMusic, type LocalState, type LocalTrack } from "@/lib/local-music";
+import { LocalMusic, type LocalState, type LocalTrack, type QueueItem } from "@/lib/local-music";
 
 type Ctx = {
   available: boolean; // Android app only
@@ -16,6 +16,12 @@ type Ctx = {
   seek: (ms: number) => Promise<void>;
   setShuffle: (on: boolean) => Promise<void>;
   cycleRepeat: () => Promise<void>;
+  setSpeed: (speed: number) => Promise<void>;
+  setSleep: (opts: { minutes?: number; endOfTrack?: boolean }) => Promise<void>;
+  queue: () => Promise<QueueItem[]>;
+  jump: (index: number) => Promise<void>;
+  removeFromQueue: (index: number) => Promise<void>;
+  enqueue: (track: LocalTrack, next: boolean) => Promise<void>;
 };
 
 const LocalCtx = createContext<Ctx | null>(null);
@@ -57,11 +63,12 @@ export function LocalMusicProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     clearInterval(tick.current);
     if (!state.playing) return;
+    const step = 1000 * (state.speed || 1);
     tick.current = setInterval(() => {
-      setState((s) => ({ ...s, position: Math.min((s.position ?? 0) + 1000, s.duration || Infinity) }));
+      setState((s) => ({ ...s, position: Math.min((s.position ?? 0) + step, s.duration || Infinity) }));
     }, 1000);
     return () => clearInterval(tick.current);
-  }, [state.playing, state.uri]);
+  }, [state.playing, state.uri, state.speed]);
 
   // Resync when the app comes back from the background.
   useEffect(() => {
@@ -100,6 +107,12 @@ export function LocalMusicProvider({ children }: { children: ReactNode }) {
     setShuffle: (on) => run(LocalMusic.setShuffle({ on })),
     cycleRepeat: () =>
       run(LocalMusic.setRepeat({ mode: state.repeat === "off" || !state.repeat ? "all" : state.repeat === "all" ? "one" : "off" })),
+    setSpeed: (speed) => run(LocalMusic.setSpeed({ speed })),
+    setSleep: (opts) => run(LocalMusic.setSleepTimer(opts)),
+    queue: () => LocalMusic.queue().then((r) => r.items).catch(() => []),
+    jump: (index) => run(LocalMusic.jump({ index })),
+    removeFromQueue: (index) => run(LocalMusic.removeFromQueue({ index })),
+    enqueue: (track, next) => run(LocalMusic.enqueue({ track, next })),
   };
 
   return <LocalCtx.Provider value={value}>{children}</LocalCtx.Provider>;

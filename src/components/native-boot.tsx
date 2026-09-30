@@ -10,6 +10,7 @@ import { countPage } from "@/lib/nav";
 import { importShared, RESULT_KEY, resultTitle, ShareIn, type ShareResult } from "@/lib/share-in";
 import { useToast } from "./toast";
 import { scheduleDigest } from "@/lib/reminders";
+import { applyNewsAlerts } from "@/lib/news-alerts";
 import { applyTheme, watchSystemTheme } from "@/lib/theme";
 
 const Splash = registerPlugin<{ hide(): Promise<void> }>("Splash");
@@ -37,6 +38,22 @@ export function NativeBoot() {
       const href = notification.extra?.href;
       if (typeof href === "string" && href.startsWith("/")) router.push(href);
     });
+    // Breaking-news alerts open com.chhari.stack://open?href=/read?id=…
+    const openLink = (url?: string) => {
+      if (!url?.startsWith("com.chhari.stack://open")) return;
+      const href = new URL(url).searchParams.get("href");
+      if (href?.startsWith("/")) router.push(href);
+    };
+    const opened = App.addListener("appUrlOpen", ({ url }) => openLink(url));
+    App.getLaunchUrl()
+      .then((l) => {
+        // Only once per launch, not again after a reload.
+        if (!l?.url || sessionStorage.getItem("stack.launch-url") === l.url) return;
+        sessionStorage.setItem("stack.launch-url", l.url);
+        openLink(l.url);
+      })
+      .catch(() => {});
+    applyNewsAlerts().catch(() => {});
     scheduleDigest().catch(() => {});
 
     // Share to Stack: import what the share card saved, at launch, when Stack
@@ -68,6 +85,7 @@ export function NativeBoot() {
     const resumed = App.addListener("resume", importInbox);
     return () => {
       sub.then((s) => s.remove());
+      opened.then((s) => s.remove());
       shared.then((s) => s.remove());
       resumed.then((s) => s.remove());
     };

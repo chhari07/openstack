@@ -11,7 +11,7 @@ import { Logo } from "@/components/logo";
 import { CloseIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { useNews, type Topic } from "@/lib/use-news";
 import { isTopic, TOPICS } from "@/lib/news";
-import { dayStamp } from "@/lib/format";
+import { dayStamp, time12 } from "@/lib/format";
 import { getProfile } from "@/lib/profile";
 import { useStore } from "@/lib/use-store";
 import { CardsIcon, ListViewIcon } from "@/components/stack-icons";
@@ -188,8 +188,13 @@ export default function News() {
           <h1 className="display text-[40px] leading-[0.9] tracking-[-0.03em]">
             {word} TODAY
           </h1>
-          <span className="label text-[10px]">
+          <span className="label text-right text-[10px] leading-normal">
             {stamp ? `${stamp.day} ${stamp.date}` : ""}
+            {news.updatedAt && (
+              <span className={`block ${news.offline ? "text-music-text" : "text-muted"}`}>
+                {news.offline ? "Offline · saved" : "Updated"} {time12(news.updatedAt)}
+              </span>
+            )}
           </span>
         </div>
       ) : (
@@ -205,6 +210,11 @@ export default function News() {
             {stamp?.day}
             <br />
             {stamp?.date}
+            {news.updatedAt && (
+              <span className={`block ${news.offline ? "text-music-text" : "text-muted"}`}>
+                {news.offline ? "Offline · saved" : "Updated"} {time12(news.updatedAt)}
+              </span>
+            )}
           </span>
         </div>
       )}
@@ -285,7 +295,7 @@ export default function News() {
         <>
           <div className="mt-[22px] flex items-baseline justify-between">
             <h2 className="text-[19px] font-bold">
-              {query ? `Results for “${query}”` : "Today’s posts"}
+              {query ? `Results for “${query}”` : topic === "video" ? "Latest videos" : "Today’s posts"}
             </h2>
             <span className="label truncate pl-3 text-[10px] text-muted">
               {[...new Set(news.stories.map((s) => s.source))]

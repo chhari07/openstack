@@ -8,11 +8,18 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Size;
 import androidx.media3.common.MediaItem;
+import androidx.media3.common.C;
 import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
+import androidx.media3.common.Timeline;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
 import com.getcapacitor.JSArray;
@@ -30,6 +37,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -80,6 +88,7 @@ public class LocalMusicPlugin extends Plugin {
     @Override
     protected void handleOnDestroy() {
         if (controllerFuture != null) MediaController.releaseFuture(controllerFuture);
+        if (tts != null) tts.shutdown();
     }
 
     private interface WithController {
@@ -214,6 +223,13 @@ public class LocalMusicPlugin extends Plugin {
 
     // ---- Playback ----
 
+    // A whole number from JS. call.getLong only accepts values that arrived as
+    // Long, but JSON numbers under 2^31 arrive as Integer, so it returned the default.
+    private static long wholeNumber(PluginCall call, String key) {
+        Object v = call.getData().opt(key);
+        return v instanceof Number ? ((Number) v).longValue() : 0L;
+    }
+
     private JSObject state() {
         JSObject s = new JSObject();
         MediaController c = controller;
@@ -229,6 +245,9 @@ public class LocalMusicPlugin extends Plugin {
         s.put("hasPrevious", c.hasPreviousMediaItem());
         s.put("shuffle", c.getShuffleModeEnabled());
         s.put("repeat", c.getRepeatMode() == Player.REPEAT_MODE_ALL ? "all" : c.getRepeatMode() == Player.REPEAT_MODE_ONE ? "one" : "off");
+        s.put("speed", c.getPlaybackParameters().speed);
+        s.put("sleepAt", PlaybackService.sleepAt);
+        s.put("sleepEndOfTrack", PlaybackService.sleepEndOfTrack);
         if (item != null) {
             s.put("uri", item.mediaId);
             MediaMetadata m = item.mediaMetadata;
@@ -244,6 +263,25 @@ public class LocalMusicPlugin extends Plugin {
         withController(call, c -> call.resolve(state()));
     }
 
+    /** A queue item for one track, or null if it isn't from the phone's music library. */
+    private static MediaItem toItem(JSONObject t) {
+        String uri = t.optString("uri");
+        if (!uri.startsWith("content://media/")) return null;
+        return new MediaItem.Builder()
+            .setUri(uri)
+            .setMediaId(uri)
+            .setMediaMetadata(
+                new MediaMetadata.Builder()
+                    .setTitle(t.optString("title"))
+                    .setArtist(t.optString("artist"))
+                    .setAlbumTitle(t.optString("album"))
+                    // StackArtwork draws the notification artwork from this.
+                    .setArtworkUri(Uri.parse(uri))
+                    .build()
+            )
+            .build();
+    }
+
     /** Replaces the queue with `tracks` and starts at `index`. */
     @PluginMethod
     public void play(PluginCall call) {
@@ -252,22 +290,8 @@ public class LocalMusicPlugin extends Plugin {
         withController(call, c -> {
             List<MediaItem> items = new ArrayList<>();
             for (int i = 0; i < arr.length(); i++) {
-                JSONObject t = arr.getJSONObject(i);
-                String uri = t.getString("uri");
-                if (!uri.startsWith("content://media/")) continue; // only the phone's music library
-                items.add(
-                    new MediaItem.Builder()
-                        .setUri(uri)
-                        .setMediaId(uri)
-                        .setMediaMetadata(
-                            new MediaMetadata.Builder()
-                                .setTitle(t.optString("title"))
-                                .setArtist(t.optString("artist"))
-                                .setAlbumTitle(t.optString("album"))
-                                .build()
-                        )
-                        .build()
-                );
+                MediaItem item = toItem(arr.getJSONObject(i));
+                if (item != null) items.add(item);
             }
             c.setMediaItems(items, Math.max(0, Math.min(index, items.size() - 1)), 0);
             c.prepare();
@@ -306,7 +330,7 @@ public class LocalMusicPlugin extends Plugin {
 
     @PluginMethod
     public void seek(PluginCall call) {
-        long ms = call.getLong("position", 0L);
+        long ms = wholeNumber(call, "position");
         withController(call, c -> {
             c.seekTo(ms);
             call.resolve(state());
@@ -329,5 +353,222 @@ public class LocalMusicPlugin extends Plugin {
             c.setRepeatMode("all".equals(mode) ? Player.REPEAT_MODE_ALL : "one".equals(mode) ? Player.REPEAT_MODE_ONE : Player.REPEAT_MODE_OFF);
             call.resolve(state());
         });
+    }
+
+    @PluginMethod
+    public void setSpeed(PluginCall call) {
+        float speed = call.getFloat("speed", 1f);
+        withController(call, c -> {
+            c.setPlaybackSpeed(Math.max(0.25f, Math.min(3f, speed)));
+            call.resolve(state());
+        });
+    }
+
+    /** minutes > 0 pauses after that long; endOfTrack pauses when the song ends; neither turns it off. */
+    @PluginMethod
+    public void setSleepTimer(PluginCall call) {
+        long minutes = wholeNumber(call, "minutes");
+        boolean endOfTrack = Boolean.TRUE.equals(call.getBoolean("endOfTrack", false));
+        withController(call, c -> {
+            PlaybackService.setSleep(minutes, endOfTrack);
+            call.resolve(state());
+        });
+    }
+
+    // ---- Queue ----
+
+    /** The song playing now and what comes after it, in play order (shuffle included). */
+    @PluginMethod
+    public void queue(PluginCall call) {
+        withController(call, c -> {
+            JSArray items = new JSArray();
+            Timeline tl = c.getCurrentTimeline();
+            int i = tl.isEmpty() ? C.INDEX_UNSET : c.getCurrentMediaItemIndex();
+            while (i != C.INDEX_UNSET && items.length() < 300) {
+                MediaItem item = c.getMediaItemAt(i);
+                JSObject t = new JSObject();
+                t.put("index", i);
+                t.put("uri", item.mediaId);
+                t.put("title", item.mediaMetadata.title == null ? "" : item.mediaMetadata.title.toString());
+                t.put("artist", item.mediaMetadata.artist == null ? "" : item.mediaMetadata.artist.toString());
+                items.put(t);
+                i = tl.getNextWindowIndex(i, Player.REPEAT_MODE_OFF, c.getShuffleModeEnabled());
+            }
+            JSObject ret = new JSObject();
+            ret.put("items", items);
+            call.resolve(ret);
+        });
+    }
+
+    /** Plays the queue item at `index`. */
+    @PluginMethod
+    public void jump(PluginCall call) {
+        int index = call.getInt("index", 0);
+        withController(call, c -> {
+            if (index >= 0 && index < c.getMediaItemCount()) {
+                c.seekTo(index, 0);
+                c.play();
+            }
+            call.resolve(state());
+        });
+    }
+
+    @PluginMethod
+    public void removeFromQueue(PluginCall call) {
+        int index = call.getInt("index", -1);
+        withController(call, c -> {
+            if (index >= 0 && index < c.getMediaItemCount() && index != c.getCurrentMediaItemIndex()) c.removeMediaItem(index);
+            call.resolve(state());
+        });
+    }
+
+    /** Adds `track` right after the current song (`next`) or at the end of the queue. */
+    @PluginMethod
+    public void enqueue(PluginCall call) {
+        JSObject t = call.getObject("track");
+        boolean next = Boolean.TRUE.equals(call.getBoolean("next", false));
+        withController(call, c -> {
+            MediaItem item = t == null ? null : toItem(t);
+            if (item == null) {
+                call.reject("Not a music track");
+                return;
+            }
+            if (c.getMediaItemCount() == 0) {
+                c.setMediaItem(item);
+                c.prepare();
+                c.play();
+            } else if (next) {
+                c.addMediaItem(c.getCurrentMediaItemIndex() + 1, item);
+            } else {
+                c.addMediaItem(item);
+            }
+            call.resolve(state());
+        });
+    }
+
+    // ---- Listen mode: articles and PDFs read aloud ----
+    //
+    // Android's text-to-speech turns each part of the text into a WAV file in
+    // the cache, and the parts play as a queue in PlaybackService, so listening
+    // gets the same notification, lock screen, speed, sleep timer and skip
+    // (by part) as music. The first part starts as soon as it's ready; the rest
+    // are added while it plays.
+
+    private TextToSpeech tts;
+    private boolean ttsReady;
+    private final List<Runnable> whenTtsReady = new ArrayList<>();
+    private final Handler main = new Handler(Looper.getMainLooper());
+    private int listenGen = 0;
+
+    private interface Listening {
+        void done(String utteranceId, boolean ok);
+    }
+    private Listening onUtterance;
+
+    private void withTts(Runnable r) {
+        if (ttsReady) {
+            r.run();
+            return;
+        }
+        whenTtsReady.add(r);
+        if (tts != null) return;
+        tts = new TextToSpeech(getContext(), status -> main.post(() -> {
+            ttsReady = status == TextToSpeech.SUCCESS;
+            List<Runnable> waiting = new ArrayList<>(whenTtsReady);
+            whenTtsReady.clear();
+            for (Runnable w : waiting) w.run();
+        }));
+        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override public void onStart(String id) {}
+            @Override public void onDone(String id) { main.post(() -> { if (onUtterance != null) onUtterance.done(id, true); }); }
+            @Override public void onError(String id) { main.post(() -> { if (onUtterance != null) onUtterance.done(id, false); }); }
+        });
+    }
+
+    /** Reads `chunks` aloud through the player. Resolves once the first part is playing. */
+    @PluginMethod
+    public void listen(PluginCall call) {
+        List<String> parts = new ArrayList<>();
+        try {
+            JSArray arr = call.getArray("chunks");
+            for (int i = 0; i < arr.length(); i++) {
+                String t = arr.getString(i).trim();
+                if (!t.isEmpty()) parts.add(t);
+            }
+        } catch (Exception e) {
+            call.reject("Nothing to read");
+            return;
+        }
+        if (parts.isEmpty()) {
+            call.reject("Nothing to read");
+            return;
+        }
+        String title = call.getString("title", "Article");
+        String source = call.getString("source", "Stack");
+        String lang = call.getString("lang", "");
+        int gen = ++listenGen;
+
+        withTts(() -> {
+            if (!ttsReady) {
+                call.reject("Text-to-speech isn't available on this phone", "NO_TTS");
+                return;
+            }
+            Locale locale = lang.isEmpty() ? Locale.getDefault() : Locale.forLanguageTag(lang);
+            if (tts.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) tts.setLanguage(locale);
+            else tts.setLanguage(Locale.getDefault());
+
+            File dir = new File(getContext().getCacheDir(), "listen");
+            File[] old = dir.listFiles();
+            if (old != null) for (File f : old) f.delete();
+            dir.mkdirs();
+            synthesize(call, gen, parts, 0, dir, title, source);
+        });
+    }
+
+    private void synthesize(PluginCall call, int gen, List<String> parts, int i, File dir, String title, String source) {
+        if (gen != listenGen || i >= parts.size()) return;
+        File out = new File(dir, gen + "_" + i + ".wav");
+        String id = gen + ":" + i;
+        onUtterance = (doneId, ok) -> {
+            if (!id.equals(doneId) || gen != listenGen) return;
+            if (!ok || !out.exists()) {
+                if (i == 0) call.reject("Couldn't read this aloud");
+                return;
+            }
+            MediaItem item = new MediaItem.Builder()
+                .setUri(Uri.fromFile(out))
+                .setMediaId("listen:" + gen + ":" + i)
+                .setMediaMetadata(
+                    new MediaMetadata.Builder()
+                        .setTitle(title)
+                        .setArtist(source + " · part " + (i + 1) + " of " + parts.size())
+                        .setAlbumTitle("Listen")
+                        // StackArtwork draws the record with the title.
+                        .setArtworkUri(Uri.parse("stack-listen://" + gen))
+                        .build()
+                )
+                .build();
+            withController(call, c -> {
+                if (i == 0) {
+                    c.setMediaItems(java.util.Collections.singletonList(item), 0, 0);
+                    c.prepare();
+                    c.play();
+                    JSObject ret = new JSObject();
+                    ret.put("parts", parts.size());
+                    call.resolve(ret);
+                } else {
+                    // Stop if something else took over the player meanwhile.
+                    MediaItem first = c.getMediaItemCount() > 0 ? c.getMediaItemAt(0) : null;
+                    if (first == null || !first.mediaId.startsWith("listen:" + gen + ":")) {
+                        listenGen++;
+                        return;
+                    }
+                    c.addMediaItem(item);
+                }
+                synthesize(call, gen, parts, i + 1, dir, title, source);
+            });
+        };
+        Bundle params = new Bundle();
+        tts.synthesizeToFile(parts.get(i), params, out, id);
     }
 }

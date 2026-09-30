@@ -15,6 +15,7 @@ import { useNews } from "@/lib/use-news";
 import { dayStamp } from "@/lib/format";
 import { ClockIcon, MenuIcon, PlayIcon, PlusIcon, SearchIcon } from "@/components/icons";
 import { NotifyPrompt } from "@/components/notify-prompt";
+import { WeekCard } from "@/components/week-card";
 import { useFocus, useTick } from "@/components/focus-provider";
 import { clockText, remainingMs } from "@/lib/focus";
 import { reviewStreak, todaysReview } from "@/lib/review";
@@ -155,6 +156,7 @@ export default function Today() {
 
       <FocusCard />
       <ReviewCard />
+      <WeekCard />
       <NotifyPrompt />
 
       <div className="md:mt-4 md:grid md:grid-cols-[1.45fr_1fr] md:items-start md:gap-10">

@@ -383,10 +383,145 @@ html {
   }
 }
 
+/* Record player (components/vinyl.tsx). The spin keeps running and is only
+   paused, so the record holds its angle instead of snapping back. */
+@keyframes vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.vinyl-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vinyl-spin 4s linear infinite;
+}
+.vinyl-slide {
+  transition: transform 700ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+.vinyl-arm {
+  transform-box: view-box;
+  transform-origin: 318px 14px;
+  transition: transform 900ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes vinyl-in {
+  from {
+    transform: translateX(-90px) rotate(-40deg);
+    opacity: 0;
+  }
+}
+.vinyl-in {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vinyl-in 650ms cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+@keyframes vinyl-fade {
+  from {
+    opacity: 0;
+  }
+}
+.vinyl-fade {
+  animation: vinyl-fade 400ms ease-out both;
+}
+
+/* Telegram connection (components/telegram-import.tsx): dashes flow along
+   the link and a paper plane flies across while connecting; on success the
+   link turns solid and a tick pops in; on failure it shakes. */
+@keyframes tg-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.tg-flow {
+  animation: tg-flow 600ms linear infinite;
+}
+@keyframes tg-fly {
+  0% {
+    left: 0%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  15%,
+  85% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+}
+.tg-fly {
+  animation: tg-fly 1300ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes tg-pulse {
+  50% {
+    box-shadow: 0 0 0 10px rgb(42 171 238 / 0);
+  }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(42 171 238 / 0.45);
+  }
+}
+.tg-pulse {
+  animation: tg-pulse 1300ms ease-out infinite;
+}
+@keyframes tg-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+.tg-pop {
+  animation: tg-pop 420ms cubic-bezier(0.3, 0.7, 0.4, 1.4) both;
+}
+@keyframes tg-pop-in {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.2);
+  }
+}
+.tg-pop-in {
+  animation: tg-pop-in 420ms cubic-bezier(0.3, 0.7, 0.4, 1.4) both;
+}
+@keyframes tg-shake {
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.tg-shake {
+  animation: tg-shake 380ms ease-in-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .tg-flow,
+  .tg-fly,
+  .tg-pulse,
+  .tg-pop,
+  .tg-pop-in,
+  .tg-shake,
   .logo-drop > g,
-  .card-snap {
+  .card-snap,
+  .vinyl-spin,
+  .vinyl-in,
+  .vinyl-fade {
     animation: none;
+  }
+  .vinyl-slide,
+  .vinyl-arm {
+    transition: none;
   }
   .logo-loop > g {
     animation: logo-pulse 1200ms ease-in-out infinite;

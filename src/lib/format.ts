@@ -7,6 +7,22 @@ export function ago(ts: number | string) {
   return `${Math.floor(s / 86400)}d`;
 }
 
+// When a story was published: "30 Sep, 7:44 pm" (with the year if it isn't this year).
+export function newsTime(ts: number | string) {
+  const d = new Date(ts);
+  const date = d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    ...(d.getFullYear() !== new Date().getFullYear() && { year: "numeric" }),
+  });
+  return `${date}, ${time12(ts)}`;
+}
+
+// "7:44 pm"
+export function time12(ts: number | string) {
+  return new Date(ts).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
 export function dayStamp(d = new Date()) {
   const day = d.toLocaleDateString("en-GB", { weekday: "short" });
   const dd = String(d.getDate()).padStart(2, "0");
