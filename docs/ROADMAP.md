@@ -1,6 +1,6 @@
 # Stack — status and roadmap
 
-Status as of 28 Sep 2026 (v1.0). The diagram version is `docs/Stack_App.excalidraw`
+Status as of 1 Oct 2026 (v1.0). The diagram version is `docs/Stack_App.excalidraw`
 (regenerate with `python3 scripts/make-excalidraw.py`).
 
 ## Web app vs Android app
@@ -28,29 +28,35 @@ Status as of 28 Sep 2026 (v1.0). The diagram version is `docs/Stack_App.excalidr
 - **Settings:** Auto / Light / Dark theme; Access (all files, notifications, music, PDF folder); Spotify Client ID without rebuilding; digest time; test notification.
 - **Tablets:** navigation rail and 2–3 column layouts; rotation.
 
+Added since (Oct 2026): record-style music player with speed, sleep timer and queue;
+Video news and dates on stories; Listen mode; offline reading; breaking-news alerts;
+reading stats; Markdown export; Stack AI switch; Import from Telegram.
+
 ## Plan
 
 ### Phase 1 — Finish & stabilise (week 1)
 - [ ] Spotify inside Stack with the App Remote SDK: no more "no active device" (code parked in `native/wip/`; needs package + SHA1 in the Spotify dashboard)
 - [ ] Release-signed APK with version numbers; in-app "update available" check
-- [ ] Offline cache: today's cards and saved articles readable without network
+- [x] Offline cache: today's cards and saved articles readable without network
 - [ ] Deploy the web app (Vercel) for a shareable link
 
 ### Phase 2 — Stack's unique features (weeks 2–3)
-- [ ] **Focus session:** pick a PDF/article → 25-min timer + music + notes → summary at the end
-- [ ] **Share to Stack:** send links from Chrome, YouTube or WhatsApp into the Library (read later)
-- [ ] **Listen mode:** articles and PDFs read aloud (Android TextToSpeech) with media-notification controls
+- [x] **Focus session:** pick a PDF/article → 25-min timer + music + notes → summary at the end
+- [x] **Share to Stack:** send links from Chrome, YouTube or WhatsApp into the Library (read later)
+- [x] **Listen mode:** articles and PDFs read aloud (Android TextToSpeech) with media-notification controls
 
 ### Phase 3 — Smarter reading (weeks 4–5)
 - [ ] 60-word AI summaries on news cards and "explain this" on selected text (Gemini free tier)
 - [ ] Personal feed: choose topics on first launch; Hindi news sources
-- [ ] Breaking-news alerts per topic (WorkManager background fetch)
+- [x] Breaking-news alerts per topic (WorkManager background fetch)
 
 ### Phase 4 — Your data & reach (week 6+)
-- [ ] Export notes to Markdown; Google Drive backup / optional cloud sync
-- [ ] Resurface an old highlight in the daily digest (spaced review)
-- [ ] EPUB books; reading stats and streaks
-- [ ] Play Store build: folder picker + music-only permission instead of All files access
+- [x] Export notes to Markdown; optional cloud sync (Firebase)
+- [ ] Google Drive backup
+- [x] Resurface an old highlight in the daily digest (spaced review)
+- [x] Reading stats and streaks
+- [ ] EPUB books
+- [x] Play Store build: folder picker + music-only permission instead of All files access (`build-aab.sh`)
 
 ## Research sources
 

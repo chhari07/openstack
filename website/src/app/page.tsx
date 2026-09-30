@@ -40,6 +40,7 @@ const TOUR: {
       "Continue reading: the PDFs you have open",
       "Daily review: 3 old highlights each morning, with “Open where you read it”",
       "A focus card to start a timer or Pomodoro",
+      "This week: time read, articles finished and PDF pages, a bar for each day",
     ],
     text: "text-music-text",
     shot: { light: "/screens/today-light.png", dark: "/screens/today-dark.png", alt: "The Today tab with the top story, PDFs in progress and recent notes" },
@@ -47,11 +48,13 @@ const TOUR: {
   {
     id: "news",
     title: "NEWS",
-    lead: "11 topics from trusted sources, plus any site or RSS feed you add under My feeds.",
+    lead: "12 topics from trusted sources, including Video, plus any site or RSS feed you add under My feeds.",
     points: [
-      "Flash cards or a list, and pull down to refresh",
-      "Save a story to read it in a clean reader mode",
+      "Flash cards or a list, with the date and time on every story",
+      "Video news from BBC, Al Jazeera, DW, Reuters, WION, NDTV and India Today",
+      "Save a story to read it in a clean reader mode, even offline",
       "Select any line to highlight it or keep it as a note",
+      "Breaking-news alerts for the topics you pick, at most one an hour",
     ],
     text: "text-news-text",
     shot: { light: "/screens/news-light.png", dark: "/screens/news-dark.png", alt: "The News tab showing stories as swipeable flash cards" },
@@ -61,9 +64,10 @@ const TOUR: {
     title: "MUSIC",
     lead: "Songs on your phone and your own playlists, for reading or a focus session.",
     points: [
-      "Keeps playing in the background, with lock-screen controls",
+      "A spinning record with the song title on its label",
+      "Keeps playing in the background, with Stack’s own notification and lock screen",
+      "Shuffle, repeat, speed, sleep timer and an Up next queue",
       "Playlists with your own cover images",
-      "Shuffle and repeat",
     ],
     text: "text-music-text",
     shot: { light: "/screens/music-light.png", dark: "/screens/music-dark.png", alt: "The Music tab with songs from the phone" },
@@ -74,7 +78,9 @@ const TOUR: {
     lead: "Your PDFs and saved articles on coloured shelves. Share anything to Stack and it lands here.",
     points: [
       "Share from Chrome, WhatsApp or Files: a “Saved to Stack” card pops up",
+      "Import PDFs from Telegram: forward them to your bot, then pick which to add",
       "PDF reader with highlights, page notes and reading time left",
+      "Listen: articles and PDFs read aloud, with the same controls as music",
     ],
     text: "text-pdf-deep",
     shot: { light: "/screens/library-light.png", dark: "/screens/library-dark.png", alt: "The Library tab with coloured shelves of PDFs" },
@@ -87,6 +93,7 @@ const TOUR: {
       "Titles, checklists, colours and pins",
       "Each highlight shows its source: the article, or the PDF and page",
       "One search across notes, highlights, articles and PDFs",
+      "Export to Markdown for Obsidian, Notion or any editor",
     ],
     text: "text-ink",
     shot: { light: "/screens/notes-light.png", dark: "/screens/notes-dark.png", alt: "The Notes tab with notes and saved highlights" },
@@ -100,6 +107,19 @@ const FAQ = [
   },
   { q: "Is it free?", a: "Yes. Stack is free and open source. Testers will also get Stack Plus free for a year when it arrives." },
   { q: "Do I need an account?", a: "No. Stack works fully offline on your phone. Signing in is only for syncing between devices." },
+  {
+    q: "Can Stack read to me?",
+    a: "Yes. Tap the headphones on any article or PDF and Stack reads it aloud with your phone’s own voice, with play, pause, speed and a sleep timer in the notification.",
+  },
+  {
+    q: "Can I get my notes out?",
+    a: "Anytime. Export your notes and highlights to Markdown (each with a link to where you read it), or save a full backup file from Settings.",
+  },
+  { q: "Can I turn AI off?", a: "Yes. Stack AI is optional, asks before sending anything, and one switch in Settings turns it off completely." },
+  {
+    q: "Can I import PDFs from Telegram?",
+    a: "Yes. Make a free bot with Telegram’s @BotFather, connect it in Library, forward PDFs to it and pick which ones to add (up to 20 MB each).",
+  },
   {
     q: "I have an iPhone. Can I join?",
     a: "There's no iPhone app yet, but Stack also runs in the browser. Join with launch news only and we'll tell you when the web version opens.",
@@ -367,9 +387,9 @@ function Tour() {
 
 function LocalFirst() {
   const points = [
-    { t: "Works offline, no account", b: "Notes, highlights and PDFs live on your phone. Sign in only if you want sync." },
+    { t: "Works offline, no account", b: "Notes, highlights, PDFs and saved articles live on your phone, readable without a connection. Sign in only if you want sync." },
     { t: "No ads, no trackers", b: "We don’t sell or share your data, and never will." },
-    { t: "AI only when you ask", b: "Stack AI is optional and asks before any text leaves your phone." },
+    { t: "AI only when you ask", b: "Stack AI is optional, asks before any text leaves your phone, and turns off completely in Settings." },
     { t: "Open source", b: `Built in the open by ${SITE.maker}, made in India.` },
   ];
   return (
