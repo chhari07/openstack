@@ -24,17 +24,17 @@ brings those highlights back later, so what you read stays with you.
 
 | | |
 |---|---|
-| **Today** | Top story, swipeable rows of more stories, PDFs you're reading and recent notes, a focus card and the daily review |
-| **News** | **My feeds** (any RSS/Atom feed, or just a site like `css-tricks.com`) plus 11 topics (Top, India, World, Tech, AI, Dev, Business, Science, Sports, Entertainment, Health) from BBC, The Hindu, Times of India, Indian Express, Al Jazeera, Mint, The Guardian, Hacker News and dev.to. Flash cards or a list, pull to refresh (the Stack logo stacks itself while it loads), and a clean reader mode |
-| **Highlights & notes** | Select text: Highlight, + Note or Share. A Keep-style editor with titles, checklists, colours, pin, autosave, share, and delete with Undo |
-| **Library & PDF reader** | Coloured shelves, pdf.js reader with highlights and page notes, reading time left, every PDF on the phone (Android) |
+| **Today** | Top story, swipeable rows of more stories, PDFs you're reading and recent notes, a focus card, the daily review and a **This week** card (time read, articles finished, PDF pages) |
+| **News** | **My feeds** (any RSS/Atom feed, or just a site like `css-tricks.com`) plus 12 topics (Top, Video, India, World, Tech, AI, Dev, Business, Science, Sports, Entertainment, Health) from BBC, The Hindu, Times of India, Indian Express, Al Jazeera, Mint, The Guardian, Hacker News and dev.to. **Video** plays news channels' latest reports (BBC, Al Jazeera, DW, Reuters, WION, NDTV, India Today) in YouTube's privacy-enhanced player. Flash cards or a list with the date and time on every story, pull to refresh (the Stack logo stacks itself while it loads), a clean reader mode, **offline reading** (download or save; top stories cached in the background) and **breaking-news alerts** per topic (Android, at most one an hour) |
+| **Highlights & notes** | Select text: Highlight, + Note or Share. A Keep-style editor with titles, checklists, colours, pin, autosave, share, and delete with Undo. **Export to Markdown** (a `.md` file or straight into Obsidian, Notion…), grouped by source with links |
+| **Library & PDF reader** | Coloured shelves, pdf.js reader with highlights and page notes, reading time left, every PDF on the phone (Android). **Listen mode** reads articles and PDFs aloud (text-to-speech through the music player). **Import from Telegram**: connect your own bot, forward PDFs, pick which to add |
 | **Focus session** | Pick a PDF or article, 15–60 min timer or **Pomodoro** (4 × 25 min with 5-minute breaks and a 15-minute long break), music, quick notes, then a summary (pages, highlights, notes) with a streak |
 | **Daily review** | 3 old highlights a day on a spaced schedule (Got it / Show again soon / Stop), also in the morning notification |
 | **Share to Stack** | Share from Chrome, WhatsApp, YouTube or Files: a small "Saved to Stack" card pops up over the app you're in. Links go to the Library, PDFs to a shelf, text to notes |
-| **Music** | Songs on the phone (background play, lock-screen controls, shuffle, repeat), your own playlists with cover images, or Spotify |
+| **Music** | Songs on the phone on a spinning record with the title on its label: background play, Stack-styled notification and lock screen, shuffle, repeat, speed, sleep timer, ±10 s, Up next queue, Play next / Add to queue; your own playlists with cover images, or Spotify |
 | **Search** | One search across notes, checklists, highlights, saved articles, PDFs and playlists, with filters and recent searches |
 | **Profile** | Photo, bio, status, profile colour, interests (News shows them first) and a daily focus goal. Reader type, streaks, an activity heatmap and 12 badges |
-| **Stack AI** (optional) | Summarize an article, ask questions about a PDF (answers link to pages), "Ask your Stack" across your own notes, and tidy a note. Runs on OpenAI or Claude through Stack's server; asks before sending anything |
+| **Stack AI** (optional) | Summarize an article, ask questions about a PDF (answers link to pages), "Ask your Stack" across your own notes, and tidy a note. Runs on OpenAI or Claude through Stack's server; asks before sending anything, and one switch in Settings turns it off |
 | **Account & sync** | Continue with Google (or email). Notes, saved articles, PDFs, playlists, focus history and profile sync across devices (Firebase). Works fully offline without an account |
 | **Backup & restore** | Everything in one file (with or without the PDF files), no account needed |
 | **Everything else** | Light/dark theme, tablet layout, animated splash, daily digest notification, 148-icon set (`src/components/icons.tsx` + `stack-icons.tsx`) |

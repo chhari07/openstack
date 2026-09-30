@@ -12,7 +12,7 @@ const AI_ENGINE = process.env.NEXT_PUBLIC_AI_ENGINE || "our AI provider";
 
 export default function Privacy() {
   return (
-    <PolicyPage title="PRIVACY" updated="29 September 2026">
+    <PolicyPage title="PRIVACY" updated="1 October 2026">
       <p>
         Stack is a reading and notes app made by StackForge Labs. It works fully on your device without an account.
         This page explains what Stack stores, what leaves your device, and how to delete it.
@@ -20,8 +20,9 @@ export default function Privacy() {
 
       <PolicySection title="On your device">
         <p>
-          Your notes, highlights, saved articles, PDFs, playlists, focus history and profile are stored inside Stack on
-          your phone or in your browser. Nobody else can see them, including us.
+          Your notes, highlights, saved articles, PDFs, playlists, focus history, reading stats, offline copies of
+          articles and profile are stored inside Stack on your phone or in your browser. Nobody else can see them,
+          including us.
         </p>
       </PolicySection>
 
@@ -37,15 +38,31 @@ export default function Privacy() {
       <PolicySection title="AI features (optional)">
         <p>
           When you use Summarize, Ask this PDF, Ask your Stack or Tidy note, the text needed for that request is sent
-          to {AI_ENGINE} to produce the answer. Stack asks before the first use of each feature. We don’t use your
-          content to train models and don’t sell it.
+          to {AI_ENGINE} to produce the answer. Stack asks before the first use of each feature, and you can turn Stack
+          AI off completely in Settings. We don’t use your content to train models and don’t sell it.
         </p>
       </PolicySection>
 
       <PolicySection title="News and music">
         <p>
-          News is fetched from public news sites and feeds. Music on your phone is played from your phone. If you
+          News is fetched from public news sites and feeds. If you turn on breaking-news alerts, Stack checks those
+          feeds in the background; nothing about you is sent. Music on your phone is played from your phone. If you
           connect Spotify, Spotify’s own privacy policy applies to that connection.
+        </p>
+        <p>
+          Video news plays in YouTube’s privacy-enhanced player: when you play a video, your device loads it from
+          YouTube (Google), and Google’s privacy policy applies to that request.
+        </p>
+        <p>
+          Listen mode reads articles and PDFs aloud with your phone’s own text-to-speech; the text stays on your device.
+        </p>
+      </PolicySection>
+
+      <PolicySection title="Telegram (optional)">
+        <p>
+          If you connect a Telegram bot to import PDFs, its token is stored only on your device (it isn’t synced or
+          put in backups). Stack talks to Telegram directly to list and download the PDFs you forward to that bot; we
+          never see them. Telegram’s privacy policy applies to your bot and chats. Disconnect removes the token.
         </p>
       </PolicySection>
 
@@ -59,7 +76,7 @@ export default function Privacy() {
 
       <PolicySection title="Your choices">
         <ul className="list-disc pl-5">
-          <li>Export everything: Settings → Backup.</li>
+          <li>Export everything: Settings → Backup. Export notes as Markdown: Notes → ⬇.</li>
           <li>
             Delete your account and all synced data: Account → Delete account, or see{" "}
             <Link href="/delete-account" className="underline">
