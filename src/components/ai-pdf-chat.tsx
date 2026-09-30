@@ -21,7 +21,11 @@ export function AiPdfButton({ id, title, page, onPage }: { id: string; title: st
   const pdf = useRef<string | null>(null);
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [turns]);
+  // Braces matter: newer browsers return a Promise from scrollIntoView, and an
+  // effect may only return a cleanup function.
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [turns]);
 
   if (!aiAvailable()) return null;
 

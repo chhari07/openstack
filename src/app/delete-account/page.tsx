@@ -15,7 +15,7 @@ export default function DeleteAccountInfo() {
 
       <PolicySection title="In the app (fastest)">
         <ol className="list-decimal pl-5">
-          <li>Open Stack and tap your profile picture to go to <b>You</b>.</li>
+          <li>Open Stack and tap your picture at the top of <b>Today</b> (or Settings → your name).</li>
           <li>Under <b>Account &amp; sync</b>, tap <b>Delete account</b>.</li>
           <li>Confirm with Google (or your password). Deletion happens immediately.</li>
         </ol>

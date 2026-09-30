@@ -119,10 +119,13 @@ export function AnswerView({
   );
 }
 
+// One chip per page or note; pages in reading order.
 const dedupe = (cites: Cite[]) => {
   const seen = new Set<string>();
-  return cites.filter((c) => {
-    const k = `${c.page ?? ""}|${c.source ?? ""}`;
-    return !seen.has(k) && seen.add(k);
-  });
+  return cites
+    .filter((c) => {
+      const k = `${c.page ?? ""}|${c.source ?? ""}`;
+      return !seen.has(k) && seen.add(k);
+    })
+    .sort((a, b) => (a.page ?? 0) - (b.page ?? 0));
 };

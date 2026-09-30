@@ -56,3 +56,8 @@ firebase/*-debug.log
 /public/pdf.worker.min.mjs
 # Spotify App Remote SDK (download it yourself; see README)
 /native/android-libs/*.aar
+
+# Play upload key (never commit; see docs/Stack_Launch_Guide.pdf, stage 4)
+/android/keystore.properties
+*.jks
+*.keystore
