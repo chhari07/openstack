@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack: the soft launch plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 46pt; }
+  h2 { margin: 6mm 0 1.5mm; font-size: 22pt; }
+  h3 { margin: 0; font-size: 13pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 4mm; font-size: 10pt; line-height: 1.5; max-width: 176mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; font-size: 8.4pt; line-height: 1.45; }
+  .card ul { margin: 1.6mm 0 0; padding-left: 3.6mm; }
+  .card li { margin-bottom: .6mm; }
+  .tag { display: inline-block; font-size: 6.3pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+
+  .stat { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm 3mm; }
+  .stat .n { font-size: 25pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.03em; line-height: .95; }
+  .stat .d { font-size: 7.6pt; line-height: 1.35; margin-top: 1.2mm; }
+  .stat .s { font-size: 6.2pt; color: var(--muted); margin-top: 1.4mm; }
+  .g { color: var(--news); } .r { color: var(--music); } .o { color: var(--pdf-deep); } .bl { color: var(--blue-deep); } .v { color: var(--violet); }
+
+  .band { border-radius: 4mm; padding: 4mm 5mm; margin-bottom: 3mm; font-size: 8.8pt; line-height: 1.48; }
+  .band .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.4mm; }
+  .band ul { list-style: none; margin: 1.6mm 0 0; padding: 0; }
+  .band li { display: flex; gap: 2.4mm; margin-bottom: 1.1mm; }
+  .band li::before { content: ""; flex-shrink: 0; width: 3mm; height: 3mm; margin-top: .7mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .b1 { background: var(--yellow-tint); color: #3a2a00; }
+  .b2 { background: var(--pdf-tint); color: #3d2200; }
+  .b3 { background: var(--blue-tint); color: #0e2a4a; }
+  .b4 { background: var(--violet-tint); color: #2a1a66; }
+  .b5 { background: var(--news-tint); color: #06321a; }
+  .b6 { background: var(--music-tint); color: #4a1210; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4.2mm 5mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+
+  .verdict { display: grid; grid-template-columns: 30mm 1fr; gap: 0; background: var(--card); border-radius: 3.5mm; margin-bottom: 2.4mm; overflow: hidden; }
+  .verdict .v1 { padding: 3.4mm; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1mm; }
+  .verdict .v1 .big { font-size: 17pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; line-height: .9; }
+  .verdict .v2 { padding: 3.4mm 4mm; font-size: 8.8pt; line-height: 1.48; border-left: 1px solid var(--rule); }
+
+  .meter { display: inline-flex; gap: .7mm; vertical-align: middle; }
+  .meter i { display: block; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--rule); }
+  .meter.m1 i:nth-child(-n+1), .meter.m2 i:nth-child(-n+2), .meter.m3 i:nth-child(-n+3), .meter.m4 i:nth-child(-n+4), .meter.m5 i:nth-child(-n+5) { background: var(--ink); }
+
+  .quad { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.6mm; height: 118mm; position: relative; }
+  .quad > div { border-radius: 4mm; padding: 3.6mm 4mm; font-size: 8.4pt; line-height: 1.4; }
+  .chip { display: inline-block; background: var(--card); border-radius: 2.4mm; padding: 1.2mm 2.4mm; margin: 0 1.2mm 1.4mm 0; font-size: 8pt; font-weight: 600; }
+  .chip small { font-weight: 400; color: var(--muted); }
+
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .src { font-size: 7.2pt; line-height: 1.45; columns: 2; column-gap: 7mm; }
+  .src p { break-inside: avoid; margin-bottom: 1.4mm; }
+  .src a { color: var(--blue-deep); text-decoration: none; word-break: break-all; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+</style>
+<style>
+  .step { display:grid; grid-template-columns: 9mm 1fr; gap: 2.4mm; background: var(--card); border-radius: 3.2mm; padding: 2.6mm 3.4mm; margin-bottom: 1.8mm; font-size: 8.5pt; line-height: 1.42; }
+  .step .num { width: 7mm; height: 7mm; border-radius: 2mm; background: var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-stretch:75%; font-size: 10pt; }
+  .step b.t { display:block; font-size: 9.2pt; margin-bottom: .4mm; }
+  .step code, .cmd code { font-family: "IBM Plex Mono", monospace; font-size: 7.4pt; background: var(--paper-2); padding: .2mm 1mm; border-radius: 1mm; }
+  .cmd { background: #1b1b1a; color: #e9e6df; border-radius: 3mm; padding: 3mm 4mm; font-family: "IBM Plex Mono", monospace; font-size: 7.3pt; line-height: 1.55; margin: 1.6mm 0 2.4mm; white-space: pre-wrap; }
+  .cmd .c { color: #8f8b83; }
+  .who { float:right; font-size: 6.2pt; }
+  .ok { color: var(--news-deep); font-weight: 700; } .no { color: var(--music-deep); font-weight: 700; }
+  .stage { display:flex; gap: 3mm; align-items: baseline; }
+  .stage .sn { font-size: 30pt; font-weight: 800; font-stretch: 75%; line-height: .8; }
+  .tick { list-style:none; padding:0; margin: 0; columns: 2; column-gap: 6mm; font-size: 8.2pt; line-height: 1.4; }
+  .tick li { break-inside: avoid; display:flex; gap: 2mm; margin-bottom: 1.3mm; }
+  .tick li::before { content:""; flex-shrink:0; width: 3.2mm; height: 3.2mm; margin-top: .5mm; border: 1.2px solid #111; border-radius: 1mm; }
+  .tick h4 { column-span: all; margin: 2.4mm 0 1.4mm; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: 7pt; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
+</style>
+<style>
+  html, body { font-family: "Archivo", "Noto Sans Devanagari", sans-serif; }
+  .hi { font-family: "Noto Sans Devanagari", sans-serif; letter-spacing: 0; }
+  td.c, th.c { text-align: center; }
+  .lead { font-size: 9pt; line-height: 1.5; margin: 0 0 3mm; max-width: 180mm; }
+  .card h3 { margin-bottom: 1.2mm; }
+  .card .tag { margin-bottom: 1.6mm; }
+  .meta { font-size: 7.2pt; color: var(--muted); margin-top: 1.4mm; line-height: 1.4; }
+  .band h3 { font-size: 11.5pt; }
+  .kv { display: grid; grid-template-columns: 34mm 1fr; gap: 1mm 3mm; font-size: 8.4pt; line-height: 1.42; }
+  .kv b { font-weight: 700; }
+  .ok { white-space: nowrap; } .no { white-space: nowrap; }
+  .mid { color: var(--pdf-deep); font-weight: 700; white-space: nowrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<section class="page cover">
+  <div class="top"><svg width="34" height="34" fill="#fff"><use href="#logo"/></svg><span class="label">StackForge Labs · soft launch plan · 01.10.2026 · version 2</span></div>
+  <div style="position:absolute; left:13mm; right:13mm; top:58mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">Stack · with Stack AI and Sarvam AI</div>
+    <div class="display" style="font-size:88pt">SOFT<br>LAUNCH.</div>
+    <p class="serif" style="font-size:21pt; margin-top:8mm; line-height:1.2">In real hands within ten days,<br>before you tell everyone.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(6,1fr); gap:2mm;">
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">Days 1–5</div><div style="font-size:8pt; margin-top:1.5mm">Finish the build</div></div>
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">Days 6–7</div><div style="font-size:8pt; margin-top:1.5mm">Internal test</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">Days 8–10</div><div style="font-size:8pt; margin-top:1.5mm">Soft launch opens</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">14 days</div><div style="font-size:8pt; margin-top:1.5mm">Run it · market research</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">2 Nov</div><div style="font-size:8pt; margin-top:1.5mm">Decide</div></div>
+    <div style="background:var(--blue); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:6.5pt">November</div><div style="font-size:8pt; margin-top:1.5mm">Public launch</div></div>
+  </div>
+
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">00 · The whole plan on one page</span></div>
+  <h1 class="display">THE ROUTE</h1>
+  <p class="intro">A <b>soft launch</b> means real people outside your own circle use Stack, but only a small group you choose. This plan opens it in <b>8 to 10 days: between 8 and 10 October.</b></p>
+
+  <table>
+    <tr><th style="width:9mm">#</th><th style="width:33mm">Phase</th><th style="width:56mm">What happens</th><th>Done when</th><th style="width:27mm">Dates</th></tr>
+    <tr><td>0</td><td><b>Finish the build</b></td><td>Sign-in, sync, Stack AI and Sarvam live. The first build goes to Google on 4 Oct</td><td>Every gate on page 3 is green</td><td>1–5 Oct<br>days 1–5</td></tr>
+    <tr><td>1</td><td><b>Internal test</b></td><td>You and 2 or 3 friends, through Play's internal track</td><td>Sign-in, sync and AI work on 3 real phones on mobile data</td><td>6–7 Oct<br>days 6–7</td></tr>
+    <tr><td>2</td><td><b>Soft launch</b></td><td>Play's closed test opens by a join link to the waitlist and a few study groups: 50 to 150 people</td><td>12 or more stay opted in for 14 days in a row, and you have two weeks of numbers</td><td><b>opens 8–10 Oct</b><br>runs to 24 Oct</td></tr>
+    <tr><td>3</td><td><b>Google's review</b></td><td>Apply for production on day 15 of the closed test</td><td>Google grants production access</td><td>24 Oct – about 1 Nov</td></tr>
+    <tr><td>4</td><td><b>Decide</b></td><td>Go, fix or rethink, from the numbers on page 7</td><td>A written decision</td><td>2 Nov</td></tr>
+    <tr><td>5</td><td><b>Public launch</b></td><td>The Store listing opens to everyone at 20%, 50%, then 100%. Launch posts, Product Hunt</td><td>The plan's goal: 1,000 installs by end of December</td><td>November</td></tr>
+  </table>
+
+  <div class="grid2" style="margin-top:2mm">
+    <div class="card"><span class="tag label t-red">Why not the open Store in 10 days</span><h3>Google's 14-day rule</h3>A new personal Play account must run a closed test with 12 testers for 14 days in a row before the app can be open to everyone. Nothing in this plan can shorten that. So the soft launch <b>is</b> the closed test: people join by a link, install from Play, and the 14 days count at the same time.</div>
+    <div class="card"><span class="tag label t-org">What can move the date</span><h3>Google's first review</h3>Google reviews the first closed-test build, and that can take a few days. Upload it on <b>4 October</b>, before the AI work is finished, so the review runs while you build. If it is still not approved on day 8, start with Play's internal track, which takes up to 100 people and needs no wait.</div>
+  </div>
+  <p class="note" style="margin:1.5mm 0 0">The dates assume your Play Console account is already verified, which I could not check. If it is not, verification comes first and every date moves by the days it takes.</p>
+
+  <h2 class="display">WHAT CHANGED SINCE THE LAUNCH GUIDE</h2>
+  <table>
+    <tr><th style="width:36mm">Topic</th><th style="width:60mm">The old guide (29.09.2026) said</th><th>Now</th></tr>
+    <tr><td>Backend</td><td>Firebase for sign-in, sync and files</td><td><b>Supabase</b> for all three. Keep the old Firebase project: it owns the Google sign-in clients and the website's waitlist</td></tr>
+    <tr><td>Where AI runs</td><td>A Next.js route on Vercel</td><td>A <b>Supabase Edge Function</b> named <code>ai</code>. The app needs no web server of ours</td></tr>
+    <tr><td>AI engines</td><td>Claude only</td><td><b>Sarvam</b> for text jobs in Indian languages, <b>Claude or OpenAI</b> for PDF chat</td></tr>
+    <tr><td>Play build</td><td>To be written</td><td><code>build-aab.sh</code> exists and leaves out "All files access". Version is 1.0.0 (code 10000)</td></tr>
+  </table>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">02 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Phase 0 · days 1–5 · 1–5 Oct</span></div>
+  <h1 class="display">FINISH THE BUILD</h1>
+  <p class="intro">Twelve gates in date order. The first seven get a build to Google by 4 October. <b>You</b> = a dashboard or key only you can reach. <b>Code</b> = work in the repo.</p>
+
+  <table>
+    <tr><th style="width:8mm">#</th><th style="width:42mm">Gate</th><th style="width:13mm">Who</th><th style="width:13mm">By</th><th>Done when</th></tr>
+    <tr><td>1</td><td>Google sign-in on a real phone</td><td>You</td><td>2 Oct</td><td>The Web client ID is under Supabase → Authentication → Providers → Google → Client IDs, and a real Google account signs in</td></tr>
+    <tr><td>2</td><td>Sync between two phones</td><td>You</td><td>2 Oct</td><td>A note written on one phone appears on the other</td></tr>
+    <tr><td>3</td><td>Public privacy and delete pages</td><td>Code</td><td>3 Oct</td><td>The website has <code>/privacy</code> today but no <code>/delete-account</code> page. Play needs a public link for both. The privacy page names Supabase, Sarvam and the second AI engine</td></tr>
+    <tr><td>4</td><td>Signed release build</td><td>You + Code</td><td>3 Oct</td><td><code>./build-aab.sh</code> makes an <code>.aab</code> signed with your upload key, from committed and tagged code. The Supabase work is still uncommitted on <code>website-update-oct</code></td></tr>
+    <tr><td>5</td><td>Play forms and listing</td><td>You</td><td>4 Oct</td><td>Everything on page 5 is filled in</td></tr>
+    <tr><td>6</td><td><b>First build uploaded</b></td><td>You</td><td><b>4 Oct</b></td><td>The build is on the internal track and sent for review on the closed track. AI can still be hidden in this build</td></tr>
+    <tr><td>7</td><td>Google sign-in for Play installs</td><td>You</td><td>4 Oct</td><td>Google Cloud has an Android OAuth client for the upload key's SHA-1 and for Play's app-signing SHA-1, which appears after the first upload. Without them sign-in fails on Play installs</td></tr>
+    <tr><td>8</td><td>Stack AI is live</td><td>You</td><td>5 Oct</td><td>The <code>ai</code> function is deployed with its secrets, <code>NEXT_PUBLIC_AI_URL</code> is filled in, and a summary works in the app</td></tr>
+    <tr><td>9</td><td>Sarvam engine</td><td>Code</td><td>5 Oct</td><td>Summary, Tidy and Ask your Stack run on Sarvam; PDF chat runs on Claude or OpenAI; the app names both engines before sending anything</td></tr>
+    <tr><td>10</td><td>Cheap models, limit, caps</td><td>You</td><td>5 Oct</td><td>No feature uses Claude Opus or GPT-5.5 by default. <code>AI_DAILY_LIMIT=10</code>. The Claude or OpenAI account has a monthly limit of about $10; Sarvam is prepaid</td></tr>
+    <tr><td>11</td><td>"Report this answer"</td><td>Code</td><td>6 Oct</td><td>Every AI answer has a way to report it. Google Play asks for this in apps that make AI content</td></tr>
+    <tr><td>12</td><td>Password-reset emails</td><td>You</td><td>6 Oct</td><td>Your own SMTP sender is set in Supabase. Its built-in sender sends only a few emails an hour</td></tr>
+  </table>
+
+  <h2 class="display">LEFT OUT OF THE FIRST TEN DAYS</h2>
+  <div class="grid2">
+    <div class="card"><span class="tag label t-blue">Ships during the soft launch</span><h3>Updates, not blockers</h3>"Summarise in Hindi", "Explain simply", exam shelves, the app in Hindi. Each goes out as an update. Gates 8 to 11 go up as a second build on 6 October with a higher version code.</div>
+    <div class="card"><span class="tag label t-org">Free plan</span><h3>Two Supabase limits to know</h3>A free project pauses after about a week with no activity: press <b>Restore</b> in the dashboard. The free plan also has about 1 GB of file storage and Stack syncs PDFs of up to 50 MB, so check the storage figure every few days.</div>
+  </div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">03 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Phases 1 and 2 · 6–24 Oct</span></div>
+  <h1 class="display">THE FIRST PEOPLE</h1>
+  <p class="intro">The people in the soft launch are also Google's testers: <b>12 of them must stay opted in for 14 days in a row.</b> Invite many more than 12, and give them something to do.</p>
+
+  <div class="step"><div class="num">1</div><div><span class="tag label t-ink who">6–7 Oct</span><b class="t">Internal test on three phones</b>You and 2 or 3 friends install from Play's internal track. On mobile data: sign in with Google, save a note, see it on a second phone, summarise an English and a Hindi article, ask one PDF a question, sign out and in again.</div></div>
+  <div class="step"><div class="num">2</div><div><span class="tag label t-red who">8–10 Oct</span><b class="t">Open the soft launch</b>Make a Google Group and set it as the tester list of the closed track. Anyone who joins the group can install from Play, so one link is all you share. Send it first to the website's waitlist: the sign-ups are in the old Firebase project, in the Firestore collection <code>waitlist</code>.</div></div>
+  <div class="step"><div class="num">3</div><div><span class="tag label t-ink who">10–24 Oct</span><b class="t">Ship an update every week</b>Fix the top complaints and upload again. Google looks at whether you tested and improved the app.</div></div>
+  <div class="step"><div class="num">4</div><div><span class="tag label t-ink who">Day 15 · about 24 Oct</span><b class="t">Apply for production</b>Google asks how you found testers, what they said and what you changed. Answer from the form below. Review usually takes about a week.</div></div>
+
+  <h2 class="display">WHAT TO ASK PEOPLE TO DO</h2>
+  <table>
+    <tr><th style="width:18mm">Day</th><th style="width:74mm">Task</th><th>What you learn</th></tr>
+    <tr><td>1</td><td>Sign in. Save three articles or PDFs and highlight one line</td><td>Does sign-in work on every phone? Is saving obvious?</td></tr>
+    <tr><td>2</td><td>Summarise one article in English and one in your own language</td><td>Is Sarvam's Hindi, Tamil or Bengali good enough to trust?</td></tr>
+    <tr><td>3</td><td>Do the morning review</td><td>Does the "remember" loop start?</td></tr>
+    <tr><td>5</td><td>Ask a question about a PDF you study from</td><td>Are the answers right, and do the page links help?</td></tr>
+    <tr><td>7</td><td>Fill a short form (below)</td><td>The words you will give Google on day 15</td></tr>
+    <tr><td>10</td><td>Share to Stack from WhatsApp, Chrome or Telegram</td><td>Does Stack become a habit inside other apps?</td></tr>
+    <tr><td>14</td><td>One question: "How would you feel if you could no longer use Stack?"</td><td>Whether there is anything they would miss</td></tr>
+  </table>
+
+  <div class="grid2" style="margin-top:2mm">
+    <div class="card"><span class="tag label t-blue">Day 7 form</span><ul><li>What did you use most? What confused you?</li><li>Was an AI answer ever wrong? Paste it</li><li>Which language do you read in? Was the summary good in it?</li><li>What do you study for? Which apps do you use for it today?</li><li>Would you pay ₹99 a month? For which part?</li><li>How did you hear about Stack?</li></ul></div>
+    <div class="card"><span class="tag label t-org">What to watch yourself</span><ul><li>Sign-ups: Supabase → Authentication → Users</li><li>Who syncs: rows in the <code>items</code> table</li><li>AI use: the <code>ai_usage</code> table keeps only today's rows, so note the numbers each evening</li><li>Money spent: the AI dashboards. Opted-in testers: Play Console</li></ul></div>
+  </div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">04 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Play Console · before 4 Oct</span></div>
+  <h1 class="display">PLAY CONSOLE, UPDATED</h1>
+  <p class="intro">The forms from the old guide, with new answers where Supabase and the two AI engines change them. Fill them before you upload the first build on 4 October.</p>
+
+  <table>
+    <tr><th style="width:38mm">Form</th><th>What to answer now</th></tr>
+    <tr><td>Privacy policy</td><td>The public <code>/privacy</code> link on your website. It must name Supabase (accounts, notes, PDF files), Sarvam AI and the second AI engine</td></tr>
+    <tr><td>Account deletion</td><td>A public <code>/delete-account</code> link. The app can already delete the account from inside (Settings → Account)</td></tr>
+    <tr><td>Data safety</td><td><b>Collected:</b> email and name (account); notes, highlights and PDF files if the person turns on sync. <b>Shared for processing:</b> text and PDFs the person sends to Stack AI go to Sarvam AI and to Anthropic or OpenAI. <b>Encrypted in transit:</b> yes. <b>Deletion:</b> yes. When voice ships, add audio</td></tr>
+    <tr><td>AI-generated content</td><td>Say that Stack makes AI summaries and answers, that the person is asked before anything is sent, and that each answer can be reported</td></tr>
+    <tr><td>App access</td><td>"The app works without login. Sync and Stack AI need sign-in." Give Google a test account with AI switched on</td></tr>
+    <tr><td>Foreground service</td><td>Media playback, for music and Listen mode, with a short screen recording</td></tr>
+    <tr><td>Category</td><td>Education or Productivity. Not "News &amp; Magazines"</td></tr>
+    <tr><td>Countries</td><td><b>India only</b> for the soft launch. Add countries at the public launch</td></tr>
+  </table>
+
+  <h2 class="display">THE STORE LISTING</h2>
+  <div class="grid2">
+    <div class="card"><span class="tag label">English (India) · main listing</span><h3>Stack: Read, Keep, Remember</h3><b>Short description (75 of 80 characters):</b><br>Save articles &amp; PDFs, highlight, and remember them. Summaries in Hindi too.<div class="meta">Screenshots in this order: Save → Highlight → Morning review → AI summary in Hindi → Ask this PDF.</div></div>
+    <div class="card"><span class="tag label t-org">Hindi listing · add as a translation</span><h3 class="hi">Stack: पढ़ो, सहेजो, याद रखो</h3><span class="hi">लेख और PDF सहेजें, हाइलाइट करें और याद रखें। सारांश हिंदी में भी।</span><div class="meta">Play shows this listing to phones set to Hindi. Ask a Hindi reader to check the wording before you publish it.</div></div>
+  </div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">Say only what is true in the build</span><br>"Summaries in Hindi" may go in the listing only once that feature is in the build people install. Until then use: "Save articles &amp; PDFs, highlight, and actually remember what you read." Play can reject a listing that promises features the app does not have.</div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">05 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Phase 2 · opens 8–10 Oct · runs 14 days</span></div>
+  <h1 class="display">THE SOFT LAUNCH</h1>
+  <p class="intro">Two weeks through Play's closed test, with the brakes on. The goal is <b>50 to 150 people and honest numbers</b>, not a big day.</p>
+
+  <div class="grid3">
+    <div class="band b6" style="margin:0"><div class="row"><h3>First 30 people</h3><span class="label" style="font-size:6.5pt">8–12 Oct</span></div><ul><li><span>Send the join link to the waitlist and to friends who read a lot</span></li><li><span>Watch sign-in and crashes every day</span></li><li><span>Reply to everyone the same day</span></li><li><span>Check 12 or more are opted in</span></li></ul></div>
+    <div class="band b2" style="margin:0"><div class="row"><h3>Up to 100</h3><span class="label" style="font-size:6.5pt">13–18 Oct</span></div><ul><li><span>Share the link in 2 or 3 college or study groups you belong to</span></li><li><span>Ship one update from the top complaints</span></li><li><span>Send the day 7 form</span></li><li><span>Raise the AI limit only if the bill allows</span></li></ul></div>
+    <div class="band b3" style="margin:0"><div class="row"><h3>Up to 150</h3><span class="label" style="font-size:6.5pt">19–24 Oct</span></div><ul><li><span>One post on your own LinkedIn or X, with the join link and a short video</span></li><li><span>Interview 10 users for 15 minutes each</span></li><li><span>Collect the numbers for page 7</span></li><li><span>Apply for production on day 15</span></li></ul></div>
+  </div>
+
+  <h2 class="display">TELL / DO NOT TELL YET</h2>
+  <div class="grid2">
+    <div class="card"><span class="tag label">Tell now</span><ul><li>The website waitlist</li><li>Friends and classmates who read or study every day</li><li>Two or three college, coaching or Telegram study groups</li><li>People who read in Hindi or another Indian language</li></ul></div>
+    <div class="card"><span class="tag label t-red">Keep for the public launch</span><ul><li>Product Hunt, Reddit and dev.to posts</li><li>Making the GitHub repo loud (it can stay public and quiet)</li><li>Countries outside India</li><li>Any paid promotion</li></ul></div>
+  </div>
+
+  <h2 class="display">AI BRAKES</h2>
+  <table>
+    <tr><th style="width:44mm">Brake</th><th>Setting for the soft launch</th><th style="width:60mm">How to change it without a new app</th></tr>
+    <tr><td>Daily limit per person</td><td>10 a day. Worst case on Sarvam is about ₹1 per person per day</td><td>The <code>AI_DAILY_LIMIT</code> secret in Supabase</td></tr>
+    <tr><td>Model per feature</td><td>Sarvam for text; the cheapest Claude or OpenAI model for PDFs</td><td>The model secrets in Supabase</td></tr>
+    <tr><td>Prepaid credit</td><td>₹500 on Sarvam after the free ₹100; $10 a month on the second engine</td><td>Top up in each dashboard</td></tr>
+    <tr><td>Off switch</td><td>If something goes wrong, remove the AI key</td><td>The app then shows "Stack AI isn't set up on the server yet" and everything else works</td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:2mm"><span class="label">Every day, 15 minutes</span><br>Reply to every message and every piece of Play feedback. Look at crashes in Play's Android vitals. Look at the Sarvam balance. Write down sign-ups, opted-in testers and today's AI users. Every Sunday, one hour: the numbers on the next page.</div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">06 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Phase 4 · 2 Nov</span></div>
+  <h1 class="display">NUMBERS &amp; GATES</h1>
+  <p class="intro">Decide from numbers written down every Sunday, not from how the launch feels. The targets are rules of thumb; the two Play thresholds are Google's own.</p>
+
+  <table>
+    <tr><th style="width:44mm">Number</th><th>Why it matters</th><th class="c" style="width:26mm">Healthy</th><th class="c" style="width:26mm">Fix first if</th></tr>
+    <tr><td>Crash rate (Android vitals)</td><td>Above Google's threshold, Play shows the app to fewer people</td><td class="c ok">under 1%</td><td class="c no">over 1.09%</td></tr>
+    <tr><td>ANR rate (app freezes)</td><td>The same rule, for freezes</td><td class="c ok">under 0.4%</td><td class="c no">over 0.47%</td></tr>
+    <tr><td>Sign-in success</td><td>AI and sync need an account</td><td class="c ok">95% or more</td><td class="c no">under 85%</td></tr>
+    <tr><td>Still active on day 7</td><td>Do people come back after the first look?</td><td class="c ok">25% or more</td><td class="c no">under 10%</td></tr>
+    <tr><td>Reviews done per active user per week</td><td>Is the "remember" loop used? (from the business plan)</td><td class="c ok">4 or more</td><td class="c no">under 1</td></tr>
+    <tr><td>Signed-in users who try AI</td><td>Is AI worth its cost and its consent screen?</td><td class="c ok">30% or more</td><td class="c no">under 10%</td></tr>
+    <tr><td>Summaries asked for in an Indian language</td><td>Is Sarvam earning its place?</td><td class="c ok">20% or more</td><td class="c no">almost none</td></tr>
+    <tr><td>AI cost per active user per day</td><td>Can the free tier last?</td><td class="c ok">under ₹0.50</td><td class="c no">over ₹1</td></tr>
+    <tr><td>AI answers reported as wrong</td><td>Trust</td><td class="c ok">under 2%</td><td class="c no">over 5%</td></tr>
+    <tr><td>"Very disappointed" without Stack (day 14)</td><td>A common test of whether people need a product</td><td class="c ok">40% or more</td><td class="c no">under 20%</td></tr>
+  </table>
+  <p class="note" style="margin:1mm 0 0">Closed-test users cannot leave public Play reviews; their feedback reaches you privately in Play Console. Stack also has no usage counter yet for "active on day 7" and "reviews done": add a small counter to the sync data, or use Play Console's own figures and ask the ten people you interview.</p>
+
+  <h2 class="display">THE DECISION ON 2 NOVEMBER</h2>
+  <div class="verdict"><div class="v1"><span class="tag label">Go</span><div class="big g">PUBLIC<br>LAUNCH</div></div><div class="v2"><b>Most numbers are healthy and nothing is in the "fix first" column.</b> Open the Store listing to everyone at 20%, then 50%, then 100%. Publish the launch posts, go on Product Hunt, and start building Stack Plus with Play Billing.</div></div>
+  <div class="verdict"><div class="v1"><span class="tag label t-org">Fix</span><div class="big o">TWO MORE<br>WEEKS</div></div><div class="v2"><b>One or two numbers are in "fix first".</b> Keep the closed test running, fix only those, and look again in two weeks. A late public launch costs less than a loud launch of a broken app.</div></div>
+  <div class="verdict"><div class="v1"><span class="tag label t-red">Rethink</span><div class="big r">WHO IS<br>IT FOR?</div></div><div class="v2"><b>People install and do not come back</b> (day 7 under 10%). Do not add features. Interview ten people who left, go back to the market research on page 9, and change the core loop or who Stack is for.</div></div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">07 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Budget and calendar</span></div>
+  <h1 class="display">MONEY &amp; CALENDAR</h1>
+  <table>
+    <tr><th style="width:52mm">Cost</th><th class="c" style="width:30mm">Amount</th><th>Note</th></tr>
+    <tr><td>Play Console account</td><td class="c">$25 ≈ ₹2,200</td><td>One time</td></tr>
+    <tr><td>Domain</td><td class="c">≈ ₹1,500 a year</td><td>For the website, the support email and the email sender</td></tr>
+    <tr><td>Supabase</td><td class="c">₹0</td><td>The free plan. The Pro plan is $25 a month if storage or pausing becomes a problem</td></tr>
+    <tr><td>Sarvam AI</td><td class="c">₹0, then ₹500</td><td>₹100 free credit covers testing. One ₹500 top-up for the soft launch</td></tr>
+    <tr><td>Claude or OpenAI, for PDF chat</td><td class="c">up to $10 ≈ ₹880</td><td>A monthly limit set in that account</td></tr>
+    <tr><td><b>Total to reach the soft launch</b></td><td class="c"><b>about ₹5,000</b></td><td>Then roughly ₹500 to ₹1,500 a month in AI while Stack is small</td></tr>
+  </table>
+  <p class="note" style="margin:1mm 0 0">Worst case for AI in the soft launch: 150 signed-in people each using all 10 requests a day on Sarvam is about ₹150 a day. Real use is normally a small part of that; the prepaid credit stops it either way.</p>
+
+  <h2 class="display">DAY BY DAY</h2>
+  <div class="band b1"><div class="row"><h3>Days 1–3 · 1–3 Oct · Make it installable</h3><span class="label" style="font-size:6.5pt">Phase 0</span></div><ul><li><span>Fix Google sign-in; test sync on two phones; <code>/delete-account</code> and privacy pages; commit and tag; signed release build</span></li><li><span>Research evenings: areas 1, 2 and 6 on page 9</span></li></ul></div>
+  <div class="band b2"><div class="row"><h3>Days 4–5 · 4–5 Oct · Send it to Google, switch on AI</h3><span class="label" style="font-size:6.5pt">Phase 0</span></div><ul><li><span>Play forms and listing; <b>upload the first build on 4 October</b>; add the Play SHA-1s to Google Cloud</span></li><li><span>Deploy the <code>ai</code> function; add the Sarvam engine; cheap models; limit 10; spending caps</span></li></ul></div>
+  <div class="band b3"><div class="row"><h3>Days 6–7 · 6–7 Oct · Test it yourself</h3><span class="label" style="font-size:6.5pt">Phase 1</span></div><ul><li><span>"Report this answer"; email sender; second build with AI</span></li><li><span>Internal test on three phones, on mobile data</span></li></ul></div>
+  <div class="band b6"><div class="row"><h3>Days 8–10 · 8–10 Oct · Soft launch opens</h3><span class="label" style="font-size:6.5pt">Phase 2</span></div><ul><li><span>Join link to the waitlist and friends: the first 30 people</span></li><li><span>To 24 Oct: up to 150 people; one update a week; day 7 form; ten interviews; research areas 3, 4, 5, 8 and 9</span></li></ul></div>
+  <div class="band b4" style="margin-bottom:0"><div class="row"><h3>24 Oct → November · Review, decide, launch</h3><span class="label" style="font-size:6.5pt">Phases 3 to 5</span></div><ul><li><span>Apply for production on day 15; decide on 2 November; on "go", open the Store listing in steps</span></li></ul></div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">08 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Market research · before and during the soft launch</span></div>
+  <h1 class="display">MARKET RESEARCH</h1>
+  <p class="intro">Ten areas to research for this launch. Each one ends in a decision. The business plan covers the size of the market; these are the questions it could not answer.</p>
+
+  <table style="font-size:7.9pt">
+    <tr><th style="width:7mm">#</th><th style="width:28mm">Area</th><th style="width:55mm">What to find out</th><th style="width:53mm">How, at no cost</th><th>The decision it feeds</th></tr>
+    <tr><td>1</td><td>Who exactly</td><td>Which group has the strongest daily reading habit: exam aspirants, college students, working developers? Where do they gather?</td><td>Ten 15-minute calls. Note the member counts of 20 Telegram and WhatsApp study groups</td><td>The one group the soft launch is aimed at</td></tr>
+    <tr><td>2</td><td>What they use today</td><td>Readwise, NotebookLM, Notion, Keep, Anki, PDF readers, exam apps, Telegram itself: price, rating, complaints</td><td>Read the 1 to 3 star Play reviews of ten apps. List the top five complaints of each</td><td>Stack's one-line promise and the first three screenshots</td></tr>
+    <tr><td>3</td><td>Language</td><td>Which languages your group reads and studies in. How good Sarvam's summaries are in each</td><td>The day 7 form. Run 20 real articles per language and read every summary</td><td>Which language ships first after Hindi</td></tr>
+    <tr><td>4</td><td>Willingness to pay</td><td>What they pay for today: coaching, test series, apps. Would they pay ₹99 a month or ₹499 a year, and for which feature?</td><td>The day 7 form and the interviews. Competitors' price pages</td><td>The Plus price, and what stays free</td></tr>
+    <tr><td>5</td><td>Channels</td><td>Where this group finds new apps: Telegram channels, YouTube teachers, college groups, Play search</td><td>Ask every user "How did you hear about Stack?". List 20 groups and channels with size and admin</td><td>Where the public launch is announced</td></tr>
+    <tr><td>6</td><td>Play Store search</td><td>What people type: "pdf reader with notes", "read later", "UPSC notes", "highlight", and the same in Hindi. Who ranks for each</td><td>Search each phrase in Play. Note the top five apps, their installs and ratings</td><td>The app title, short description and category</td></tr>
+    <tr><td>7</td><td>Coaching institutes</td><td>Do small coaching centres share PDFs digitally? Would they pay ₹30 to ₹50 per student a month?</td><td>Five conversations with teachers or centre owners</td><td>Whether Stack for Teams comes before or after Plus</td></tr>
+    <tr><td>8</td><td>Phones and networks</td><td>Which phones, Android versions and free storage your group has. How often they are offline</td><td>Play Console's device figures. One question in the form</td><td>Which phones to test on, and how small the app must stay</td></tr>
+    <tr><td>9</td><td>AI cost and trust</td><td>The real AI cost per active user. Where answers are wrong. Whether people trust a Hindi summary</td><td>The Sarvam and Claude dashboards, the report button, the interviews</td><td>The free daily limit, and which engine does which job</td></tr>
+    <tr><td>10</td><td>Rules</td><td>Play's rules on AI content, news and permissions. The DPDP Act. Publishers' feed terms. Copyright on books</td><td>Play Console Help. One hour with someone who knows Indian app law</td><td>What must change before the public launch</td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:2mm"><span class="label">When</span><br><b>Before day 8:</b> areas 1, 2 and 6, in three evenings. They decide who gets the join link and what the listing says. <b>During the soft launch:</b> areas 3, 4, 5, 8 and 9, which need real users. <b>Before the public launch:</b> areas 7 and 10.<br><b>On 2 November</b> have one page in your own words: who Stack is for, what they use today and why they would switch, the price they will pay, and the three channels that reach them.</div>
+
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">09 / 10</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">Tick list · print this page</span></div>
+  <h1 class="display">THE CHECKLIST</h1>
+  <ul class="tick">
+    <h4>Days 1–5 · Finish the build</h4>
+    <li><span>Google sign-in works on a real phone</span></li>
+    <li><span>A note syncs between two phones</span></li>
+    <li><span>Public <code>/privacy</code> and <code>/delete-account</code> pages</span></li>
+    <li><span>Work committed, merged and tagged</span></li>
+    <li><span>Signed <code>.aab</code>; version code raised</span></li>
+    <li><span>Play forms filled; Data safety names both AI engines</span></li>
+    <li><span>Listing ready; countries set to India only</span></li>
+    <li><span><b>First build uploaded on 4 October</b></span></li>
+    <li><span>Android OAuth clients for both release SHA-1s</span></li>
+    <li><span><code>ai</code> function deployed; AI address in <code>.env.local</code></span></li>
+    <li><span>Sarvam engine added; PDF chat on the second engine</span></li>
+    <li><span>Cheap default models; daily limit 10; spending cap</span></li>
+    <h4>Days 6–7 · Internal test</h4>
+    <li><span>"Report this answer" on AI answers</span></li>
+    <li><span>Own email sender set in Supabase</span></li>
+    <li><span>Second build, with AI, uploaded</span></li>
+    <li><span>Passed on three phones, on mobile data</span></li>
+    <li><span>Research areas 1, 2 and 6 written up</span></li>
+    <h4>Days 8–10 · Soft launch opens</h4>
+    <li><span>Google Group made and set as the tester list</span></li>
+    <li><span>Join link sent to the waitlist and friends</span></li>
+    <li><span>12 or more people opted in</span></li>
+    <h4>11–24 Oct · Run it</h4>
+    <li><span>Daily 15 minutes; Sunday numbers written down</span></li>
+    <li><span>Study groups told; one update a week</span></li>
+    <li><span>Day 7 form collected; day 14 question asked</span></li>
+    <li><span>Ten user interviews done</span></li>
+    <li><span>Research areas 3, 4, 5, 8 and 9 written up</span></li>
+    <li><span>Applied for production on day 15</span></li>
+    <h4>2 November → Decide and launch</h4>
+    <li><span>Numbers compared with page 7</span></li>
+    <li><span>One-page market summary written</span></li>
+    <li><span>Decision written: go, fix or rethink</span></li>
+    <li><span>On go: Store listing opened at 20%, 50%, 100%</span></li>
+  </ul>
+
+  <h2 class="display">WHEN THINGS GO WRONG</h2>
+  <table>
+    <tr><th style="width:56mm">Problem</th><th>What to do</th></tr>
+    <tr><td>Google's review is not done on day 8</td><td>Start with Play's internal track: add up to 100 people by email and they can install at once. Move them to the closed track when it is approved. The 14 days count only on the closed track</td></tr>
+    <tr><td>Fewer than 12 people stay opted in</td><td>The 14 days do not complete. Invite more people the same day and keep the test running</td></tr>
+    <tr><td>Google sign-in fails on Play installs</td><td>The Android OAuth client for Play's app-signing SHA-1 is missing in Google Cloud (gate 7)</td></tr>
+    <tr><td>Nobody can sign in or sync</td><td>The free Supabase project may be paused. Open the dashboard and press Restore</td></tr>
+    <tr><td>The AI bill jumps</td><td>Lower <code>AI_DAILY_LIMIT</code> in the Supabase secrets. It takes effect at once, with no new app</td></tr>
+    <tr><td>Hindi summaries are poor</td><td>Send Indian-language summaries to the second engine for now, and report examples to Sarvam</td></tr>
+    <tr><td>Play rejects the build</td><td>Read the email, fix only that item, and reply through the Policy status page</td></tr>
+  </table>
+  <p class="note" style="margin-top:2mm">Sources: Stack_Launch_Guide.pdf and StackForge_Stack_Plan.pdf (same folder); the project's <code>supabase/README.md</code>; Sarvam prices from sarvam.ai/api-pricing on 01.10.2026; live checks of the Supabase project on 01.10.2026. Play rules change often: check Play Console Help before each phase.</p>
+  <div class="foot"><span class="label">Stack soft launch · StackForge Labs</span><span class="label">10 / 10</span></div>
+</section>
+</body>
+</html>
