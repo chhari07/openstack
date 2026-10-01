@@ -1,86 +1,69 @@
 "use client";
 
-// Stack accounts on Firebase: "Continue with Google" (sign-in and sign-up in
-// one), or email + password. Data sync is in lib/sync.ts (Firestore and
-// Storage). Configure with the NEXT_PUBLIC_FIREBASE_* values (see
-// firebase/README.md); without them Stack works as before, on this device only.
-import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import {
-  browserLocalPersistence,
-  browserPopupRedirectResolver,
-  connectAuthEmulator,
-  createUserWithEmailAndPassword,
-  deleteUser,
-  EmailAuthProvider,
-  GoogleAuthProvider,
-  indexedDBLocalPersistence,
-  initializeAuth,
-  reauthenticateWithCredential,
-  reauthenticateWithPopup,
-  sendPasswordResetEmail,
-  signInWithCredential,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signOut,
-  type Auth,
-} from "firebase/auth";
-import {
-  collection,
-  connectFirestoreEmulator,
-  getDocs,
-  initializeFirestore,
-  limit,
-  query,
-  writeBatch,
-  type Firestore,
-} from "firebase/firestore";
-import { connectStorageEmulator, deleteObject, getStorage, listAll, ref, type FirebaseStorage } from "firebase/storage";
+// Stack accounts on Supabase: "Continue with Google" (sign-in and sign-up in
+// one), or email + password. Data sync is in lib/sync.ts (the `items` table
+// and the `pdfs` bucket). Configure with the NEXT_PUBLIC_SUPABASE_* values (see
+// supabase/README.md); without them Stack works as before, on this device only.
+import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
 import { registerPlugin } from "@capacitor/core";
 import { isNative } from "./platform";
 
-const config = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
-};
-// Local testing only: talk to the Firebase emulators on this host.
-const EMULATOR_HOST = process.env.NEXT_PUBLIC_FIREBASE_EMULATOR ?? "";
+const PROJECT_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+// The "publishable" (older projects: "anon") key: meant to be public (it ships
+// inside the app). The security rules in supabase/schema.sql are what keep each
+// person's data private.
+const PROJECT_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 // "Web client" OAuth ID: lets the Android app use the phone's account picker.
 const GOOGLE_WEB_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
 
-export const cloudConfigured = () => !!(config.apiKey && config.projectId && config.appId);
-// PDF files need Cloud Storage (Firebase's Blaze plan); without a bucket only
-// the PDF's details and cover sync.
-export const filesConfigured = () => cloudConfigured() && !!config.storageBucket;
+export const cloudConfigured = () => !!(PROJECT_URL && PROJECT_KEY);
+export const cloudKey = () => PROJECT_KEY;
 
-type Cloud = { app: FirebaseApp; auth: Auth; db: Firestore; storage: FirebaseStorage | null };
-let cloudRef: Cloud | null = null;
+// Thrown when the person closes the Google picker: nothing to show.
+export class SignInCancelled extends Error {}
+// Google doesn't recognise this build of the app yet (its SHA-1 isn't
+// registered with Google): the sign-in panel explains.
+export class GoogleNotReady extends Error {}
+// The project asks new accounts to confirm their email first (Supabase's
+// "Confirm email" setting): the sign-in panel says so.
+export class ConfirmEmail extends Error {}
+// No connection (or one that stalled): nothing came back from the server.
+export class CloudOffline extends Error {}
 
-export function cloud(): Cloud | null {
+// The app's native HTTP has no time limit of its own: on a stalled connection
+// a request would never end, and neither would the sync or sign-out waiting
+// for it. So every request gets one.
+export function within<T>(ms: number, work: Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new CloudOffline("timed out")), ms);
+    work.then(resolve, reject).finally(() => clearTimeout(timer));
+  });
+}
+const API_LIMIT = 30_000;
+const SIGN_OUT_LIMIT = 6_000; // telling the server is a courtesy: don't keep the person waiting
+const timedFetch: typeof fetch = (input, init) => {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+  return within(url.includes("/auth/v1/logout") ? SIGN_OUT_LIMIT : API_LIMIT, fetch(input, init));
+};
+
+const SESSION_KEY = "stack.auth"; // where the sign-in is saved on this device
+let client: SupabaseClient | null = null;
+let current: User | null = null; // the signed-in person, once the saved session is restored
+
+export function cloud(): SupabaseClient | null {
   if (!cloudConfigured()) return null;
-  if (cloudRef) return cloudRef;
-  const app = getApps()[0] ?? initializeApp(config);
-  const auth = initializeAuth(app, {
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-    // Pop-ups are for the website; the app signs in with the native picker.
-    popupRedirectResolver: isNative() ? undefined : browserPopupRedirectResolver,
+  if (client) return client;
+  client = createClient(PROJECT_URL, PROJECT_KEY, {
+    // The website comes back from Google with the session in the address; the
+    // app signs in with the native picker and never does.
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: !isNative(), storageKey: SESSION_KEY },
+    global: { fetch: timedFetch },
   });
-  const db = initializeFirestore(app, {
-    ignoreUndefinedProperties: true,
-    // The app sends requests through Android's HTTP stack (CapacitorHttp),
-    // which can't stream; plain long-polling requests work through it.
-    experimentalForceLongPolling: isNative(),
+  client.auth.onAuthStateChange((_event, session) => {
+    current = session?.user ?? null;
   });
-  const storage = filesConfigured() ? getStorage(app) : null;
-  if (EMULATOR_HOST) {
-    connectAuthEmulator(auth, `http://${EMULATOR_HOST}:9099`, { disableWarnings: true });
-    connectFirestoreEmulator(db, EMULATOR_HOST, 8080);
-    if (storage) connectStorageEmulator(storage, EMULATOR_HOST, 9199);
-  }
-  cloudRef = { app, auth, db, storage };
-  return cloudRef;
+  return client;
 }
 
 function need() {
@@ -89,136 +72,216 @@ function need() {
   return c;
 }
 
-// Thrown when the person closes the Google picker or pop-up: nothing to show.
-export class SignInCancelled extends Error {}
-// Google doesn't recognise this build of the app yet (its SHA-1 isn't
-// registered in the Firebase project): the sign-in panel explains.
-export class GoogleNotReady extends Error {}
+// Who is signed in. Waits until the saved sign-in has been restored, and
+// renews it when it's about to run out.
+async function session() {
+  const c = cloud();
+  if (!c) return null;
+  const { data } = await c.auth.getSession();
+  return data.session;
+}
+export const sessionUser = async () => (await session())?.user ?? null;
+export const accessToken = async () => (await session())?.access_token ?? null;
 
 const CODES: Record<string, string> = {
-  "auth/invalid-credential": "Wrong email or password.",
-  "auth/wrong-password": "Wrong email or password.",
-  "auth/user-not-found": "Wrong email or password.",
-  "auth/invalid-email": "That doesn’t look like an email address.",
-  "auth/email-already-in-use": "That email already has an account. Sign in instead.",
-  "auth/weak-password": "Use a password of at least 6 characters.",
-  "auth/missing-password": "Enter your password.",
-  "auth/too-many-requests": "Too many tries. Wait a minute and try again.",
-  "auth/network-request-failed": "No connection. Check your internet and try again.",
-  "auth/popup-blocked": "Your browser blocked the Google window. Allow pop-ups and try again.",
-  "auth/account-exists-with-different-credential": "This email signs in another way. Try Continue with Google.",
-  "auth/operation-not-allowed": "This sign-in method isn’t switched on in Firebase yet.",
-  "auth/unauthorized-domain": "This website isn’t on Firebase’s list of authorised domains.",
-  "auth/requires-recent-login": "For safety, confirm it’s you again, then try once more.",
-  "auth/user-mismatch": "That’s a different account. Pick the account you’re signed in with.",
+  invalid_credentials: "Wrong email or password.",
+  email_not_confirmed: "Confirm your email first: open the link we sent you, then sign in.",
+  user_already_exists: "That email already has an account. Sign in instead.",
+  email_exists: "That email already has an account. Sign in instead.",
+  email_address_invalid: "That doesn’t look like an email address.",
+  weak_password: "Use a password of at least 6 characters.",
+  same_password: "That’s your current password. Choose a different one.",
+  otp_expired: "That code is wrong or has expired. Ask for a new one.",
+  over_request_rate_limit: "Too many tries. Wait a minute and try again.",
+  over_email_send_rate_limit: "Too many emails for now. Wait a few minutes and try again.",
+  provider_disabled: "This sign-in method isn’t switched on in Supabase yet.",
+  email_provider_disabled: "This sign-in method isn’t switched on in Supabase yet.",
+  signup_disabled: "New accounts are switched off in Supabase.",
+  user_mismatch: "That’s a different account. Pick the account you’re signed in with.",
 };
 
 export function explainAuth(e: unknown) {
-  const code = (e as { code?: string })?.code ?? "";
-  return CODES[code] ?? (e as Error)?.message ?? String(e);
+  const err = e as { code?: string; name?: string; message?: string } | null;
+  if (err?.name === "AuthRetryableFetchError") return "No connection. Check your internet and try again.";
+  // Google's token was made for another client ID than the ones Supabase knows.
+  if (/audience/i.test(err?.message ?? ""))
+    return "Google sign-in isn’t set up in Supabase yet (add the Web client ID under Authentication → Providers → Google).";
+  return CODES[err?.code ?? ""] ?? err?.message ?? String(e);
 }
 
-const cancelled = (e: unknown) =>
-  ["auth/popup-closed-by-user", "auth/cancelled-popup-request", "auth/user-cancelled", "CANCELLED"].includes(
-    (e as { code?: string })?.code ?? "",
-  );
+// Supabase answers { data, error } instead of throwing.
+function check<R extends { data: unknown; error: unknown }>(res: R): R["data"] {
+  if (res.error) throw res.error;
+  return res.data;
+}
 
 type GoogleSignInPlugin = {
   signIn(opts: { serverClientId: string }): Promise<{ idToken: string; email?: string; name?: string }>;
 };
 const GoogleSignIn = registerPlugin<GoogleSignInPlugin>("GoogleSignIn");
 
-// "Continue with Google" is both sign-in and sign-up: a Google account that
-// hasn't used Stack before gets a new Stack account.
-export async function signInWithGoogle() {
-  const { auth } = need();
+// Android: the phone's own account picker gives a Google ID token.
+async function pickGoogleAccount() {
+  if (!GOOGLE_WEB_CLIENT_ID) throw new Error("Google sign-in isn’t set up in this build of Stack.");
   try {
-    if (isNative()) {
-      // Android: the phone's own account picker gives a Google ID token.
-      if (!GOOGLE_WEB_CLIENT_ID) throw new Error("Google sign-in isn’t set up in this build of Stack.");
-      const { idToken } = await GoogleSignIn.signIn({ serverClientId: GOOGLE_WEB_CLIENT_ID }).catch((e) => {
-        if ((e as { code?: string }).code === "NOT_REGISTERED") throw new GoogleNotReady(e.message);
-        throw e;
-      });
-      await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
-    } else {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
-    }
+    return await GoogleSignIn.signIn({ serverClientId: GOOGLE_WEB_CLIENT_ID });
   } catch (e) {
-    if (cancelled(e)) throw new SignInCancelled();
+    const code = (e as { code?: string }).code;
+    if (code === "CANCELLED") throw new SignInCancelled();
+    if (code === "NOT_REGISTERED") throw new GoogleNotReady((e as Error).message);
     throw e;
   }
 }
 
+// "Continue with Google" is both sign-in and sign-up: a Google account that
+// hasn't used Stack before gets a new Stack account.
+export async function signInWithGoogle() {
+  const { auth } = need();
+  if (isNative()) {
+    const { idToken } = await pickGoogleAccount();
+    check(await auth.signInWithIdToken({ provider: "google", token: idToken }));
+    return;
+  }
+  // The website goes to Google and comes back to this page, signed in.
+  check(
+    await auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.href, queryParams: { prompt: "select_account" } },
+    }),
+  );
+  await new Promise(() => {}); // the page is leaving
+}
+
 export async function signInWithEmail(email: string, password: string) {
-  await signInWithEmailAndPassword(need().auth, email.trim(), password);
+  check(await need().auth.signInWithPassword({ email: email.trim(), password }));
 }
 
 export async function signUpWithEmail(email: string, password: string) {
-  await createUserWithEmailAndPassword(need().auth, email.trim(), password);
+  const { session } = check(await need().auth.signUp({ email: email.trim(), password }));
+  if (!session) throw new ConfirmEmail();
 }
 
+// "Forgot password": emails a 6-digit code (the "Reset password" email
+// template has to include {{ .Token }}; see supabase/README.md).
 export async function resetPassword(email: string) {
-  await sendPasswordResetEmail(need().auth, email.trim());
+  check(await need().auth.resetPasswordForEmail(email.trim()));
 }
 
+// The code from that email signs the person in; then the new password is saved.
+export async function setNewPassword(email: string, code: string, password: string) {
+  const { auth } = need();
+  check(await auth.verifyOtp({ email: email.trim(), token: code.trim(), type: "recovery" }));
+  check(await auth.updateUser({ password }));
+}
+
+// Signs out this device only; the person's other devices stay signed in.
+// Always finishes: the saved sign-in is removed here even when the server
+// can't be told, or the client is stuck behind another request.
 export async function signOutCloud() {
   const c = cloud();
-  if (c) await signOut(c.auth);
+  if (!c) return;
+  await within(SIGN_OUT_LIMIT + 4_000, c.auth.signOut({ scope: "local" })).catch(() => {
+    try {
+      localStorage.removeItem(SESSION_KEY);
+    } catch {
+      /* storage blocked: nothing saved to remove */
+    }
+  });
+  current = null;
 }
 
 // How the signed-in person logs in: deleting an account asks them to confirm
 // the same way first.
 export function signInMethod(): "google" | "password" | null {
-  const u = cloud()?.auth.currentUser;
-  if (!u) return null;
-  return u.providerData.some((p) => p.providerId === "google.com") ? "google" : "password";
+  if (!current) return null;
+  const meta = current.app_metadata;
+  const providers: unknown[] = meta.providers ?? [meta.provider];
+  return providers.includes("google") ? "google" : "password";
 }
 
-// Firebase only deletes an account that signed in moments ago, so confirm
-// with Google (the same account) or the password first.
-async function confirmIdentity(password?: string) {
-  const { auth } = need();
-  const user = auth.currentUser;
-  if (!user) throw new Error("You’re not signed in.");
-  try {
-    if (signInMethod() === "google") {
-      if (isNative()) {
-        if (!GOOGLE_WEB_CLIENT_ID) throw new Error("Google sign-in isn’t set up in this build of Stack.");
-        const { idToken } = await GoogleSignIn.signIn({ serverClientId: GOOGLE_WEB_CLIENT_ID });
-        await reauthenticateWithCredential(user, GoogleAuthProvider.credential(idToken));
-      } else {
-        await reauthenticateWithPopup(user, new GoogleAuthProvider());
-      }
-    } else {
-      if (!password) throw new Error("Enter your password.");
-      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email ?? "", password));
-    }
-  } catch (e) {
-    if (cancelled(e)) throw new SignInCancelled();
-    throw e;
+// Deleting an account can't be undone, so confirm it's really them: the same
+// Google account from the phone's picker, or the password.
+async function confirmIdentity(user: User, password?: string) {
+  if (signInMethod() === "google") {
+    if (!isNative()) return; // the website signs in on Google's own page
+    const picked = await pickGoogleAccount();
+    if (!picked.email || picked.email.toLowerCase() !== user.email?.toLowerCase())
+      throw Object.assign(new Error("user mismatch"), { code: "user_mismatch" });
+    return;
   }
+  if (!password) throw new Error("Enter your password.");
+  check(await need().auth.signInWithPassword({ email: user.email ?? "", password }));
 }
 
-// Deletes the account for good: every synced item, the PDF files and the
+// ---- PDF files (Storage) ----
+// pdfs/<user id>/<pdf id>.pdf. Uploads and deletes are plain requests with a
+// File as the body: the app's native HTTP (CapacitorHttp) sends a File as it
+// is, but not the form the Supabase client would wrap it in.
+const BUCKET = "pdfs";
+export const MAX_PDF_BYTES = 50 * 1024 * 1024; // the bucket's limit (supabase/schema.sql)
+const pdfPath = (uid: string, id: string) => `${uid}/${id}.pdf`;
+
+async function storageRequest(method: "POST" | "DELETE", path: string, body?: File) {
+  const token = await accessToken();
+  if (!token) throw new Error("You’re not signed in.");
+  const headers: Record<string, string> = { authorization: `Bearer ${token}`, apikey: PROJECT_KEY };
+  if (body) Object.assign(headers, { "content-type": "application/pdf", "x-upsert": "true" });
+  // A file gets longer: a minute, plus a second for every 50 KB.
+  const limit = body ? 60_000 + body.size / 50 : API_LIMIT;
+  let res: Response;
+  try {
+    res = await within(limit, fetch(`${PROJECT_URL}/storage/v1/object/${BUCKET}/${path}`, { method, headers, body }));
+  } catch {
+    throw new CloudOffline();
+  }
+  if (res.ok) return { ok: true, status: res.status, message: "" };
+  // Storage puts its own status in the answer ({ statusCode: "404", message }).
+  const said = (await res.json().catch(() => null)) as { statusCode?: string; message?: string } | null;
+  return { ok: false, status: Number(said?.statusCode) || res.status, message: said?.message ?? `error ${res.status}` };
+}
+
+export async function uploadPdf(uid: string, id: string, blob: Blob) {
+  const file = new File([blob], `${id}.pdf`, { type: "application/pdf" });
+  const res = await storageRequest("POST", pdfPath(uid, id), file);
+  if (!res.ok) throw new Error(res.message);
+}
+
+// A file that's already gone counts as removed.
+async function removeFile(path: string) {
+  const res = await storageRequest("DELETE", path);
+  if (!res.ok && res.status !== 404) throw new Error(res.message);
+}
+export const removePdf = (uid: string, id: string) => removeFile(pdfPath(uid, id));
+
+// A short-lived download link, then a normal fetch.
+export async function fetchPdf(uid: string, id: string): Promise<Blob | null> {
+  const c = cloud();
+  if (!c) return null;
+  const { data } = await c.storage.from(BUCKET).createSignedUrl(pdfPath(uid, id), 60);
+  if (!data?.signedUrl) return null;
+  const signedUrl = data.signedUrl;
+  return within(10 * 60_000, (async () => {
+    const res = await fetch(signedUrl);
+    return res.ok ? await res.blob() : null;
+  })());
+}
+
+// Deletes the account for good: the PDF files, every synced item and the
 // login itself. (Removing Stack's data from this device is the caller's job.)
 export async function deleteAccount(password?: string) {
-  await confirmIdentity(password);
-  const { auth, db, storage } = need();
-  const user = auth.currentUser!;
-  if (storage) {
-    const files = await listAll(ref(storage, `users/${user.uid}/pdfs`)).catch(() => null);
-    for (const f of files?.items ?? []) await deleteObject(f).catch(() => {});
+  const c = need();
+  const user = await sessionUser();
+  if (!user) throw new Error("You’re not signed in.");
+  await confirmIdentity(user, password);
+  // 100 at a time until the folder is empty (the cap only guards against a loop).
+  for (let page = 0; page < 500; page++) {
+    const { data, error } = await c.storage.from(BUCKET).list(user.id, { limit: 100 });
+    if (error && !/not found/i.test(error.message)) throw error;
+    if (!data?.length) break;
+    for (const f of data) await removeFile(`${user.id}/${f.name}`);
   }
-  const items = collection(db, "users", user.uid, "items");
-  for (;;) {
-    const page = await getDocs(query(items, limit(400)));
-    if (page.empty) break;
-    const batch = writeBatch(db);
-    page.docs.forEach((d) => batch.delete(d.ref));
-    await batch.commit();
-  }
-  await deleteUser(user);
+  // The items go with the login (supabase/schema.sql: delete_account).
+  const { error } = await c.rpc("delete_account");
+  if (error) throw error;
+  await signOutCloud();
 }

@@ -527,3 +527,45 @@ html {
     animation: logo-pulse 1200ms ease-in-out infinite;
   }
 }
+
+/* ---- PDF reader: bookmark ribbon and sticky notes ---- */
+.ribbon {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+@keyframes ribbon-drop {
+  from { transform: translateY(-100%); }
+  60% { transform: translateY(6%); }
+  to { transform: none; }
+}
+.ribbon-drop {
+  animation: ribbon-drop 0.45s ease-out;
+}
+/* A sticky is glued along its top edge: tapping lifts it up and over, like paper. */
+.sticky-note {
+  perspective: 600px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.sticky-paper {
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.sticky-paper.up {
+  transform: rotateX(168deg);
+}
+.sticky-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.sticky-back {
+  transform: rotateX(180deg);
+}
+.sticky-curl {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ribbon-drop { animation: none; }
+  .sticky-paper { transition: none; }
+}

@@ -1,17 +1,19 @@
-import Anthropic from "@anthropic-ai/sdk";
-import OpenAI from "openai";
-import { createRemoteJWKSet, jwtVerify } from "jose";
-import { pageRefs } from "@/lib/ai-cites";
-
-// Stack AI: the only place that talks to the AI engine. It keeps the API key
-// (never sent to the app), checks the Firebase sign-in, applies a daily limit
-// per person and streams the answer back as NDJSON lines:
+// Stack AI: the only place that talks to the AI engine. A Supabase Edge
+// Function (Deno): it keeps the API key (never sent to the app), checks the
+// Supabase sign-in, applies a daily limit per person and streams the answer
+// back as NDJSON lines:
 //   {"t":"text","v":"…"}   a piece of the answer as it's written
 //   {"t":"reset"}          a fallback model took over: throw away the text so far
 //   {"t":"done","blocks":[{"text":"…","cites":[…]}]}   the final answer
 //   {"t":"error","code":"…","v":"…"}
 // The engine is AI_PROVIDER: "openai" (OPENAI_API_KEY) or "anthropic" (Claude,
-// ANTHROPIC_API_KEY). The Android app has no server of its own; it calls this route.
+// ANTHROPIC_API_KEY). Those are this function's secrets (supabase/README.md).
+// The Android app has no server of its own; it calls this function.
+import Anthropic from "npm:@anthropic-ai/sdk@^0.129.0";
+import OpenAI from "npm:openai@^7.23.0";
+import { createClient } from "npm:@supabase/supabase-js@^2.117.2";
+
+const env = (name: string) => Deno.env.get(name) ?? "";
 
 type Task = "summary" | "tidy" | "ask" | "pdf";
 type Source = { id: string; title: string; text: string };
@@ -28,14 +30,24 @@ type Body = {
 type Cite = { page?: number; source?: string; title?: string; cited: string };
 type Block = { text: string; cites: Cite[] };
 
-const PROVIDER = () => (process.env.AI_PROVIDER || (process.env.OPENAI_API_KEY ? "openai" : "anthropic")).toLowerCase();
+const PROVIDER = () => (env("AI_PROVIDER") || (env("OPENAI_API_KEY") ? "openai" : "anthropic")).toLowerCase();
 // One model setting per task, so a cheaper model can be switched in without an app update.
-const CLAUDE_MODEL = (task: Task) =>
-  process.env[`AI_MODEL_${task.toUpperCase()}`] || process.env.AI_MODEL || "claude-opus-5-5";
-const OPENAI_MODEL = (task: Task) =>
-  process.env[`OPENAI_MODEL_${task.toUpperCase()}`] || process.env.OPENAI_MODEL || "gpt-5.5";
-const LIMIT = Number(process.env.AI_DAILY_LIMIT || 50);
+const CLAUDE_MODEL = (task: Task) => env(`AI_MODEL_${task.toUpperCase()}`) || env("AI_MODEL") || "claude-opus-5-5";
+const OPENAI_MODEL = (task: Task) => env(`OPENAI_MODEL_${task.toUpperCase()}`) || env("OPENAI_MODEL") || "gpt-5.5";
+const LIMIT = Number(env("AI_DAILY_LIMIT") || 50);
 const MAX_PDF_B64 = 30_000_000; // Claude takes up to 32 MB per request
+
+// Page references the model writes: "(p. 4)", "(pp. 7–8)", "(p. 3, p. 4)",
+// "(p. 87, 274)", "(page 12)", "(pages 3 and 5)". Each becomes a page link
+// (the first page of a range) and the marker is taken out of the text.
+function pageRefs(text: string, onPage: (page: number) => void) {
+  return text.replace(/\s?\((\s*(?:pp?\.|pages?)\s*\d[^()]*)\)/gi, (whole, inside: string) => {
+    // Only if the brackets hold nothing but page numbers.
+    if (!/^[\s\d,;–—&-]*$/.test(inside.replace(/pp?\.|pages?|and/gi, ""))) return whole;
+    for (const m of inside.matchAll(/(\d{1,4})(?:\s*[–—-]\s*\d{1,4})?/g)) onPage(Number(m[1]));
+    return "";
+  });
+}
 
 const PROMPTS: Record<Task, string> = {
   summary:
@@ -139,7 +151,7 @@ async function runClaude(job: Job, emit: Emit) {
   }));
   // Anthropic's default fallback: a declined request is retried on the model
   // recommended for that kind of decline, inside the same call.
-  const s = (claude ??= new Anthropic()).beta.messages.stream({
+  const s = (claude ??= new Anthropic({ apiKey: env("ANTHROPIC_API_KEY") })).beta.messages.stream({
     model: CLAUDE_MODEL(job.task),
     max_tokens: job.maxTokens,
     output_config: { effort: job.effort },
@@ -194,7 +206,7 @@ async function runOpenAI(job: Job, emit: Emit) {
           }),
         },
   );
-  const s = (openai ??= new OpenAI()).responses.stream({
+  const s = (openai ??= new OpenAI({ apiKey: env("OPENAI_API_KEY") })).responses.stream({
     model: OPENAI_MODEL(job.task),
     instructions: job.system + (OPENAI_CITE[job.task] ?? ""),
     input,
@@ -224,34 +236,14 @@ async function runOpenAI(job: Job, emit: Emit) {
   emit({ t: "done", blocks: [{ text, cites }], cut: res.incomplete_details?.reason === "max_output_tokens" });
 }
 
-// ---- Sign-in (Firebase ID token) ----
-const JWKS = createRemoteJWKSet(
-  new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"),
-);
-async function userId(request: Request): Promise<string | null> {
-  const project = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const token = request.headers.get("authorization")?.replace(/^Bearer /, "");
-  if (!project || !token) return null;
-  try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: `https://securetoken.google.com/${project}`,
-      audience: project,
-    });
-    return typeof payload.sub === "string" ? payload.sub : null;
-  } catch {
-    return null;
-  }
-}
-
-// ---- Daily limit (kept in memory: resets when the server restarts) ----
-const used = new Map<string, { day: string; n: number }>();
-function allow(uid: string) {
-  const day = new Date().toISOString().slice(0, 10);
-  const u = used.get(uid);
-  const n = u?.day === day ? u.n : 0;
-  if (n >= LIMIT) return false;
-  used.set(uid, { day, n: n + 1 });
-  return true;
+// ---- Sign-in and the daily limit (Supabase) ----
+// A client that acts as the person who sent the request.
+function asCaller(request: Request, token: string) {
+  const key = env("SUPABASE_ANON_KEY") || request.headers.get("apikey") || "";
+  return createClient(env("SUPABASE_URL"), key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 // A short, readable reason for an API failure.
@@ -270,17 +262,28 @@ function explain(e: unknown) {
   return "Couldn’t reach the AI. Try again.";
 }
 
-export async function POST(request: Request) {
+// The website (npm run dev) calls from a browser, which asks permission first.
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "authorization, apikey, content-type, x-client-info",
+  "access-control-allow-methods": "POST, OPTIONS",
+};
+const NDJSON = { ...CORS, "content-type": "application/x-ndjson", "cache-control": "no-store" };
+
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   const line = (o: unknown) => new TextEncoder().encode(`${JSON.stringify(o)}\n`);
   const fail = (code: string, v: string, status: number) =>
-    new Response(`${JSON.stringify({ t: "error", code, v })}\n`, { status, headers: { "content-type": "application/x-ndjson" } });
+    new Response(`${JSON.stringify({ t: "error", code, v })}\n`, { status, headers: NDJSON });
+  if (request.method !== "POST") return fail("bad", "Bad request.", 405);
 
   const provider = PROVIDER();
-  const hasKey =
-    provider === "openai" ? !!process.env.OPENAI_API_KEY : !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+  const hasKey = provider === "openai" ? !!env("OPENAI_API_KEY") : !!env("ANTHROPIC_API_KEY");
   if (!hasKey) return fail("setup", "Stack AI isn’t set up on the server yet.", 503);
-  const uid = await userId(request);
-  if (!uid) return fail("signin", "Sign in to use Stack AI.", 401);
+  const token = request.headers.get("authorization")?.replace(/^Bearer /i, "") ?? "";
+  const db = asCaller(request, token);
+  const { data: who } = token ? await db.auth.getUser(token) : { data: { user: null } };
+  if (!who.user) return fail("signin", "Sign in to use Stack AI.", 401);
 
   let body: Body;
   try {
@@ -291,7 +294,11 @@ export async function POST(request: Request) {
   if (!["summary", "tidy", "ask", "pdf"].includes(body?.task)) return fail("bad", "Unknown task.", 400);
   const job = buildJob(body);
   if (typeof job === "string") return fail("bad", job, 400);
-  if (!allow(uid)) return fail("limit", `You’ve used today’s ${LIMIT} Stack AI requests. They reset at midnight (UTC).`, 429);
+  // The count lives in the database (supabase/schema.sql: ai_take), so it
+  // holds however many copies of this function are running.
+  const { data: allowed, error } = await db.rpc("ai_take", { lim: LIMIT });
+  if (error) return fail("setup", "Stack AI isn’t set up on the server yet.", 503);
+  if (!allowed) return fail("limit", `You’ve used today’s ${LIMIT} Stack AI requests. They reset at midnight (UTC).`, 429);
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -304,5 +311,5 @@ export async function POST(request: Request) {
       controller.close();
     },
   });
-  return new Response(stream, { headers: { "content-type": "application/x-ndjson", "cache-control": "no-store" } });
-}
+  return new Response(stream, { headers: NDJSON });
+});

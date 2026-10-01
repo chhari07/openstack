@@ -24,7 +24,7 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
  * "Continue with Google" through Android's Credential Manager, using the
  * "Sign in with Google" button flow: Google's own dialog, which lists the
  * phone's accounts and offers to add one if there are none. Returns a Google
- * ID token that the web app hands to Firebase. A new Google account gets a new
+ * ID token that the web app hands to Supabase. A new Google account gets a new
  * Stack account, so the same button is both sign-in and sign-up.
  */
 @CapacitorPlugin(name = "GoogleSignIn")

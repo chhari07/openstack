@@ -15,9 +15,10 @@ Without the Firebase keys the site still runs; the form just says sign-ups open 
 ## Where sign-ups go
 
 Firestore collection `waitlist` (one document per email, id = salted SHA-256 of the email), in
-the same Firebase project as the app. Read them in the Firebase console → Firestore. The app's
-[`firebase/firestore.rules`](../firebase/firestore.rules) deny everything outside `users/<uid>/items`, so browsers can't read or write
-the list; only this server (admin SDK) can.
+the Firebase project the app used before it moved to Supabase. Read them in the Firebase
+console → Firestore. The rules published there ([`firestore.rules`](firestore.rules)) deny
+everything outside `users/<uid>/items`, so browsers can't read or write the list; only this
+server (admin SDK) can.
 
 Use a **separate service account** with only the *Cloud Datastore User* role, not the default
 admin one.

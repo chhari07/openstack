@@ -28,8 +28,9 @@ export default function Account() {
 
   const leave = async (remove: boolean, force = false) => {
     setBusy(remove ? "remove" : "keep");
-    const result = await signOut(remove, force);
+    const result = await signOut(remove, force).catch(() => null);
     setBusy(null);
+    if (!result) return toast({ text: "Couldn’t sign out. Try again." });
     if (remove && !force && result.unsynced > 0) return setUnsynced(result.unsynced);
     setLeaving(false);
     setUnsynced(0);
@@ -92,6 +93,7 @@ export default function Account() {
               />
               {status}
             </p>
+            {sync.state === "idle" && sync.note && <p className="text-[13px] leading-relaxed text-muted">{sync.note}</p>}
             <p className="text-[13px] leading-relaxed text-muted">
               Notes, saved articles, PDFs, playlists, focus history and your profile sync to every device you sign in
               on.

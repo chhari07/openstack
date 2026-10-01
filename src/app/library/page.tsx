@@ -134,7 +134,7 @@ export default function Library() {
               {items.map((p) => (
                 <div key={p.id} className="relative shrink-0">
                   <Link href={`/library/read?id=${p.id}`} aria-label={`Read ${p.title}`}>
-                    <PdfCover id={p.id} title={p.title} className="h-[142px] w-[98px] md:h-[196px] md:w-[136px]" />
+                    <PdfCover id={p.id} title={p.title} plain={p.coverStyle === "stack"} marked={!!p.bookmarks?.length} progress={p.lastPage > 1 ? p.lastPage / p.pages : 0} className="h-[142px] w-[98px] md:h-[196px] md:w-[136px]" />
                   </Link>
                   {editing && (
                     <button

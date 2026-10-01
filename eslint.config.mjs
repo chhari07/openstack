@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // The soft-launch website is its own Next.js project with its own lint setup.
     "website/**",
+    // The Stack AI function runs on Deno (Supabase), not in this project.
+    "supabase/**",
   ]),
 ]);
 

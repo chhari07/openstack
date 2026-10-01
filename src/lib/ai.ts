@@ -1,11 +1,10 @@
 "use client";
 
-// Stack AI on the device: sends a task to /api/ai (the website's server, which
-// holds the Claude key) with your sign-in, and reads the answer as it streams.
-// The Android app points at NEXT_PUBLIC_AI_URL (the deployed site, or the
-// laptop's dev server at http://10.0.2.2:3000 in the emulator).
-import { cloud, cloudConfigured } from "./cloud";
-import { isNative } from "./platform";
+// Stack AI on the device: sends a task to the "ai" Supabase function
+// (supabase/functions/ai, which holds the AI key) with your sign-in, and reads
+// the answer as it streams. NEXT_PUBLIC_AI_URL is that function's address,
+// https://<project>.supabase.co/functions/v1/ai; without it AI is hidden.
+import { accessToken, cloudConfigured, cloudKey } from "./cloud";
 
 export type Cite = { page?: number; source?: string; title?: string; cited: string };
 export type AnswerBlock = { text: string; cites: Cite[] };
@@ -25,10 +24,10 @@ export class AiError extends Error {
   }
 }
 
-const endpoint = () => `${isNative() ? (process.env.NEXT_PUBLIC_AI_URL ?? "") : ""}/api/ai`;
+const ENDPOINT = process.env.NEXT_PUBLIC_AI_URL ?? "";
 
-// AI needs an account (to keep the shared key safe) and, in the app, a server address.
-export const aiSetUp = () => cloudConfigured() && (!isNative() || !!process.env.NEXT_PUBLIC_AI_URL);
+// AI needs an account (to keep the shared key safe) and the function's address.
+export const aiSetUp = () => cloudConfigured() && !!ENDPOINT;
 
 // Settings → Stack AI: off hides every AI button (summaries, PDF questions,
 // "Ask your Stack", tidy note) and nothing is ever sent.
@@ -50,14 +49,13 @@ export function setAiTurnedOn(on: boolean) {
 export const aiAvailable = () => aiSetUp() && aiTurnedOn();
 
 export async function runAi(body: AiTask, onText?: (textSoFar: string) => void, signal?: AbortSignal): Promise<Answer> {
-  const user = cloud()?.auth.currentUser;
-  if (!user) throw new AiError("signin", "Sign in to use Stack AI.");
-  const token = await user.getIdToken();
+  const token = await accessToken();
+  if (!token) throw new AiError("signin", "Sign in to use Stack AI.");
   let res: Response;
   try {
-    res = await fetch(endpoint(), {
+    res = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}`, apikey: cloudKey() },
       body: JSON.stringify(body),
       signal,
     });

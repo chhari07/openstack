@@ -15,6 +15,7 @@ import {
   BackIcon,
   CloseIcon,
   ExternalIcon,
+  FontIcon,
   ListIcon,
   PaletteIcon,
   PinIcon,
@@ -46,6 +47,14 @@ import { AiError, aiAvailable, answerText, runAi } from "@/lib/ai";
 import { useAiConsent } from "@/components/ai-kit";
 import { SparkleIcon } from "@/components/stack-icons";
 import { canGoBack } from "@/lib/nav";
+import {
+  FONTS,
+  addCustomFont,
+  customFont,
+  fontFamily,
+  removeCustomFont,
+  useCustomFonts,
+} from "@/lib/note-fonts";
 
 export default function Page() {
   // useSearchParams needs a Suspense boundary.
@@ -62,6 +71,7 @@ type Draft = {
   checklist?: ChecklistItem[];
   color: NoteColor;
   pinned: boolean;
+  font?: string;
 };
 
 const isEmpty = (d: Draft, n: Note | null) =>
@@ -97,7 +107,9 @@ function Editor() {
     color: "default",
     pinned: false,
   });
-  const [palette, setPalette] = useState(false);
+  const [panel, setPanel] = useState<"colour" | "font" | null>(null);
+  const customFonts = useCustomFonts();
+  const fontInput = useRef<HTMLInputElement>(null);
   const [showDone, setShowDone] = useState(true);
   const [focusId, setFocusId] = useState<string | null>(null);
 
@@ -128,6 +140,7 @@ function Editor() {
         checklist: n.checklist,
         color: colorOf(n),
         pinned: !!n.pinned,
+        font: n.font,
       });
     });
   }, [paramId]);
@@ -145,6 +158,7 @@ function Editor() {
         checklist: d.checklist,
         color: d.color,
         pinned: d.pinned,
+        font: d.font,
         highlight: !!n?.quote && !d.body.trim(),
       };
       if (idRef.current) {
@@ -291,6 +305,19 @@ function Editor() {
     }
   };
 
+  const addFont = async (file: File) => {
+    try {
+      change({ font: customFont(await addCustomFont(file)).value });
+    } catch (e) {
+      toast({ text: e instanceof Error ? e.message : "Couldn’t add that font" });
+    }
+  };
+  const removeFont = async (id: string, value: string) => {
+    await removeCustomFont(id);
+    if (draft.font === value) change({ font: undefined });
+    toast({ text: "Font removed from this device" });
+  };
+
   const remove = async () => {
     clearTimeout(timer.current);
     await queue.current;
@@ -377,7 +404,7 @@ function Editor() {
         </button>
       </div>
 
-      <div className="mx-auto max-w-[720px] px-5 md:px-8">
+      <div className="mx-auto max-w-[720px] px-5 md:px-8" style={{ fontFamily: fontFamily(draft.font) }}>
         {note?.quote && (
           <div className="mt-2 flex flex-col gap-2.5">
             <blockquote
@@ -452,7 +479,7 @@ function Editor() {
 
       {/* Bottom toolbar */}
       <div className={`fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[480px] border-t border-current/10 pb-[env(safe-area-inset-bottom)] md:left-[var(--rail)] md:max-w-none ${tone}`}>
-        {palette && (
+        {panel === "colour" && (
           <div role="radiogroup" aria-label="Note colour" className="rail gap-3 px-5 pt-3 pb-1">
             {COLORS.map((c) => (
               <button
@@ -468,6 +495,58 @@ function Editor() {
             ))}
           </div>
         )}
+        {panel === "font" && (
+          <div role="radiogroup" aria-label="Note font" className="rail gap-2 px-5 pt-3 pb-1">
+            {[...FONTS, ...customFonts.map(customFont)].map((f) => {
+              const on = (draft.font ?? "sans") === f.value;
+              const mine = f.value.startsWith("custom:");
+              return (
+                <span
+                  key={f.value}
+                  className={`flex h-11 items-center rounded-full border ${
+                    on ? "border-2 border-music" : "border-current/25"
+                  }`}
+                >
+                  <button
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => change({ font: f.value === "sans" ? undefined : f.value })}
+                    style={{ fontFamily: f.family }}
+                    className={`h-full text-[15px] ${mine && on ? "pr-1 pl-4" : "px-4"}`}
+                  >
+                    {f.label}
+                  </button>
+                  {mine && on && (
+                    <button
+                      aria-label={`Remove the font ${f.label} from this device`}
+                      onClick={() => removeFont(f.value.slice(7), f.value)}
+                      className="flex size-9 items-center justify-center opacity-60"
+                    >
+                      <CloseIcon size={14} />
+                    </button>
+                  )}
+                </span>
+              );
+            })}
+            <button
+              onClick={() => fontInput.current?.click()}
+              className="flex h-11 items-center gap-1.5 rounded-full border border-dashed border-current/40 px-4 text-[15px]"
+            >
+              <PlusIcon size={16} /> Add font
+            </button>
+            <input
+              ref={fontInput}
+              type="file"
+              accept=".ttf,.otf,.woff,.woff2,font/*"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                e.target.value = "";
+                if (f) addFont(f);
+              }}
+            />
+          </div>
+        )}
         <div className="mx-auto flex h-14 max-w-[720px] items-center px-2 md:px-6">
           <button
             aria-label={draft.checklist ? "Change to plain text" : "Change to checklist"}
@@ -479,11 +558,19 @@ function Editor() {
           </button>
           <button
             aria-label="Colour"
-            aria-expanded={palette}
-            onClick={() => setPalette((p) => !p)}
+            aria-expanded={panel === "colour"}
+            onClick={() => setPanel((p) => (p === "colour" ? null : "colour"))}
             className={iconBtn}
           >
             <PaletteIcon size={21} />
+          </button>
+          <button
+            aria-label="Font"
+            aria-expanded={panel === "font"}
+            onClick={() => setPanel((p) => (p === "font" ? null : "font"))}
+            className={iconBtn}
+          >
+            <FontIcon size={21} />
           </button>
           <span className="label grow text-center text-[10px] opacity-60">
             {edited ? `Edited ${noteTime(edited)}` : "New note"}

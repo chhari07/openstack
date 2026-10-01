@@ -8,6 +8,12 @@ import { fetchBlob, track } from "./sync-state";
 export type NoteKind = "article" | "pdf" | "idea" | "music";
 export type NoteColor = "default" | "ink" | "green" | "orange" | "red" | "blue";
 export type ChecklistItem = { id: string; text: string; done: boolean };
+// A sticky note stuck on a PDF page. x and y are the top-left corner as a
+// fraction of the page (0–1), so it stays put at any zoom.
+export type Sticky = { x: number; y: number; type: "note" | "flag" | "question"; size: "s" | "m" | "l" };
+// How a PDF's pages are shown: contrast and brightness are percentages.
+export type PdfView = { mode: "normal" | "sepia" | "dark" | "grey"; contrast: number; brightness: number };
+export type Bookmark = { page: number; label?: string; at: number };
 // Daily review schedule for a highlight (see lib/review.ts).
 export type Review = { due: number; interval: number; reps: number; off?: boolean };
 
@@ -18,6 +24,7 @@ export type Note = {
   checklist?: ChecklistItem[]; // set when the note is a list
   color?: NoteColor; // unset: ideas are ink, the rest are plain cards
   pinned?: boolean;
+  font?: string; // a name from lib/note-fonts.ts; unset is the default font
   updatedAt?: number;
   review?: Review;
   quote?: string; // text highlighted in an article or PDF
@@ -29,6 +36,7 @@ export type Note = {
   articleId?: string;
   pdfId?: string;
   page?: number;
+  sticky?: Sticky; // set when the note sits on the PDF page itself
   createdAt: number;
 };
 
@@ -41,6 +49,9 @@ export type PdfMeta = {
   addedAt: number;
   lastOpenedAt?: number;
   sourceUri?: string; // set when imported from a phone folder
+  bookmarks?: Bookmark[];
+  view?: PdfView;
+  coverStyle?: "stack"; // a plain Stack cover instead of the cover picture
 };
 
 export type SavedArticle = {
@@ -142,6 +153,12 @@ export async function getPdf(id: string) {
 
 export async function getCover(id: string) {
   return get<string>(`cover:${id}`);
+}
+
+// A new cover picture (a page of the PDF, or a photo). It syncs with the PDF's row.
+export async function setCover(id: string, cover: string) {
+  await set(`cover:${id}`, cover);
+  await updatePdf(id, { coverStyle: undefined });
 }
 
 export async function addPdf(

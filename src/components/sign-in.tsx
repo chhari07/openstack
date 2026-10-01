@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import {
+  ConfirmEmail,
   explainAuth,
   GoogleNotReady,
   resetPassword,
+  setNewPassword,
   SignInCancelled,
   signInWithEmail,
   signInWithGoogle,
@@ -19,9 +21,11 @@ export function SignInPanel() {
   const { configured } = useAccount();
   const toast = useToast();
   const [withEmail, setWithEmail] = useState(false);
-  const [mode, setMode] = useState<"in" | "up">("in");
+  // "reset": a code was emailed; it and a new password finish "Forgot password".
+  const [mode, setMode] = useState<"in" | "up" | "reset">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -31,7 +35,7 @@ export function SignInPanel() {
     return (
       <p className="rounded-2xl bg-card p-4 text-[14px] leading-relaxed text-muted">
         Accounts aren’t set up in this build of Stack yet, so everything stays on this device. (For the developer:
-        see <code>firebase/README.md</code>.)
+        see <code>supabase/README.md</code>.)
       </p>
     );
   }
@@ -47,6 +51,8 @@ export function SignInPanel() {
       if (done) toast({ text: done });
     } catch (e) {
       if (e instanceof GoogleNotReady) setNotReady(true);
+      else if (e instanceof ConfirmEmail)
+        setNotice(`We sent a confirmation link to ${email.trim()}. Open it, then sign in here.`);
       else if (!(e instanceof SignInCancelled)) setError(explainAuth(e));
     } finally {
       setBusy(null);
@@ -54,6 +60,18 @@ export function SignInPanel() {
   };
 
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const sendCode = () =>
+    run(
+      "email",
+      async () => {
+        await resetPassword(email);
+        setPassword("");
+        setCode("");
+        setMode("reset");
+        setNotice(`We sent a code to ${email.trim()}. Enter it here with a new password.`);
+      },
+      null,
+    );
 
   return (
     <div className="flex flex-col gap-3">
@@ -73,6 +91,64 @@ export function SignInPanel() {
         <button onClick={() => setWithEmail(true)} className="label mt-1 h-10 text-[10px] text-muted underline">
           No Google account? Use email instead
         </button>
+      ) : mode === "reset" ? (
+        <form
+          className="mt-2 flex flex-col gap-2.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (code.trim() && password.length >= 6)
+              run("email", () => setNewPassword(email, code, password), "Password changed. You’re signed in");
+          }}
+        >
+          <input
+            aria-label="Code from the email"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Code from the email"
+            className="h-14 rounded-full border border-ink/15 bg-card px-5 text-[16px] outline-none focus:border-ink"
+          />
+          <input
+            aria-label="New password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New password (6+ characters)"
+            className="h-14 rounded-full border border-ink/15 bg-card px-5 text-[16px] outline-none focus:border-ink"
+          />
+          <button
+            type="submit"
+            disabled={!!busy || !code.trim() || password.length < 6}
+            className="h-14 rounded-full border border-ink/25 text-[16px] font-semibold disabled:opacity-40"
+          >
+            {busy === "email" ? "One moment…" : "Set new password"}
+          </button>
+          <div className="flex justify-center gap-5">
+            <button
+              type="button"
+              disabled={!!busy}
+              onClick={sendCode}
+              className="label h-10 text-[10px] text-muted underline disabled:opacity-40"
+            >
+              Send a new code
+            </button>
+            <button
+              type="button"
+              disabled={!!busy}
+              onClick={() => {
+                setMode("in");
+                setPassword("");
+                setNotice(null);
+                setError(null);
+              }}
+              className="label h-10 text-[10px] text-muted underline disabled:opacity-40"
+            >
+              Back to sign in
+            </button>
+          </div>
+        </form>
       ) : (
         <form
           className="mt-2 flex flex-col gap-2.5"
@@ -126,16 +202,7 @@ export function SignInPanel() {
             <button
               type="button"
               disabled={!validEmail || !!busy}
-              onClick={() =>
-                run(
-                  "email",
-                  async () => {
-                    await resetPassword(email);
-                    setNotice(`We sent a link to reset your password to ${email.trim()}.`);
-                  },
-                  null,
-                )
-              }
+              onClick={sendCode}
               className="label h-10 text-[10px] text-muted underline disabled:opacity-40"
             >
               Forgot password?
@@ -152,8 +219,8 @@ export function SignInPanel() {
             email instead; your data moves over when you add Google later.
           </p>
           <p className="text-[12px] leading-relaxed text-muted">
-            For the developer: add the APK’s SHA-1 in Firebase → Project settings → Android app (com.chhari.stack) →
-            Add fingerprint. See firebase/README.md.
+            For the developer: add the APK’s SHA-1 to an Android OAuth client (package com.chhari.stack) in Google
+            Cloud → Credentials. See supabase/README.md.
           </p>
           <button
             onClick={() => {

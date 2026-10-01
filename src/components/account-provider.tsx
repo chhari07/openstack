@@ -1,13 +1,13 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
-import { cloud, cloudConfigured, deleteAccount as deleteCloudAccount, signOutCloud } from "@/lib/cloud";
+import type { User as CloudUser } from "@supabase/supabase-js";
+import { cloud, cloudConfigured, deleteAccount as deleteCloudAccount } from "@/lib/cloud";
 import { getProfile, saveProfile } from "@/lib/profile";
 import { squareJpeg } from "@/lib/image";
-import { onChange, pendingChanges } from "@/lib/sync-state";
+import { onChange } from "@/lib/sync-state";
 import {
-  clearLocalData,
+  signOutAndStop,
   syncNow,
   syncStatus,
   uploadEverything,
@@ -17,12 +17,16 @@ import {
 
 type User = { id: string; email?: string; name?: string; picture?: string };
 
-const toUser = (u: FirebaseUser): User => ({
-  id: u.uid,
-  email: u.email ?? undefined,
-  name: u.displayName ?? undefined,
-  picture: u.photoURL ?? undefined,
-});
+// Google puts the name and photo in the account's metadata.
+const toUser = (u: CloudUser): User => {
+  const meta = u.user_metadata as { full_name?: string; name?: string; avatar_url?: string; picture?: string };
+  return {
+    id: u.id,
+    email: u.email ?? undefined,
+    name: meta.full_name ?? meta.name,
+    picture: meta.avatar_url ?? meta.picture,
+  };
+};
 
 // A new Google sign-in: use the Google name and photo, unless the person
 // already set their own (here or on another device).
@@ -72,14 +76,16 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(!configured);
   const [sync, setSync] = useState<SyncStatus>(syncStatus());
 
-  // Firebase restores the saved session, then reports every sign-in / sign-out.
+  // Supabase restores the saved session, then reports every sign-in / sign-out.
   useEffect(() => {
     const c = cloud();
     if (!c) return;
-    return onAuthStateChanged(c.auth, (u) => {
-      setUser((prev) => (u ? (prev?.id === u.uid ? prev : toUser(u)) : null));
+    const { data } = c.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user;
+      setUser((prev) => (u ? (prev?.id === u.id ? prev : toUser(u)) : null));
       setReady(true);
     });
+    return () => data.subscription.unsubscribe();
   }, []);
 
   useEffect(() => watchSync(setSync), []);
@@ -123,14 +129,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   }, [uid]);
 
   const signOut = useCallback(async (removeFromDevice: boolean, force = false) => {
-    // Upload anything not synced yet first. Removing data from the phone that
-    // never reached the account would lose it, so that needs `force`.
-    await syncNow().catch(() => {});
-    const unsynced = Object.keys(await pendingChanges()).length;
-    if (removeFromDevice && unsynced > 0 && !force) return { unsynced };
-    await signOutCloud();
+    const { unsynced, signedOut } = await signOutAndStop(removeFromDevice, force);
+    if (!signedOut) return { unsynced };
+    setUser(null);
     if (removeFromDevice) {
-      await clearLocalData();
       try {
         localStorage.removeItem(OWNER_KEY);
       } catch {
@@ -142,7 +144,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const deleteAccount = useCallback(async (password?: string) => {
     await deleteCloudAccount(password);
-    await clearLocalData();
+    await signOutAndStop(true, true); // stops any sync, then clears this device
+    setUser(null);
     try {
       localStorage.removeItem(OWNER_KEY);
     } catch {

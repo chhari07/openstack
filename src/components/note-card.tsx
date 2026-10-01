@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Note, NoteColor } from "@/lib/db";
 import { noteTime } from "@/lib/format";
+import { fontFamily, useCustomFonts } from "@/lib/note-fonts";
 import { PinIcon } from "./icons";
 
 // Note colours use the app's tokens, so they follow light and dark mode.
@@ -49,11 +50,13 @@ export function NoteCard({ note, compact = false }: { note: Note; compact?: bool
   const open = items.filter((i) => !i.done);
   const done = items.length - open.length;
   const muted = dark ? "text-on-ink/65" : "text-muted";
+  useCustomFonts(); // so a font the person added shows here too
 
   return (
     <Link
       href={noteHref(note.id)}
       className={`relative flex w-full flex-col gap-2 rounded-[14px] p-3.5 text-left ${colorCls(color)}`}
+      style={{ fontFamily: fontFamily(note.font) }}
     >
       {note.pinned && (
         <PinIcon size={14} filled className={`absolute top-3 right-3 ${muted}`} />

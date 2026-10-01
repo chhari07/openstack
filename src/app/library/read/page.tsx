@@ -11,14 +11,16 @@ import { useNowPlaying } from "@/components/now-playing";
 import { useFocus, useTick } from "@/components/focus-provider";
 import { clockText, remainingMs } from "@/lib/focus";
 import { useToast } from "@/components/toast";
-import { addNote, getNotes, getPdf, updatePdf, type PdfMeta } from "@/lib/db";
+import { addNote, getNotes, getPdf, updatePdf, type Note, type PdfMeta } from "@/lib/db";
 import { useStore } from "@/lib/use-store";
 import { openPdf, pdfjs } from "@/lib/pdf";
 import { markPageRead, useReadingTimer } from "@/lib/reading";
 import { ListenButton } from "@/components/listen-button";
 import { paintHighlights } from "@/lib/highlights";
 import { clock } from "@/lib/format";
-import { ZoomInIcon, ZoomOutIcon } from "@/components/stack-icons";
+import { ContrastIcon, NoteAddIcon } from "@/components/stack-icons";
+import { BookmarkIcon } from "@/components/icons";
+import { BookmarkSheet, Ribbon, Stickies, StickySheet, ViewSheet, pageFilter, patchPdf } from "@/components/pdf-extras";
 import { AiPdfButton } from "@/components/ai-pdf-chat";
 
 const MIN_PER_PAGE = 1.5; // rough reading pace for the "time left" pill
@@ -50,10 +52,15 @@ function PdfReader() {
   const [rendered, setRendered] = useState(0); // bumps after each page paint
   const [noteQuote, setNoteQuote] = useState<string | null>(null);
   const [notes] = useStore(getNotes, []);
+  const [size, setSize] = useState({ w: 0, h: 0 }); // the painted page, in CSS pixels
+  const [panel, setPanel] = useState<"view" | "bookmarks" | "sticky" | null>(null);
+  const [editing, setEditing] = useState<Note | null>(null); // the sticky being changed
+  const [showStickies, setShowStickies] = useState(true);
 
   const wrap = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const sheet = useRef<HTMLDivElement>(null); // the page itself: it follows the finger
 
   // Load the file from IndexedDB and open it with pdf.js.
   useEffect(() => {
@@ -102,6 +109,7 @@ function PdfReader() {
       });
       await task.promise.catch(() => {});
       if (cancelled) return;
+      setSize({ w: viewport.width, h: viewport.height });
 
       const layer = textRef.current!;
       layer.replaceChildren();
@@ -156,6 +164,95 @@ function PdfReader() {
     [total],
   );
 
+  // Swipe the page left or right to turn it, like a book. The page follows the
+  // finger and turns once it's dragged far enough; a short or mostly vertical
+  // drag is left to scrolling, and selecting text never turns the page.
+  // Zoomed in, a swipe first pans across the page and turns it only from the edge.
+  useEffect(() => {
+    const el = sheet.current;
+    const box = wrap.current;
+    if (!el || !box || !doc) return;
+    let start: { x: number; y: number; atLeft: boolean; atRight: boolean } | null = null;
+    let axis: "x" | "y" | null = null;
+    const selecting = () => window.getSelection()?.isCollapsed === false;
+    const settle = (animate: boolean) => {
+      el.style.transition = animate ? "transform .18s ease-out" : "";
+      el.style.transform = "";
+    };
+    // Where this swipe may turn to: +1, -1, or 0 when it should pan or do nothing.
+    const turnFor = (dx: number, s: NonNullable<typeof start>) => {
+      const delta = dx < 0 ? 1 : -1;
+      if (zoom !== 1 && !(delta > 0 ? s.atRight : s.atLeft)) return 0;
+      return delta;
+    };
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1 || selecting()) return void (start = null);
+      // Dragging a sticky note moves the note, not the page.
+      if ((e.target as HTMLElement).closest("[data-sticky]")) return void (start = null);
+      const t = e.touches[0];
+      start = {
+        x: t.clientX,
+        y: t.clientY,
+        atLeft: box.scrollLeft <= 1,
+        atRight: box.scrollLeft + box.clientWidth >= box.scrollWidth - 1,
+      };
+      axis = null;
+      el.style.transition = "";
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!start) return;
+      if (e.touches.length !== 1 || selecting()) {
+        start = null;
+        return settle(true);
+      }
+      const dx = e.touches[0].clientX - start.x;
+      const dy = e.touches[0].clientY - start.y;
+      if (!axis) {
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? "x" : "y";
+      }
+      if (axis !== "x") return;
+      const delta = turnFor(dx, start);
+      if (!delta) return;
+      // Nothing to turn to at the first and last page: the page resists.
+      const end = delta > 0 ? page >= total : page <= 1;
+      el.style.transform = `translateX(${end ? dx / 5 : dx}px)`;
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!start) return;
+      const s = start;
+      start = null;
+      const dx = e.changedTouches[0].clientX - s.x;
+      const delta = axis === "x" && !selecting() ? turnFor(dx, s) : 0;
+      const far = Math.abs(dx) >= Math.min(90, box.clientWidth * 0.22);
+      if (!delta || !far || (delta > 0 ? page >= total : page <= 1)) return settle(true);
+      settle(false);
+      box.scrollLeft = 0;
+      go(delta);
+      // The new page slides in from the side it came from.
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+        el.animate(
+          [{ transform: `translateX(${delta * 28}%)`, opacity: 0.35 }, { transform: "none", opacity: 1 }],
+          { duration: 200, easing: "ease-out" },
+        );
+    };
+    const onCancel = () => {
+      start = null;
+      settle(true);
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: true });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    el.addEventListener("touchcancel", onCancel, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", onCancel);
+      settle(false);
+    };
+  }, [doc, page, total, zoom, go]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest("input, textarea, dialog")) return;
@@ -181,6 +278,9 @@ function PdfReader() {
     });
     toast({ text: `Saved to Notes · p. ${page}`, href: "/notes" });
   };
+
+  const listed = pageNotes.filter((n) => n.body && !n.sticky); // stickies are on the page already
+  const marked = !!meta?.bookmarks?.some((b) => b.page === page);
 
   const minutesLeft = Math.round((total - page) * MIN_PER_PAGE);
   const left =
@@ -225,13 +325,11 @@ function PdfReader() {
             />
           )}
           {meta && <AiPdfButton id={id} title={meta.title} page={page} onPage={setPage} />}
-          <button
-            aria-label={zoom === 1 ? "Zoom in" : "Fit to width"}
-            aria-pressed={zoom !== 1}
-            onClick={() => setZoom((z) => (z === 1 ? 1.6 : 1))}
-            className="flex size-11 items-center justify-center"
-          >
-            {zoom === 1 ? <ZoomInIcon size={21} /> : <ZoomOutIcon size={21} />}
+          <button aria-label="Bookmarks" onClick={() => setPanel("bookmarks")} className="flex size-11 items-center justify-center">
+            <BookmarkIcon size={20} filled={marked} />
+          </button>
+          <button aria-label="Page view: contrast, zoom and cover" onClick={() => setPanel("view")} className="flex size-11 items-center justify-center">
+            <ContrastIcon size={21} />
           </button>
         </div>
         <div className="mt-1.5 h-0.5 bg-rule">
@@ -240,25 +338,40 @@ function PdfReader() {
       </div>
 
       <div ref={wrap} className="mx-auto mt-4 overflow-x-auto px-3 md:max-w-[880px] md:px-6">
-        <div className="relative mx-auto w-fit bg-white shadow-[0_4px_18px_rgba(0,0,0,.08)]">
-          <canvas ref={canvasRef} className="block" />
+        {/* At normal size a sideways drag belongs to the page turn, not to the browser's panning. */}
+        <div
+          ref={sheet}
+          style={{ touchAction: zoom === 1 ? "pan-y pinch-zoom" : undefined }}
+          className="relative mx-auto w-fit bg-white shadow-[0_4px_18px_rgba(0,0,0,.08)]"
+        >
+          <canvas ref={canvasRef} className="block" style={{ filter: pageFilter(meta?.view) }} />
           <div ref={textRef} className="textLayer" />
+          {showStickies && (
+            <Stickies
+              notes={pageNotes.filter((n) => n.sticky)}
+              pageW={size.w}
+              pageH={size.h}
+              onEdit={(n) => {
+                setEditing(n);
+                setPanel("sticky");
+              }}
+            />
+          )}
+          {marked && <Ribbon key={page} onClick={() => setPanel("bookmarks")} />}
         </div>
       </div>
 
-      {pageNotes.filter((n) => n.body).length > 0 && (
+      {listed.length > 0 && (
         <div className="mt-4 flex flex-col gap-2.5 px-5">
-          {pageNotes
-            .filter((n) => n.body)
-            .map((n) => (
-              <div key={n.id} className="flex items-start gap-2.5 rounded-xl bg-card px-3.5 py-3 shadow-[0_4px_14px_rgba(0,0,0,.06)]">
-                <NoteIcon size={18} className="mt-0.5 shrink-0 text-pdf-deep" />
-                <div className="flex flex-col gap-1">
-                  <span className="text-[14px] leading-snug">{n.body}</span>
-                  <span className="label text-[9px] text-muted">Saved to Notes · {clock(n.createdAt)}</span>
-                </div>
+          {listed.map((n) => (
+            <div key={n.id} className="flex items-start gap-2.5 rounded-xl bg-card px-3.5 py-3 shadow-[0_4px_14px_rgba(0,0,0,.06)]">
+              <NoteIcon size={18} className="mt-0.5 shrink-0 text-pdf-deep" />
+              <div className="flex flex-col gap-1">
+                <span className="text-[14px] leading-snug">{n.body}</span>
+                <span className="label text-[9px] text-muted">Saved to Notes · {clock(n.createdAt)}</span>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
       )}
 
@@ -315,6 +428,43 @@ function PdfReader() {
           </button>
         )}
       </div>
+
+      <button
+        aria-label="Add a sticky note to this page"
+        onClick={() => {
+          setEditing(null);
+          setShowStickies(true);
+          setPanel("sticky");
+        }}
+        className="fixed right-4 bottom-[calc(max(env(safe-area-inset-bottom),24px)+72px)] z-30 flex size-12 items-center justify-center rounded-full bg-[#FFE08A] text-[#111] shadow-[0_4px_12px_rgba(0,0,0,.25)]"
+      >
+        <NoteAddIcon size={21} />
+      </button>
+      {meta && (
+        <>
+          <ViewSheet
+            open={panel === "view"}
+            onClose={() => setPanel(null)}
+            meta={meta}
+            onMeta={(patch) => patchPdf(meta, patch, setMeta)}
+            zoom={zoom}
+            onZoom={setZoom}
+            showStickies={showStickies}
+            onShowStickies={setShowStickies}
+            canvas={canvasRef}
+            page={page}
+          />
+          <BookmarkSheet
+            open={panel === "bookmarks"}
+            onClose={() => setPanel(null)}
+            bookmarks={meta.bookmarks ?? []}
+            onChange={(bookmarks) => patchPdf(meta, { bookmarks }, setMeta)}
+            page={page}
+            onPage={setPage}
+          />
+          <StickySheet open={panel === "sticky"} onClose={() => setPanel(null)} editing={editing} pdf={meta} page={page} />
+        </>
+      )}
 
       <SelectionToolbar
         container={textRef}
