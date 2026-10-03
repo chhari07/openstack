@@ -14,6 +14,16 @@ import { SITE } from "@/lib/site";
 // Staggered load delays, as classes so no inline styles are needed.
 const LETTER_DELAYS = ["[animation-delay:350ms]", "[animation-delay:420ms]", "[animation-delay:490ms]", "[animation-delay:560ms]", "[animation-delay:630ms]"];
 
+// Bar heights for the mini player's level meter, as classes (no inline styles).
+const WEEK_BARS = ["h-[60%]", "h-[30%]", "h-[85%]", "h-[50%]", "h-[95%]", "h-[25%]", "h-[70%]"];
+
+// Each tab's title in the type the app uses for that screen's own header:
+// condensed caps for Today, News and Music, the serif for Library and Notes.
+const HEADINGS = {
+  display: "display text-6xl sm:text-7xl",
+  serif: "font-serif text-6xl font-medium leading-none tracking-[-0.01em] sm:text-7xl",
+};
+
 // The app's first launch (stack/src/app/welcome/page.tsx), step by step.
 const FIRST_MINUTE = [
   { n: "01", title: "Open Stack", body: "The logo stacks itself up, block by block, and you’re on the welcome screen." },
@@ -29,6 +39,8 @@ const TOUR: {
   lead: string;
   points: string[];
   text: string;
+  dot: string;
+  heading: keyof typeof HEADINGS;
   shot: { light: string; dark?: string; alt: string };
 }[] = [
   {
@@ -43,6 +55,8 @@ const TOUR: {
       "This week: time read, articles finished and PDF pages, a bar for each day",
     ],
     text: "text-music-text",
+    dot: "bg-music",
+    heading: "display",
     shot: { light: "/screens/today-light.png", dark: "/screens/today-dark.png", alt: "The Today tab with the top story, PDFs in progress and recent notes" },
   },
   {
@@ -57,6 +71,8 @@ const TOUR: {
       "Breaking-news alerts for the topics you pick, at most one an hour",
     ],
     text: "text-news-text",
+    dot: "bg-news",
+    heading: "display",
     shot: { light: "/screens/news-light.png", dark: "/screens/news-dark.png", alt: "The News tab showing stories as swipeable flash cards" },
   },
   {
@@ -70,6 +86,8 @@ const TOUR: {
       "Playlists with your own cover images",
     ],
     text: "text-music-text",
+    dot: "bg-music",
+    heading: "display",
     shot: { light: "/screens/music-light.png", dark: "/screens/music-dark.png", alt: "The Music tab with songs from the phone" },
   },
   {
@@ -83,11 +101,13 @@ const TOUR: {
       "Listen: articles and PDFs read aloud, with the same controls as music",
     ],
     text: "text-pdf-deep",
+    dot: "bg-pdf",
+    heading: "serif",
     shot: { light: "/screens/library-light.png", dark: "/screens/library-dark.png", alt: "The Library tab with coloured shelves of PDFs" },
   },
   {
     id: "notes",
-    title: "NOTES",
+    title: "Notes",
     lead: "Every highlight becomes a note that remembers where it came from, next to the notes you write yourself.",
     points: [
       "Titles, checklists, colours and pins",
@@ -96,6 +116,8 @@ const TOUR: {
       "Export to Markdown for Obsidian, Notion or any editor",
     ],
     text: "text-ink",
+    dot: "bg-ink",
+    heading: "serif",
     shot: { light: "/screens/notes-light.png", dark: "/screens/notes-dark.png", alt: "The Notes tab with notes and saved highlights" },
   },
 ];
@@ -148,7 +170,7 @@ export default function Home() {
             <Logo size={28} />
             <span className="display text-2xl">STACK</span>
           </a>
-          <a href="#join" className="label rounded-full bg-ink px-4 py-2.5 text-xs text-on-ink transition hover:opacity-90">
+          <a href="#join" className="rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-on-ink transition hover:opacity-90">
             Join<span className="max-sm:hidden"> the soft launch</span>
           </a>
         </div>
@@ -211,23 +233,21 @@ function Hero() {
           </p>
 
           <div className="rise mt-9 flex flex-wrap items-center gap-3 [animation-delay:1050ms]">
-            <a href="#join" className="label group inline-flex items-center gap-2 rounded-full bg-ink px-7 py-4 text-sm text-on-ink transition hover:opacity-90">
+            <a href="#join" className="group inline-flex h-14 items-center gap-2 rounded-full bg-ink px-7 text-[15px] font-semibold text-on-ink shadow-[0_10px_28px_rgba(0,0,0,.18)] transition hover:opacity-90">
               Join the soft launch
               <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
             </a>
-            <a href="#first-minute" className="label rounded-full border border-ink px-7 py-4 text-sm transition hover:bg-paper-2">
+            <a href="#first-minute" className="inline-flex h-14 items-center rounded-full border border-ink/15 bg-card px-7 text-[15px] font-semibold transition hover:border-ink">
               See the app
             </a>
           </div>
 
-          <ul className="rise label mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted [animation-delay:1200ms]">
-            <li>Free</li>
-            <li aria-hidden="true">·</li>
-            <li>Open source</li>
-            <li aria-hidden="true">·</li>
-            <li>Works offline</li>
-            <li aria-hidden="true">·</li>
-            <li>No ads</li>
+          <ul className="rise label mt-8 flex flex-wrap gap-2 text-[11px] [animation-delay:1200ms]">
+            {["Free", "Open source", "Works offline", "No ads"].map((t, i) => (
+              <li key={t} className={`rounded-full px-3.5 py-2 ${i === 0 ? "bg-ink text-on-ink" : "border border-ink/15 text-ink"}`}>
+                {t}
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -241,12 +261,13 @@ function Hero() {
             className="phone-in"
           />
 
+          {/* A highlight, as the app's note cards show it (stack/src/components/note-card.tsx) */}
           <div
             aria-hidden="true"
-            className="float absolute -left-16 top-[14%] w-56 rounded-2xl border border-rule bg-card p-4 shadow-xl [animation-delay:1400ms,2.9s] max-sm:-left-6 max-sm:w-48"
+            className="float absolute -left-16 top-[14%] w-60 rounded-[14px] bg-card px-4 py-3.5 shadow-[0_18px_40px_rgb(0_0_0/0.14)] [animation-delay:1400ms,2.9s] max-sm:-left-6 max-sm:w-52"
           >
-            <p className="label text-[10px] text-pdf-deep">Highlight · PDF p.1</p>
-            <p className="mt-2 font-serif text-[15px] italic leading-snug">
+            <span className="label inline-block rounded-full border border-ink/15 px-2 py-0.5 text-[9px] text-pdf-deep">Highlight · PDF p. 1</span>
+            <p className="mt-2 font-serif text-[17px] italic leading-snug">
               “<span className="bg-pdf/40">Signifiers tell you where the action should happen.</span>”
             </p>
           </div>
@@ -259,16 +280,28 @@ function Hero() {
             Saved to Stack
           </div>
 
+          {/* The app's mini player (stack/src/components/mini-player.tsx) */}
           <div
             aria-hidden="true"
-            className="float absolute -right-14 bottom-[12%] w-52 rounded-2xl bg-ink p-4 text-on-ink shadow-xl [animation-delay:1900ms,3.5s] max-sm:-right-4 max-sm:w-44"
+            className="float absolute -right-14 bottom-[12%] flex h-[62px] w-64 items-center gap-3 rounded-[14px] bg-card px-2.5 shadow-[0_18px_40px_rgb(0_0_0/0.16)] [animation-delay:1900ms,3.5s] max-sm:-right-4 max-sm:w-56"
           >
-            <p className="label text-[10px] opacity-60">Daily review · 3 today</p>
-            <p className="mt-2 text-sm font-semibold leading-snug">Every module needs one obvious action.</p>
-            <div className="mt-3 flex gap-2">
-              <span className="label rounded-full bg-on-ink px-2.5 py-1 text-[10px] text-ink">Got it</span>
-              <span className="label rounded-full border border-on-ink/30 px-2.5 py-1 text-[10px]">Again soon</span>
-            </div>
+            <span className="grid size-[42px] shrink-0 place-items-center rounded-md bg-music text-white">
+              <span className="flex h-3.5 items-end gap-[3px]">
+                {WEEK_BARS.slice(0, 3).map((h) => (
+                  <span key={h} className={`w-[3px] rounded-full bg-white ${h}`} />
+                ))}
+              </span>
+            </span>
+            <span className="flex min-w-0 grow flex-col gap-0.5">
+              <span className="truncate text-[13px] font-semibold">Focus mix</span>
+              <span className="label truncate text-[9px] text-muted">From your phone · 1:24</span>
+            </span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-music text-white">
+              <span className="flex gap-[3px]">
+                <span className="h-3 w-[3px] rounded-sm bg-white" />
+                <span className="h-3 w-[3px] rounded-sm bg-white" />
+              </span>
+            </span>
           </div>
         </div>
       </div>
@@ -310,7 +343,7 @@ function FirstMinute() {
       </div>
       <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FIRST_MINUTE.map((s, i) => (
-          <li key={s.n} className="reveal relative rounded-3xl border border-rule bg-card p-6">
+          <li key={s.n} className="reveal relative rounded-2xl bg-card p-6 shadow-[0_8px_24px_rgba(0,0,0,.05)]">
             <p className="label text-[11px] font-medium text-muted">Step {s.n}</p>
             <h3 className="mt-8 text-2xl font-extrabold tracking-tight">{s.title}</h3>
             <p className="mt-2 text-muted">{s.body}</p>
@@ -328,7 +361,7 @@ function FirstMinute() {
 
 function Tour() {
   return (
-    <section aria-labelledby="tour-title" className="border-y border-line bg-paper-2">
+    <section id="tour" aria-labelledby="tour-title" className="border-y border-line bg-paper-2">
       <div className="mx-auto max-w-6xl px-4 pt-20 sm:px-6 sm:pt-28">
         <div className="reveal">
           <p className="label text-xs text-muted">Inside the app</p>
@@ -339,9 +372,9 @@ function Tour() {
         </div>
       </div>
 
-      {/* Phones: the tab bar sticks under the header, like the app's bottom bar. */}
-      <div className="sticky top-16 z-30 mt-10 md:hidden">
-        <TabNav layout="bar" />
+      {/* Phones: the app's floating tab pill, while the tour is on screen. */}
+      <div className="md:hidden">
+        <TabNav layout="pill" />
       </div>
 
       <div className="mx-auto grid max-w-6xl gap-10 px-4 pb-20 sm:px-6 sm:pb-28 md:mt-12 md:grid-cols-[88px_1fr]">
@@ -357,18 +390,18 @@ function Tour() {
             <article
               key={t.id}
               id={`tab-${t.id}`}
-              className="grid scroll-mt-36 items-center gap-10 border-b border-rule py-16 first:pt-6 last:border-0 md:scroll-mt-24 md:grid-cols-[1fr_260px] md:gap-16"
+              className="grid scroll-mt-24 items-center gap-10 border-b border-rule py-16 first:pt-6 last:border-0 md:scroll-mt-24 md:grid-cols-[1fr_260px] md:gap-16"
             >
               <div className="reveal">
                 <p className={`label text-[11px] font-medium ${t.text}`}>
                   0{i + 1} — {t.id}
                 </p>
-                <h3 className="display mt-4 text-6xl sm:text-7xl">{t.title}</h3>
+                <h3 className={`mt-4 ${HEADINGS[t.heading]}`}>{t.title}</h3>
                 <p className="mt-5 max-w-lg text-lg text-prose">{t.lead}</p>
-                <ul className="mt-6 grid max-w-lg gap-3">
+                <ul className="mt-6 grid max-w-lg divide-y divide-line rounded-2xl bg-card px-4 shadow-[0_8px_24px_rgba(0,0,0,.05)]">
                   {t.points.map((p) => (
-                    <li key={p} className="flex gap-3 text-prose">
-                      <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink" aria-hidden="true" />
+                    <li key={p} className="flex gap-3 py-3 text-prose">
+                      <span className={`mt-2 size-2 shrink-0 rounded-full ${t.dot}`} aria-hidden="true" />
                       {p}
                     </li>
                   ))}
@@ -431,7 +464,7 @@ function Join() {
             </li>
           ))}
         </ul>
-        <div className="mt-10 rounded-3xl border border-rule p-6">
+        <div className="mt-10 rounded-2xl bg-paper-2 p-6">
           <p className="label text-[11px] font-medium">What happens next</p>
           <ol className="mt-4 grid gap-3">
             {[
@@ -448,7 +481,7 @@ function Join() {
           </ol>
         </div>
       </div>
-      <div className="reveal rounded-[2rem] border border-rule bg-card p-6 shadow-[0_20px_60px_rgb(0_0_0/0.06)] sm:p-8">
+      <div className="reveal rounded-[1.75rem] bg-card p-6 shadow-[0_20px_60px_rgb(0_0_0/0.08)] sm:p-8">
         <SignupForm />
       </div>
     </section>
@@ -463,12 +496,15 @@ function Questions() {
           <p className="label text-xs text-muted">Questions</p>
           <h2 className="display mt-3 text-6xl sm:text-8xl">FAQ</h2>
         </div>
-        <div className="reveal mt-10 divide-y divide-rule border-y border-rule">
+        <div className="reveal mt-10 grid gap-2.5">
           {FAQ.map((f) => (
-            <details key={f.q} className="group py-5">
+            <details key={f.q} className="group rounded-2xl bg-card px-5 py-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold">
                 {f.q}
-                <span className="label text-xl text-muted transition group-open:rotate-45" aria-hidden="true">
+                <span
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-paper-2 text-lg text-ink transition group-open:rotate-45 group-open:bg-ink group-open:text-on-ink"
+                  aria-hidden="true"
+                >
                   +
                 </span>
               </summary>

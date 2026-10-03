@@ -51,7 +51,7 @@ reading stats; Markdown export; Stack AI switch; Import from Telegram.
 - [x] Breaking-news alerts per topic (WorkManager background fetch)
 
 ### Phase 4 — Your data & reach (week 6+)
-- [x] Export notes to Markdown; optional cloud sync (Firebase)
+- [x] Export notes to Markdown; optional cloud sync (Supabase)
 - [ ] Google Drive backup
 - [x] Resurface an old highlight in the daily digest (spaced review)
 - [x] Reading stats and streaks

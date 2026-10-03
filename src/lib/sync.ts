@@ -4,29 +4,17 @@
 // (IndexedDB) and works offline; when signed in, changes are uploaded to the
 // account's "items" table and changes from other devices are downloaded.
 //
-// Firestore: users/<uid>/items/<collection>__<id>, one document per item
-// ({ collection, id, data, deleted, updatedAt }), stamped by the server.
+// Supabase (supabase/schema.sql): one row per item in `items`
+// ({ user_id, collection, key, id, data, deleted, seq }); the server gives
+// every write the next `seq` number.
 // - Upload: every changed/deleted item (lib/sync-state.ts), then clear those.
-// - Download: documents the server stamped after our last download. A local
+// - Download: rows with a higher `seq` than our last download. A local
 //   change that isn't uploaded yet wins over the downloaded copy.
-// - PDF files go to Storage (users/<uid>/pdfs/<id>.pdf) when the project has
-//   it, and are downloaded on another device when first opened.
+// - PDF files go to Storage (pdfs/<uid>/<id>.pdf), and are downloaded on
+//   another device when first opened.
 import { del, get, keys, set, update } from "idb-keyval";
-import {
-  collection as fsCollection,
-  doc,
-  getDocsFromServer,
-  limit,
-  orderBy,
-  query,
-  serverTimestamp,
-  Timestamp,
-  where,
-  writeBatch,
-} from "firebase/firestore";
-import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { emit } from "./db";
-import { cloud } from "./cloud";
+import { cloud, CloudOffline, fetchPdf, MAX_PDF_BYTES, removePdf, sessionUser, signOutCloud, uploadPdf } from "./cloud";
 import {
   changeKey,
   clearChanges,
@@ -38,22 +26,32 @@ import {
 } from "./sync-state";
 
 const COLLECTIONS: Collection[] = ["notes", "saved", "pdfs", "playlists", "focus", "profile", "feeds"];
-type Row = { collection: Collection; id: string; data: Record<string, unknown> | null; deleted: boolean; updatedAt: Timestamp };
+type Row = { collection: Collection; key: string; id: string; data: Record<string, unknown> | null; deleted: boolean };
 type Item = { id: string } & Record<string, unknown>;
-type Since = { s: number; ns: number }; // exact server time of the last download
 
-const sinceKey = (uid: string) => `sync:since:${uid}`;
-const FILES_KEY = "sync:files"; // PDF ids whose file is already in Storage
-const pdfPath = (uid: string, id: string) => `users/${uid}/pdfs/${id}.pdf`;
-const currentUid = () => cloud()?.auth.currentUser?.uid ?? null;
+const PAGE = 200; // rows per download request
+const seqKey = (uid: string) => `sync:seq:${uid}`; // the last `seq` this device downloaded
+const filesKey = (uid: string) => `sync:files:${uid}`; // PDF ids whose file is in Storage
 
-// Firestore document ids can't hold "/" and must stay short; a long saved-link
-// id is hashed (the real id is kept inside the document).
-function docId(col: Collection, id: string) {
-  if (/^[\w.-]{1,300}$/.test(id)) return `${col}__${id}`;
+// A very long saved-link id is shortened for the table's key (the real id is
+// kept in the row).
+function rowKey(id: string) {
+  if (id.length <= 300) return id;
   let h = 5381;
   for (let i = 0; i < id.length; i++) h = ((h * 33) ^ id.charCodeAt(i)) >>> 0;
-  return `${col}__h${h.toString(36)}_${id.length}_${id.slice(-40).replace(/[^\w.-]/g, "")}`;
+  return `h${h.toString(36)}_${id.length}_${id.slice(-40)}`;
+}
+
+// Postgres can't store the NUL character that some PDFs put in their text.
+const clean = <T,>(value: T): T =>
+  JSON.parse(JSON.stringify(value), (_k, v) => (typeof v === "string" ? v.replaceAll("\u0000", "") : v));
+
+// The database's answer, or an error the status line can explain.
+type DbResult<T> = { data: T; error: { message: string; code?: string } | null; status: number };
+function ok<T>(res: DbResult<T>): T {
+  if (!res.error) return res.data;
+  if (res.status === 0) throw new CloudOffline(); // the request never got there
+  throw Object.assign(new Error(res.error.message), { code: res.error.code, status: res.status });
 }
 
 // ---- Local collections ----
@@ -82,7 +80,8 @@ async function writeLocal(col: Collection, puts: Item[], dels: string[]) {
 }
 
 // ---- Status, for the Account screen ----
-export type SyncStatus = { state: "idle" | "syncing" | "error" | "offline"; lastSynced?: number; error?: string };
+// `note`: something worth saying after a sync that worked (PDF files left behind).
+export type SyncStatus = { state: "idle" | "syncing" | "error" | "offline"; lastSynced?: number; error?: string; note?: string };
 let status: SyncStatus = { state: "idle" };
 const watchers = new Set<(s: SyncStatus) => void>();
 const setStatus = (s: SyncStatus) => {
@@ -100,6 +99,11 @@ export function watchSync(fn: (s: SyncStatus) => void) {
 // ---- One sync ----
 let running: Promise<void> | null = null;
 let again = false;
+// Signing out stops a sync that's still going: it must not write to this
+// device, or to the account, after the person has left.
+let generation = 0;
+class Stopped extends Error {}
+type Live = () => void; // throws once the sync has been stopped
 
 export function syncNow(): Promise<void> {
   // One at a time; a request during a sync runs once more afterwards.
@@ -119,107 +123,190 @@ export function syncNow(): Promise<void> {
 }
 
 async function syncOnce() {
-  const uid = currentUid();
+  const uid = (await sessionUser())?.id;
   if (!uid) return;
   if (typeof navigator !== "undefined" && !navigator.onLine) return setStatus({ ...status, state: "offline" });
   setStatus({ ...status, state: "syncing", error: undefined });
+  const mine = generation;
+  const live: Live = () => {
+    if (mine !== generation) throw new Stopped();
+  };
   try {
-    await upload(uid);
-    await download(uid);
-    setStatus({ state: "idle", lastSynced: Date.now() });
+    const left = await uploadFiles(uid, live);
+    await upload(uid, live);
+    await download(uid, live);
+    live();
+    setStatus({ state: "idle", lastSynced: Date.now(), note: fileNote(left) });
   } catch (e) {
-    const code = (e as { code?: string }).code ?? "";
-    if (code === "unavailable") return setStatus({ ...status, state: "offline" });
+    if (mine !== generation) return; // signed out meanwhile: nothing to report
+    if (e instanceof CloudOffline) return setStatus({ ...status, state: "offline" });
     setStatus({ ...status, state: "error", error: explainSync(e) });
   }
 }
 
+// ---- Signing out ----
+const pause = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// Uploads what isn't synced yet, then signs out; with `removeFromDevice`,
+// Stack's data is removed from this device too. It always finishes: the last
+// upload gets a few seconds (longer when the data is about to be removed),
+// not for ever. Resolves to the number of changes that didn't reach the
+// account; with removeFromDevice (and not force) nothing is signed out if
+// that isn't 0, because removing them would lose them.
+export async function signOutAndStop(removeFromDevice: boolean, force = false) {
+  await Promise.race([syncNow().catch(() => {}), pause(removeFromDevice && !force ? 20_000 : 4_000)]);
+  const unsynced = Object.keys(await pendingChanges()).length;
+  if (removeFromDevice && unsynced > 0 && !force) return { unsynced, signedOut: false };
+  generation++; // a sync still going stops here
+  retryAt.clear();
+  await signOutCloud();
+  if (removeFromDevice) await clearLocalData();
+  setStatus({ state: "idle" });
+  return { unsynced, signedOut: true };
+}
+
 // Plain words for sync failures people can act on.
 function explainSync(e: unknown) {
-  const code = (e as { code?: string }).code ?? "";
-  if (code === "permission-denied")
-    return "the account’s database isn’t set up to accept Stack yet (Firestore rules not published). Your data is safe on this phone.";
-  if (code === "resource-exhausted") return "the database is over its free daily limit. It will sync again later.";
-  if (code === "unauthenticated") return "your sign-in expired. Sign out and sign in again.";
+  const { code = "", status: http } = e as { code?: string; status?: number };
+  // No table, or no permission on it: supabase/schema.sql hasn't been run.
+  if (["42P01", "42501", "PGRST205"].includes(code) || http === 404)
+    return "the account’s database isn’t set up to accept Stack yet (supabase/schema.sql hasn’t been run). Your data is safe on this phone.";
+  if (http === 401 || code.startsWith("PGRST30")) return "your sign-in expired. Sign out and sign in again.";
   return (e as Error).message ?? String(e);
 }
 
-async function upload(uid: string) {
-  const { db, storage } = cloud()!;
+// ---- PDF files ----
+type Left = { big: number; failed: number };
+// A file that didn't go up waits before it's tried again (until Stack restarts).
+const RETRY_AFTER = 30 * 60_000;
+const retryAt = new Map<string, number>();
+
+// Sends every PDF file that's on this device and not in Storage yet. A file
+// that can't go up (too big, or Storage said no) never holds back the rest of
+// the sync: it stays on this device and the Account screen says so.
+async function uploadFiles(uid: string, live: Live): Promise<Left> {
+  const left: Left = { big: 0, failed: 0 };
+  const files = new Set((await get<string[]>(filesKey(uid))) ?? []);
+  const changes = await pendingChanges();
+  for (const id of (await readLocal("pdfs")).keys()) {
+    if (files.has(id) || changes[changeKey("pdfs", id)]?.op === "del") continue;
+    const blob = await get<Blob>(`pdf:${id}`);
+    if (!blob) continue; // from another device, not opened here yet
+    if (blob.size > MAX_PDF_BYTES) {
+      left.big++;
+      continue;
+    }
+    if ((retryAt.get(id) ?? 0) > Date.now()) {
+      left.failed++;
+      continue;
+    }
+    live();
+    try {
+      await uploadPdf(uid, id, blob);
+    } catch (e) {
+      live();
+      if (e instanceof CloudOffline) throw e;
+      retryAt.set(id, Date.now() + RETRY_AFTER);
+      left.failed++;
+      continue;
+    }
+    live();
+    files.add(id);
+    await set(filesKey(uid), [...files]);
+    await track("pdfs", id); // its row says the file is there now
+  }
+  return left;
+}
+
+function fileNote({ big, failed }: Left) {
+  const parts: string[] = [];
+  if (big) parts.push(`${big} PDF${big > 1 ? "s are" : " is"} over 50 MB and stay${big > 1 ? "" : "s"} on this phone only.`);
+  if (failed) parts.push(`${failed} PDF file${failed > 1 ? "s" : ""} couldn’t be uploaded yet. Stack will try again later.`);
+  return parts.join(" ") || undefined;
+}
+
+async function upload(uid: string, live: Live) {
+  const db = cloud()!;
   const changes = await pendingChanges();
   const keysToSend = Object.keys(changes);
   if (!keysToSend.length) return;
 
   const locals = new Map<Collection, Map<string, Item>>();
   for (const col of COLLECTIONS) locals.set(col, await readLocal(col));
-  const files = new Set((await get<string[]>(FILES_KEY)) ?? []);
+  const files = new Set((await get<string[]>(filesKey(uid))) ?? []);
 
-  const rows: Omit<Row, "updatedAt">[] = [];
+  const rows: Row[] = [];
   for (const key of keysToSend) {
     const slash = key.indexOf("/");
     const col = key.slice(0, slash) as Collection;
     const id = key.slice(slash + 1);
     const item = locals.get(col)?.get(id);
     if (changes[key].op === "del" || !item) {
-      rows.push({ collection: col, id, data: null, deleted: true });
-      if (col === "pdfs" && storage) {
-        await deleteObject(ref(storage, pdfPath(uid, id))).catch(() => {});
+      rows.push({ collection: col, key: rowKey(id), id, data: null, deleted: true });
+      if (col === "pdfs") {
+        live();
+        // A file that can't be removed now is left behind rather than blocking the sync.
+        await removePdf(uid, id).catch((e) => {
+          if (e instanceof CloudOffline) throw e;
+        });
         files.delete(id);
       }
       continue;
     }
     let data: Record<string, unknown> = item;
-    if (col === "pdfs") {
-      // The file goes to Storage once (if the project has it); the cover rides along.
-      if (storage && !files.has(id)) {
-        const blob = await get<Blob>(`pdf:${id}`);
-        if (blob) {
-          try {
-            await uploadBytes(ref(storage, pdfPath(uid, id)), blob, { contentType: "application/pdf" });
-            files.add(id);
-          } catch (e) {
-            throw new Error(`Couldn’t upload “${item.title}”: ${(e as Error).message}`);
-          }
-        }
-      }
-      data = { ...item, cover: (await get<string>(`cover:${id}`)) ?? null };
-    }
-    rows.push({ collection: col, id, data, deleted: false });
+    // The cover rides along, and `file` tells other devices they can download the PDF.
+    if (col === "pdfs") data = { ...item, cover: (await get<string>(`cover:${id}`)) ?? null, file: files.has(id) };
+    rows.push({ collection: col, key: rowKey(id), id, data: clean(data), deleted: false });
   }
 
-  // Firestore takes up to 500 writes per batch; smaller ones keep requests light.
-  const items = fsCollection(db, "users", uid, "items");
-  for (let i = 0; i < rows.length; i += 200) {
-    const batch = writeBatch(db);
-    for (const r of rows.slice(i, i + 200)) {
-      batch.set(doc(items, docId(r.collection, r.id)), { ...r, updatedAt: serverTimestamp() });
-    }
-    await batch.commit();
+  // In small requests: covers and photos make some rows large.
+  let batch: Row[] = [];
+  let size = 0;
+  const send = async () => {
+    if (!batch.length) return;
+    live();
+    const sent = batch.map((r) => ({ user_id: uid, ...r }));
+    ok(await db.from("items").upsert(sent, { onConflict: "user_id,collection,key" }));
+    batch = [];
+    size = 0;
+  };
+  for (const r of rows) {
+    const bytes = JSON.stringify(r.data).length;
+    if (batch.length >= 100 || size + bytes > 1_500_000) await send();
+    batch.push(r);
+    size += bytes;
   }
-  await set(FILES_KEY, [...files]);
+  await send();
+  live();
+  await set(filesKey(uid), [...files]);
   await clearChanges(changes);
 }
 
-async function download(uid: string) {
-  const { db } = cloud()!;
-  const saved = await get<Since>(sinceKey(uid));
-  let since = saved ? new Timestamp(saved.s, saved.ns) : new Timestamp(0, 0);
-  const items = fsCollection(db, "users", uid, "items");
-  const rows: Row[] = [];
+async function download(uid: string, live: Live) {
+  const db = cloud()!;
+  let since = (await get<number>(seqKey(uid))) ?? 0;
+  const rows: (Row & { seq: number })[] = [];
   for (;;) {
-    const snap = await getDocsFromServer(
-      query(items, where("updatedAt", ">", since), orderBy("updatedAt"), limit(500)),
-    );
-    const page = snap.docs.map((d) => d.data() as Row);
+    live();
+    const page = ok<(Row & { seq: number })[] | null>(
+      await db
+        .from("items")
+        .select("collection,key,id,data,deleted,seq")
+        .eq("user_id", uid)
+        .gt("seq", since)
+        .order("seq")
+        .limit(PAGE),
+    ) ?? [];
     rows.push(...page);
-    if (page.length < 500) break;
-    since = page[page.length - 1].updatedAt;
+    if (page.length < PAGE) break;
+    since = page[page.length - 1].seq;
   }
+  live();
   if (!rows.length) return;
 
   // Not uploaded yet here → keep ours (it's uploaded next time).
   const pending: Changes = await pendingChanges();
-  const files = new Set((await get<string[]>(FILES_KEY)) ?? []);
+  const files = new Set((await get<string[]>(filesKey(uid))) ?? []);
   const byCol = new Map<Collection, { puts: Item[]; dels: string[] }>();
   for (const r of rows) {
     if (!COLLECTIONS.includes(r.collection) || pending[changeKey(r.collection, r.id)]) continue;
@@ -235,38 +322,26 @@ async function download(uid: string) {
     }
     const item = { ...(r.data as Item), id: r.id };
     if (r.collection === "pdfs") {
-      const { cover, ...meta } = item as Item & { cover?: string | null };
+      const { cover, file, ...meta } = item as Item & { cover?: string | null; file?: boolean };
       if (cover) await set(`cover:${r.id}`, cover);
-      files.add(r.id); // already in Storage; downloaded when opened
+      if (file) files.add(r.id); // in Storage; downloaded when opened
       bucket.puts.push(meta as Item);
     } else {
       bucket.puts.push(item);
     }
   }
   for (const [col, { puts, dels }] of byCol) await writeLocal(col, puts, dels);
-  await set(FILES_KEY, [...files]);
-  const last = rows[rows.length - 1].updatedAt;
-  await set(sinceKey(uid), { s: last.seconds, ns: last.nanoseconds } satisfies Since);
+  await set(filesKey(uid), [...files]);
+  await set(seqKey(uid), rows[rows.length - 1].seq);
   emit();
 }
 
 // A PDF from another device: fetch its file on first open.
 export async function downloadPdf(id: string): Promise<Blob | null> {
-  const c = cloud();
-  if (!c?.storage) return null;
-  // Opened right after start-up: wait until Firebase has restored the sign-in.
-  await c.auth.authStateReady();
-  const storage = c.storage;
-  const uid = currentUid();
+  // Opened right after start-up: this waits until the saved sign-in is restored.
+  const uid = (await sessionUser())?.id;
   if (!uid) return null;
-  try {
-    // A signed download link, then a normal fetch (the app's native HTTP has no CORS limits).
-    const url = await getDownloadURL(ref(storage, pdfPath(uid, id)));
-    const res = await fetch(url);
-    return res.ok ? await res.blob() : null;
-  } catch {
-    return null;
-  }
+  return fetchPdf(uid, id).catch(() => null);
 }
 
 // First sign-in on this device: everything already here goes up to the account.
@@ -283,8 +358,8 @@ export async function uploadEverything() {
 export async function clearLocalData() {
   const pdfs = (await get<Item[]>("pdfs")) ?? [];
   await Promise.all(pdfs.flatMap((p) => [del(`pdf:${p.id}`), del(`cover:${p.id}`)]));
-  const cursors = (await keys()).filter((k) => typeof k === "string" && k.startsWith("sync:since:"));
-  await Promise.all([...COLLECTIONS, FILES_KEY, "sync:dirty", ...cursors].map((k) => del(k)));
+  const marks = (await keys()).filter((k) => typeof k === "string" && k.startsWith("sync:"));
+  await Promise.all([...COLLECTIONS, ...marks].map((k) => del(k)));
   emit();
 }
 

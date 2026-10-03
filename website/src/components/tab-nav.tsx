@@ -13,12 +13,17 @@ export const TABS = [
   { id: "notes", label: "Notes", Icon: NoteIcon, dot: "bg-ink" },
 ] as const;
 
+// The app's floating pill puts Today in the middle; the rail keeps it first.
+const PILL = [TABS[1], TABS[2], TABS[0], TABS[3], TABS[4]];
+
 export type TabId = (typeof TABS)[number]["id"];
 
 // Marks the tab whose section is in the middle of the screen, like the
 // app marks the screen you're on. Without JavaScript the links still work.
-export function TabNav({ layout }: { layout: "rail" | "bar" }) {
+// On phones the pill only floats while the tour is on screen.
+export function TabNav({ layout }: { layout: "rail" | "pill" }) {
   const [active, setActive] = useState<TabId>("today");
+  const [shown, setShown] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -31,19 +36,46 @@ export function TabNav({ layout }: { layout: "rail" | "bar" }) {
       const el = document.getElementById(`tab-${t.id}`);
       if (el) observer.observe(el);
     }
-    return () => observer.disconnect();
+    const tour = document.getElementById("tour");
+    const inTour = new IntersectionObserver(([e]) => setShown(e.isIntersecting), { rootMargin: "-30% 0px -40% 0px" });
+    if (tour) inTour.observe(tour);
+    return () => {
+      observer.disconnect();
+      inTour.disconnect();
+    };
   }, []);
 
-  const rail = layout === "rail";
+  if (layout === "pill") {
+    return (
+      <nav
+        aria-label="App tabs"
+        className={`fixed bottom-[max(env(safe-area-inset-bottom),14px)] left-1/2 z-40 flex -translate-x-1/2 gap-1 rounded-full bg-ink p-1.5 shadow-[0_10px_28px_rgba(0,0,0,.28)] transition duration-300 ${
+          shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-24 opacity-0"
+        }`}
+      >
+        {PILL.map(({ id, label, Icon }) => {
+          const on = active === id;
+          return (
+            <a
+              key={id}
+              href={`#tab-${id}`}
+              aria-label={label}
+              aria-current={on ? "true" : undefined}
+              tabIndex={shown ? undefined : -1}
+              className={`flex size-[min(48px,12.2vw)] items-center justify-center rounded-full transition-colors ${
+                on ? "bg-on-ink text-ink" : "text-on-ink/60 hover:text-on-ink"
+              }`}
+            >
+              <Icon />
+            </a>
+          );
+        })}
+      </nav>
+    );
+  }
+
   return (
-    <nav
-      aria-label="App tabs"
-      className={
-        rail
-          ? "flex flex-col items-center gap-2 rounded-3xl border border-line bg-paper py-4"
-          : "flex justify-between border-y border-line bg-paper/95 px-2 pt-2 pb-1.5 backdrop-blur"
-      }
-    >
+    <nav aria-label="App tabs" className="flex flex-col items-center gap-2 rounded-3xl border border-line bg-paper py-4">
       {TABS.map(({ id, label, Icon, dot }) => {
         const on = active === id;
         return (
@@ -51,8 +83,8 @@ export function TabNav({ layout }: { layout: "rail" | "bar" }) {
             key={id}
             href={`#tab-${id}`}
             aria-current={on ? "true" : undefined}
-            className={`flex flex-col items-center gap-1 transition-colors ${rail ? "h-[62px] w-16" : "h-[50px] w-16"} ${
-              on ? "text-ink" : "text-muted hover:text-ink"
+            className={`flex h-[68px] w-[72px] flex-col items-center justify-center gap-1 rounded-2xl transition ${
+              on ? "bg-card text-ink shadow-[0_2px_10px_rgba(0,0,0,.05)]" : "text-muted hover:text-ink"
             }`}
           >
             <Icon />

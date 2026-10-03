@@ -45,13 +45,13 @@ next-env.d.ts
 # Capacitor
 /android/app/build
 
-# Firebase config download (values are in .env.local)
+# Old Firebase config download (not used any more)
 google-services.json
 
 # Android Studio editor settings
 /android/.idea/
-# Firebase emulator logs
-firebase/*-debug.log
+# Supabase CLI state (`npx supabase link`)
+/supabase/.temp/
 # Copied from pdfjs-dist by `npm install` (postinstall)
 /public/pdf.worker.min.mjs
 # Spotify App Remote SDK (download it yourself; see README)

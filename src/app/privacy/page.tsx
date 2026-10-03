@@ -31,7 +31,7 @@ export default function Privacy() {
           Signing in with Google or an email address turns on sync. We then store your <b>email address</b>,{" "}
           <b>name and photo</b> (from Google, which you can change), and the things you choose to keep in Stack: notes,
           highlights, saved articles, playlists, focus history, your profile and, where available, PDF files. They
-          are stored in Google Firebase and are sent over encrypted connections.
+          are stored in Supabase and are sent over encrypted connections.
         </p>
       </PolicySection>
 

@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack AI and Sarvam AI in Stack</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 46pt; }
+  h2 { margin: 6mm 0 1.5mm; font-size: 22pt; }
+  h3 { margin: 0; font-size: 13pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 4mm; font-size: 10pt; line-height: 1.5; max-width: 176mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; font-size: 8.4pt; line-height: 1.45; }
+  .card ul { margin: 1.6mm 0 0; padding-left: 3.6mm; }
+  .card li { margin-bottom: .6mm; }
+  .tag { display: inline-block; font-size: 6.3pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+
+  .stat { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm 3mm; }
+  .stat .n { font-size: 25pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.03em; line-height: .95; }
+  .stat .d { font-size: 7.6pt; line-height: 1.35; margin-top: 1.2mm; }
+  .stat .s { font-size: 6.2pt; color: var(--muted); margin-top: 1.4mm; }
+  .g { color: var(--news); } .r { color: var(--music); } .o { color: var(--pdf-deep); } .bl { color: var(--blue-deep); } .v { color: var(--violet); }
+
+  .band { border-radius: 4mm; padding: 4mm 5mm; margin-bottom: 3mm; font-size: 8.8pt; line-height: 1.48; }
+  .band .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.4mm; }
+  .band ul { list-style: none; margin: 1.6mm 0 0; padding: 0; }
+  .band li { display: flex; gap: 2.4mm; margin-bottom: 1.1mm; }
+  .band li::before { content: ""; flex-shrink: 0; width: 3mm; height: 3mm; margin-top: .7mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .b1 { background: var(--yellow-tint); color: #3a2a00; }
+  .b2 { background: var(--pdf-tint); color: #3d2200; }
+  .b3 { background: var(--blue-tint); color: #0e2a4a; }
+  .b4 { background: var(--violet-tint); color: #2a1a66; }
+  .b5 { background: var(--news-tint); color: #06321a; }
+  .b6 { background: var(--music-tint); color: #4a1210; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4.2mm 5mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+
+  .verdict { display: grid; grid-template-columns: 30mm 1fr; gap: 0; background: var(--card); border-radius: 3.5mm; margin-bottom: 2.4mm; overflow: hidden; }
+  .verdict .v1 { padding: 3.4mm; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1mm; }
+  .verdict .v1 .big { font-size: 17pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; line-height: .9; }
+  .verdict .v2 { padding: 3.4mm 4mm; font-size: 8.8pt; line-height: 1.48; border-left: 1px solid var(--rule); }
+
+  .meter { display: inline-flex; gap: .7mm; vertical-align: middle; }
+  .meter i { display: block; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--rule); }
+  .meter.m1 i:nth-child(-n+1), .meter.m2 i:nth-child(-n+2), .meter.m3 i:nth-child(-n+3), .meter.m4 i:nth-child(-n+4), .meter.m5 i:nth-child(-n+5) { background: var(--ink); }
+
+  .quad { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.6mm; height: 118mm; position: relative; }
+  .quad > div { border-radius: 4mm; padding: 3.6mm 4mm; font-size: 8.4pt; line-height: 1.4; }
+  .chip { display: inline-block; background: var(--card); border-radius: 2.4mm; padding: 1.2mm 2.4mm; margin: 0 1.2mm 1.4mm 0; font-size: 8pt; font-weight: 600; }
+  .chip small { font-weight: 400; color: var(--muted); }
+
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .src { font-size: 7.2pt; line-height: 1.45; columns: 2; column-gap: 7mm; }
+  .src p { break-inside: avoid; margin-bottom: 1.4mm; }
+  .src a { color: var(--blue-deep); text-decoration: none; word-break: break-all; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+</style>
+<style>
+  .step { display:grid; grid-template-columns: 9mm 1fr; gap: 2.4mm; background: var(--card); border-radius: 3.2mm; padding: 2.6mm 3.4mm; margin-bottom: 1.8mm; font-size: 8.5pt; line-height: 1.42; }
+  .step .num { width: 7mm; height: 7mm; border-radius: 2mm; background: var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-stretch:75%; font-size: 10pt; }
+  .step b.t { display:block; font-size: 9.2pt; margin-bottom: .4mm; }
+  .step code, .cmd code { font-family: "IBM Plex Mono", monospace; font-size: 7.4pt; background: var(--paper-2); padding: .2mm 1mm; border-radius: 1mm; }
+  .cmd { background: #1b1b1a; color: #e9e6df; border-radius: 3mm; padding: 3mm 4mm; font-family: "IBM Plex Mono", monospace; font-size: 7.3pt; line-height: 1.55; margin: 1.6mm 0 2.4mm; white-space: pre-wrap; }
+  .cmd .c { color: #8f8b83; }
+  .who { float:right; font-size: 6.2pt; }
+  .ok { color: var(--news-deep); font-weight: 700; } .no { color: var(--music-deep); font-weight: 700; }
+  .stage { display:flex; gap: 3mm; align-items: baseline; }
+  .stage .sn { font-size: 30pt; font-weight: 800; font-stretch: 75%; line-height: .8; }
+  .tick { list-style:none; padding:0; margin: 0; columns: 2; column-gap: 6mm; font-size: 8.2pt; line-height: 1.4; }
+  .tick li { break-inside: avoid; display:flex; gap: 2mm; margin-bottom: 1.3mm; }
+  .tick li::before { content:""; flex-shrink:0; width: 3.2mm; height: 3.2mm; margin-top: .5mm; border: 1.2px solid #111; border-radius: 1mm; }
+  .tick h4 { column-span: all; margin: 2.4mm 0 1.4mm; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: 7pt; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
+</style>
+<style>
+  html, body { font-family: "Archivo", "Noto Sans Devanagari", sans-serif; }
+  .hi { font-family: "Noto Sans Devanagari", sans-serif; letter-spacing: 0; }
+  td.c, th.c { text-align: center; }
+  .lead { font-size: 9pt; line-height: 1.5; margin: 0 0 3mm; max-width: 180mm; }
+  .card h3 { margin-bottom: 1.2mm; }
+  .card .tag { margin-bottom: 1.6mm; }
+  .meta { font-size: 7.2pt; color: var(--muted); margin-top: 1.4mm; line-height: 1.4; }
+  .band h3 { font-size: 11.5pt; }
+  .kv { display: grid; grid-template-columns: 34mm 1fr; gap: 1mm 3mm; font-size: 8.4pt; line-height: 1.42; }
+  .kv b { font-weight: 700; }
+  .ok { white-space: nowrap; } .no { white-space: nowrap; }
+  .mid { color: var(--pdf-deep); font-weight: 700; white-space: nowrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<section class="page cover">
+  <div class="top"><svg width="34" height="34" fill="#fff"><use href="#logo"/></svg><span class="label">StackForge Labs · AI guide · 01.10.2026</span></div>
+  <div style="position:absolute; left:13mm; right:13mm; top:58mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">Stack AI × Sarvam AI</div>
+    <div class="display" style="font-size:88pt">TWO<br>ENGINES.</div>
+    <p class="serif" style="font-size:21pt; margin-top:8mm; line-height:1.2">What Stack can do, what it costs and what it can earn<br>once both are switched on.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(6,1fr); gap:2mm;">
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">01</div><div style="font-size:8pt; margin-top:1.5mm">Where things stand</div></div>
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">02</div><div style="font-size:8pt; margin-top:1.5mm">Who does what</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">03</div><div style="font-size:8pt; margin-top:1.5mm">What Stack gains</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">04</div><div style="font-size:8pt; margin-top:1.5mm">What it costs</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">05</div><div style="font-size:8pt; margin-top:1.5mm">What it can earn</div></div>
+    <div style="background:var(--blue); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:6.5pt">06</div><div style="font-size:8pt; margin-top:1.5mm">Build order &amp; risks</div></div>
+  </div>
+
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">01 · Where things stand · checked 01.10.2026</span></div>
+  <h1 class="display">THE SHORT ANSWER</h1>
+  <p class="intro"><b>Stack AI is written but not switched on. Sarvam AI is not in the code yet.</b> With both live, Stack can summarise, explain and listen in the reader's own language, and the everyday AI jobs cost about a third of what they cost on Claude Haiku.</p>
+
+  <table>
+    <tr><th style="width:52mm">Part</th><th style="width:27mm">Status</th><th>What I found in the project</th></tr>
+    <tr><td>Stack AI in the app</td><td class="ok">Built</td><td>Four features: Summarise an article, Ask this PDF, Ask your Stack, Tidy a note</td></tr>
+    <tr><td>Engines in the code</td><td class="ok">Built</td><td>OpenAI and Claude, chosen with one server setting (<code>AI_PROVIDER</code>)</td></tr>
+    <tr><td>Daily limit per person</td><td class="ok">Built</td><td>50 a day by default, counted in the database. Resets at 00:00 UTC, which is <b>5:30 AM IST</b></td></tr>
+    <tr><td>The <code>ai</code> function on Supabase</td><td class="no">Not deployed</td><td>Its address answers "function not found" (404)</td></tr>
+    <tr><td>AI address in the app</td><td class="no">Empty</td><td><code>NEXT_PUBLIC_AI_URL</code> is blank, so every AI button is hidden in today's APK</td></tr>
+    <tr><td>Sarvam engine</td><td class="no">Not built</td><td>Needs about 40 new lines in one file: <code>supabase/functions/ai/index.ts</code></td></tr>
+    <tr><td>Sign-in (AI needs it)</td><td class="mid">Partly</td><td>Email sign-in is on. Google is turned on in Supabase but not yet tested on a phone</td></tr>
+  </table>
+
+  <h2 class="display">THREE DECISIONS</h2>
+  <div class="verdict"><div class="v1"><span class="tag label">Engines</span><div class="big g">USE<br>BOTH</div></div><div class="v2"><b>Sarvam for the everyday text jobs, Claude or OpenAI only for PDF chat.</b> Sarvam's chat model reads text, not PDF files, and Stack sends the whole PDF today. Three of the four features move to Sarvam without changing the app (page 3).</div></div>
+  <div class="verdict"><div class="v1"><span class="tag label t-org">Cost</span><div class="big o">ABOUT<br>⅓</div></div><div class="v2"><b>A summary costs about ₹0.09 on Sarvam, ₹0.31 on Claude Haiku and ₹1.23 on Claude Opus</b>, which is the default in the code today. Changing the default model before launch matters more than anything else on the cost side (page 5).</div></div>
+  <div class="verdict"><div class="v1"><span class="tag label t-blue">Product</span><div class="big bl">8 NEW<br>THINGS</div></div><div class="v2"><b>Sarvam is more than a cheaper chatbot.</b> It also turns speech into text, reads text aloud in Indian voices, translates, and reads scanned pages. That opens eight features that English-only reading apps do not have (page 4).</div></div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">What this guide cannot tell you</span><br>Stack has no real users yet, so every rupee figure on earnings is a scenario, not a forecast. The cost figures are my estimates from typical text sizes and the listed prices; they were not measured on Stack.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">02 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">02 · The two engines</span></div>
+  <h1 class="display">WHO DOES WHAT</h1>
+  <p class="intro">Stack AI already has four jobs. Each one should go to the engine that does it well for the least money.</p>
+
+  <table>
+    <tr><th style="width:36mm">Feature in Stack</th><th style="width:50mm">What it does</th><th style="width:30mm">Best engine</th><th>Why</th></tr>
+    <tr><td>Summarise an article</td><td>Three short points and one "why it matters" line</td><td class="ok">Sarvam 105B</td><td>Text only and cheap. It answers in the article's language</td></tr>
+    <tr><td>Tidy a note</td><td>Fixes spelling, adds a title and structure</td><td class="ok">Sarvam 105B</td><td>Keeps Hindi and Hinglish notes in the writer's own words</td></tr>
+    <tr><td>Ask your Stack</td><td>Answers from up to 30 of your notes, with links to them</td><td class="ok">Sarvam 105B</td><td>Text only. Note links can use the same <code>[1]</code> markers the OpenAI engine uses</td></tr>
+    <tr><td>Ask this PDF</td><td>Answers with links to pages</td><td class="mid">Claude or OpenAI</td><td>Stack sends the PDF file itself (up to about 22 MB). Sarvam's chat model takes text only</td></tr>
+  </table>
+
+  <h2 class="display">WHAT SARVAM SELLS</h2>
+  <div class="sub label">Models and prices from sarvam.ai/api-pricing and docs.sarvam.ai, read on 01.10.2026</div>
+  <table>
+    <tr><th style="width:38mm">Model</th><th style="width:44mm">Job</th><th style="width:34mm">Languages</th><th>Listed price</th></tr>
+    <tr><td>Sarvam-105B</td><td>Chat: summarise, explain, answer</td><td>10 Indian + English</td><td>₹29.28 in and ₹73.20 out, per 1 million tokens</td></tr>
+    <tr><td>Saaras v4</td><td>Speech to text</td><td>22 Indian + English</td><td>₹30 per hour of audio</td></tr>
+    <tr><td>Bulbul v3</td><td>Text to speech</td><td>10 Indian + English</td><td>₹3 per 1,000 characters</td></tr>
+    <tr><td>Mayura · Sarvam-Translate</td><td>Translation</td><td>11 · 23</td><td>About ₹4 to ₹5 per 1,000 characters (tiered)</td></tr>
+    <tr><td>Sarvam Vision</td><td>Reads scanned pages into text</td><td>22 Indian + English</td><td>₹0.50 per page</td></tr>
+  </table>
+  <p class="note" style="margin:1mm 0 3mm">The 10 Indian languages of the chat model: Hindi, Bengali, Gujarati, Kannada, Malayalam, Marathi, Odia, Punjabi, Tamil and Telugu. Confirm every price in your own Sarvam dashboard before you set limits.</p>
+
+  <div class="grid3">
+    <div class="card"><span class="tag label">Free to test</span><h3>₹100 credit</h3>Every new Sarvam account gets ₹100 of credit. It never expires and all your test phones share it. That is roughly 1,000 summaries.</div>
+    <div class="card"><span class="tag label t-org">No surprise bill</span><h3>Prepaid</h3>The Starter plan is pay-as-you-go. When the credit ends, AI stops until you top up. The rest of Stack keeps working.</div>
+    <div class="card"><span class="tag label t-blue">Speed limit</span><h3>40 a minute</h3>Starter allows 40 chat requests a minute on Sarvam-105B. That is enough for a soft launch, tight for a big launch day.</div>
+  </div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">03 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">03 · New things Stack can do</span></div>
+  <h1 class="display">WHAT STACK GAINS</h1>
+  <p class="intro">Eight features that become possible once Sarvam is in. None of them exists in the app today. Costs are per use, at the listed prices.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="tag label">Chat · small job</span><h3>1 · Summary in your language</h3>A "Summarise in Hindi" choice on any article, also for the other nine languages. The reader picks the language once in Settings.<div class="meta">About ₹0.10 to ₹0.15 each. Hindi text uses more tokens than English.</div></div>
+    <div class="card"><span class="tag label">Chat · small job</span><h3>2 · Explain this line</h3>Select a hard sentence and tap "Explain simply". Stack answers in plain Hindi, Hinglish or English, and the answer can be saved as a note.<div class="meta">About ₹0.03 each.</div></div>
+    <div class="card"><span class="tag label t-red">Speech to text · medium job</span><h3>3 · Voice notes</h3>Speak a note in Hindi, Hinglish or any of 22 languages. Saaras writes it down, then "Tidy" cleans it up.<div class="meta">A 30-second note costs about ₹0.25.</div></div>
+    <div class="card"><span class="tag label t-red">Speech to text · medium job</span><h3>4 · Ask by voice</h3>Ask your Stack or a PDF by speaking instead of typing. It uses the same microphone button as voice notes.<div class="meta">A 10-second question costs about ₹0.08, plus the answer.</div></div>
+    <div class="card"><span class="tag label t-org">Text to speech · medium job</span><h3>5 · Listen in an Indian voice</h3>Bulbul reads the <b>summary</b> aloud in a natural Indian voice. Keep the phone's free built-in voice for full articles: a 1,500-word article would cost about ₹27 on Bulbul.<div class="meta">A summary of 400 characters costs about ₹1.20.</div></div>
+    <div class="card"><span class="tag label t-blue">Vision · large job</span><h3>6 · Scanned PDFs become text</h3>Photographed class notes and old scanned books turn into real text, so they can be highlighted, searched and read aloud.<div class="meta">₹0.50 per page, so ₹10 for 20 pages. Limit: 10 requests a minute.</div></div>
+    <div class="card"><span class="tag label t-blue">Chat · large job</span><h3>7 · PDF chat on Sarvam</h3>The phone pulls the text out of the PDF and sends only the pages that match the question. Then PDF chat no longer needs Claude or OpenAI.<div class="meta">Does not work for scanned PDFs without feature 6.</div></div>
+    <div class="card"><span class="tag label t-vio">Chat · medium job</span><h3>8 · Quiz from your highlights</h3>The morning review adds three questions made from your own highlights, in the language you read in. This was already planned in the business plan.<div class="meta">About ₹0.05 a day per person if the quiz is saved and reused.</div></div>
+  </div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">What changes for the reader</span><br>Today Stack is an English reading app that happens to have Indian news. With these, a student can save an English article, read the points in Hindi, speak a note in Hinglish and hear it back. <b>Build 1 and 2 first:</b> they need no new screens, only a language choice and one new button.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">04 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">04 · Cost per use</span></div>
+  <h1 class="display">WHAT IT COSTS</h1>
+  <p class="intro">The same job on three engines. These are estimates from the listed prices at about ₹88 to the dollar. Hindi text costs more than English on every engine because it uses more tokens.</p>
+
+  <table>
+    <tr><th>One use of</th><th style="width:38mm">Size I assumed</th><th class="c" style="width:27mm">Sarvam 105B</th><th class="c" style="width:27mm">Claude Haiku 4.5</th><th class="c" style="width:30mm">Claude Opus 5.5<br>(default today)</th></tr>
+    <tr><td>Summarise an article</td><td>1,500 words in, 3 points out</td><td class="c ok">₹0.09</td><td class="c">₹0.31</td><td class="c no">₹1.23</td></tr>
+    <tr><td>Tidy a note</td><td>A long note in and out</td><td class="c ok">₹0.04</td><td class="c">₹0.22</td><td class="c no">₹0.88</td></tr>
+    <tr><td>Ask your Stack</td><td>About 10 notes and a question</td><td class="c ok">₹0.20</td><td class="c">₹0.66</td><td class="c no">₹2.64</td></tr>
+    <tr><td>Ask this PDF, first question</td><td>A 20-page PDF</td><td class="c">not possible yet</td><td class="c">₹3.70</td><td class="c no">₹14.80</td></tr>
+  </table>
+  <p class="note" style="margin:1mm 0 0">Claude prices used: Haiku $1 in and $5 out, Opus $4 in and $20 out per 1 million tokens, as in the business plan PDF. Follow-up questions on the same PDF cost about a tenth of the first one because Claude keeps the PDF cached for a few minutes.</p>
+
+  <h2 class="display">ONE PAYING USER, ONE MONTH</h2>
+  <div class="sub label">60 AI actions: 30 summaries, 10 tidy, 10 ask, 10 PDF questions on 3 PDFs</div>
+  <div class="grid3">
+    <div class="stat"><div class="n g">≈ ₹20</div><div class="d"><b>Sarvam + Haiku for PDFs.</b> Text jobs cost ₹5, PDF chat costs ₹15.</div><div class="s">Recommended</div></div>
+    <div class="stat"><div class="n o">≈ ₹33</div><div class="d"><b>Claude Haiku for everything.</b> Close to the ₹30 in the business plan.</div><div class="s">The old plan</div></div>
+    <div class="stat"><div class="n r">≈ ₹130</div><div class="d"><b>Claude Opus for everything.</b> More than the ₹99 a Plus user pays.</div><div class="s">What the code does today</div></div>
+  </div>
+
+  <h2 class="display">ONE FREE USER, WORST CASE</h2>
+  <div class="sub label">If a free user spends the full daily limit on summaries every day for 30 days, on Sarvam</div>
+  <table>
+    <tr><th>Daily limit</th><th class="c">3 a day</th><th class="c">5 a day</th><th class="c">10 a day</th><th class="c">20 a day</th><th class="c">50 a day (default)</th></tr>
+    <tr><td>Cost per free user per month</td><td class="c ok">₹8</td><td class="c ok">₹14</td><td class="c">₹27</td><td class="c">₹54</td><td class="c no">₹135</td></tr>
+  </table>
+  <div class="inked" style="margin-top:2mm"><span class="label">What this means</span><br><b>PDF chat is three quarters of the AI bill.</b> Keep it for paying users, or give free users one PDF question a day. Most people will not use their full limit, so real costs will be lower than the worst case. Set the limit low first and raise it once you see real use.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">05 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">05 · Money</span></div>
+  <h1 class="display">WHAT IT CAN EARN</h1>
+  <p class="intro">The business plan sets <b>Stack Plus at ₹99 a month</b> (₹799 a year, students ₹499 a year). Sarvam changes two things: each paying user leaves more money, and Hindi features give people a reason to pay.</p>
+
+  <div class="grid4">
+    <div class="stat"><div class="n">₹99</div><div class="d">A Plus user pays this each month</div></div>
+    <div class="stat"><div class="n r">− ₹15</div><div class="d">Google Play's 15% fee on subscriptions</div></div>
+    <div class="stat"><div class="n r">− ₹20</div><div class="d">AI, with Sarvam for text and Haiku for PDFs</div></div>
+    <div class="stat"><div class="n g">≈ ₹64</div><div class="d">Left over, before tax and marketing. It was about ₹50 with Haiku only</div></div>
+  </div>
+
+  <h2 class="display">THREE SCENARIOS</h2>
+  <div class="sub label">Scenarios, not forecasts. 3% to 5% of active users paying is the plan's own target</div>
+  <table>
+    <tr><th>Active users</th><th class="c">Paying at 3%</th><th class="c">Plus income a month</th><th class="c">Left after fee and AI</th><th class="c">Paying at 5%</th><th class="c">Left after fee and AI</th></tr>
+    <tr><td>1,000</td><td class="c">30</td><td class="c">₹2,970</td><td class="c">≈ ₹1,900</td><td class="c">50</td><td class="c">≈ ₹3,200</td></tr>
+    <tr><td>3,000</td><td class="c">90</td><td class="c">₹8,910</td><td class="c">≈ ₹5,800</td><td class="c">150</td><td class="c">≈ ₹9,600</td></tr>
+    <tr><td>10,000</td><td class="c">300</td><td class="c">₹29,700</td><td class="c">≈ ₹19,200</td><td class="c">500</td><td class="c">≈ ₹32,000</td></tr>
+  </table>
+  <p class="note" style="margin:1mm 0 0">The plan's goal of ₹1 lakh a month by September 2027 needs about 700 Plus users and one institute. At 3% to 5% paying, 700 Plus users means 14,000 to 23,000 active users.</p>
+
+  <h2 class="display">FREE AND PLUS, WITH AI</h2>
+  <div class="grid2">
+    <div class="card"><span class="tag label t-ink">Free</span><h3>Enough to feel the value</h3><ul><li><b>3 to 5 AI uses a day</b>, on Sarvam</li><li>Summaries and "Explain this line", in English or Hindi</li><li>The phone's own voice for listening</li><li>No PDF chat, or one PDF question a day</li></ul><div class="meta">Worst case ₹8 to ₹14 per free user per month.</div></div>
+    <div class="card"><span class="tag label">Stack Plus · ₹99</span><h3>Everything that costs money to run</h3><ul><li><b>30 AI uses a day</b></li><li>PDF chat, Ask your Stack, quiz from highlights</li><li>Voice notes and the Indian voice for summaries</li><li>Sync across devices; scanned PDFs to text</li></ul><div class="meta">Costs about ₹20 a month in AI for a typical user.</div></div>
+  </div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">The rule that keeps this safe</span><br><b>One Plus user pays for about five free users at a limit of 5 a day, and for only one at a limit of 20.</b> So free AI is a marketing cost: keep the free limit small until people start paying. Stack has no payment system yet. Subscriptions inside the Android app must use Google Play Billing, and that is a separate build.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">06 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">06 · Build order</span></div>
+  <h1 class="display">HOW TO SWITCH IT ON</h1>
+  <p class="intro">Five steps, each one useful on its own. Stop after any step and Stack still works. "You" means a dashboard or a key only you can reach; "Code" is work in the repo.</p>
+
+  <div class="step"><div class="num">A</div><div><span class="tag label t-ink who">You · 20 minutes</span><b class="t">Put Stack AI live as it is</b>Deploy the function, give it one key and a low daily limit, put its address in <code>.env.local</code>, rebuild the app.</div></div>
+  <div class="cmd"><span class="c"># in the project folder</span>
+npx supabase login
+npx supabase link --project-ref &lt;your project id&gt;
+npx supabase functions deploy ai --no-verify-jwt
+npx supabase secrets set AI_PROVIDER=openai OPENAI_API_KEY=sk-... OPENAI_MODEL=gpt-5.4-mini AI_DAILY_LIMIT=10
+<span class="c"># .env.local, then ./build-apk.sh</span>
+NEXT_PUBLIC_AI_URL=https://&lt;your project id&gt;.supabase.co/functions/v1/ai</div>
+  <div class="step"><div class="num">B</div><div><span class="tag label who">Code · half a day</span><b class="t">Add the Sarvam engine</b>A new <code>runSarvam</code> next to <code>runOpenAI</code> in the function. Sarvam's chat API has the OpenAI shape, at <code>api.sarvam.ai/v1/chat/completions</code>. Add a setting per feature so PDF chat can stay on Claude or OpenAI while the other three use Sarvam. You add <code>SARVAM_API_KEY</code> to the function's secrets.</div></div>
+  <div class="step"><div class="num">C</div><div><span class="tag label who">Code · 1 to 2 days</span><b class="t">Language features</b>"AI language" in Settings, "Summarise in Hindi", and "Explain simply" in the selection toolbar. No new Sarvam product is needed, only new prompts.</div></div>
+  <div class="step"><div class="num">D</div><div><span class="tag label t-red who">Code · about a week</span><b class="t">Voice</b>A microphone button for voice notes and spoken questions (Saaras), and "Listen to the summary" in an Indian voice (Bulbul). Needs the microphone permission and a new line in the Play Data safety form.</div></div>
+  <div class="step"><div class="num">E</div><div><span class="tag label t-blue who">Code · 1 to 2 weeks</span><b class="t">Scanned PDFs and PDF chat on Sarvam</b>Sarvam Vision for scanned pages, then text-based PDF chat. Do this last: it is the biggest job and PDF chat already works on Claude and OpenAI.</div></div>
+
+  <h2 class="display">THINGS TO SETTLE BEFORE STEP B</h2>
+  <table>
+    <tr><th style="width:44mm">Question</th><th>What to do</th></tr>
+    <tr><td>Which model is the default?</td><td>The code falls back to <code>claude-opus-5-5</code> and <code>gpt-5.5</code>. Set a cheaper model in the secrets (<code>AI_MODEL</code>, <code>OPENAI_MODEL</code>) before any tester gets the app</td></tr>
+    <tr><td>What does the app call the engine?</td><td>The "ask first" sheet shows <code>NEXT_PUBLIC_AI_ENGINE</code>. With two engines it must name both, for example "Sarvam AI and Claude"</td></tr>
+    <tr><td>Is Hindi good enough?</td><td>Run 20 real Hindi and English articles through Sarvam and read every summary yourself before you turn it on for others</td></tr>
+  </table>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">07 / 08</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">07 · Keep it safe</span></div>
+  <h1 class="display">RISKS &amp; RULES</h1>
+  <table>
+    <tr><th style="width:38mm">Risk</th><th style="width:58mm">What could happen</th><th>What to do</th></tr>
+    <tr><td>The bill grows</td><td>A few heavy users or a bug use up the credit in days</td><td>Low daily limit, cheap default models, prepaid Sarvam credit, and a monthly spend limit on the Claude or OpenAI account</td></tr>
+    <tr><td>Credit runs out</td><td>AI shows "Stack AI is paused: the AI account is out of credit"</td><td>Check the Sarvam and Claude dashboards every Sunday. The rest of the app keeps working</td></tr>
+    <tr><td>Wrong answers</td><td>A summary says something the article did not</td><td>Always show the page and note links, which Stack already does. Add a "Report this answer" button: Google Play asks for one in apps that make AI content</td></tr>
+    <tr><td>Privacy</td><td>Text leaves the phone and goes to an AI company</td><td>Stack already asks before sending anything and has one switch to turn AI off. Name Sarvam on the privacy page and in the Play Data safety form. Read Sarvam's data terms before launch</td></tr>
+    <tr><td>Sarvam is busy or down</td><td>More than 40 requests a minute, or an outage</td><td>Fall back to the second engine for that request. The function already has the pieces to swap engines</td></tr>
+    <tr><td>Voice costs</td><td>Reading whole articles aloud on Bulbul costs about ₹27 each</td><td>Use Bulbul only for summaries. Keep the phone's built-in voice for long reading</td></tr>
+    <tr><td>Reset time</td><td>The limit resets at 5:30 AM IST, which confuses Indian users</td><td>Count the day in Indian time in the database function (<code>ai_take</code>) so it resets at midnight IST</td></tr>
+    <tr><td>Big PDFs</td><td>PDFs over about 22 MB cannot be sent</td><td>The app already says so. Text-based PDF chat (step E) removes the limit for normal PDFs</td></tr>
+  </table>
+
+  <h2 class="display">SOURCES</h2>
+  <div class="src">
+    <p><b>Sarvam prices</b> (read 01.10.2026)<br><a>sarvam.ai/api-pricing</a></p>
+    <p><b>Sarvam models and languages</b><br><a>docs.sarvam.ai/api-reference-docs/getting-started/models</a></p>
+    <p><b>Sarvam free credit, plans and rate limits</b><br><a>docs.sarvam.ai/api-reference-docs/getting-started/pricing</a></p>
+    <p><b>Sarvam chat API</b><br><a>docs.sarvam.ai/api-reference/chat/chat-completions-v1</a></p>
+    <p><b>Stack AI as built</b><br><code>supabase/functions/ai/index.ts</code> · <code>supabase/schema.sql</code> · <code>src/lib/ai.ts</code></p>
+    <p><b>Plus pricing, Claude prices, targets</b><br>StackForge_Stack_Plan.pdf, pages 6, 8 and 12</p>
+    <p><b>Live checks on 01.10.2026</b><br>The <code>ai</code> function address, the Supabase sign-in settings and <code>.env.local</code></p>
+  </div>
+  <p class="note" style="margin-top:3mm">Not checked: Sarvam's data-handling terms, whether sign-up asks for a card, and the quality of its Hindi summaries on Stack's own articles. Related: Stack_Soft_Launch_Plan.pdf and Stack_India_Identity.pdf in the same folder.</p>
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · StackForge Labs</span><span class="label">08 / 08</span></div>
+</section>
+</body>
+</html>

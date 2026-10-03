@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack AI and Sarvam AI: UI diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@0,500;1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", "Noto Sans Devanagari", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .hi { font-family: "Noto Sans Devanagari", sans-serif; letter-spacing: 0; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 44pt; }
+  h2 { margin: 5mm 0 1.5mm; font-size: 20pt; }
+  h3 { margin: 0; font-size: 11pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 5mm; font-size: 10pt; line-height: 1.5; max-width: 178mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: .9em; background: var(--paper-2); padding: .2mm 1mm; border-radius: 1mm; }
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4mm 5mm; font-size: 8.8pt; line-height: 1.5; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm; font-size: 8.3pt; line-height: 1.42; }
+  .tag { display: inline-block; font-size: 6.2pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); white-space: nowrap; }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+  .t-line { background: transparent; border: .25mm dashed var(--muted); color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+  .ok { color: var(--news-deep); font-weight: 700; white-space: nowrap; }
+  .no { color: var(--music-deep); font-weight: 700; white-space: nowrap; }
+
+  /* ---------- Phone mockups ---------- */
+  .phones { display: grid; grid-template-columns: repeat(4, 40mm); justify-content: space-between; }
+  .pcol { width: 40mm; }
+  .phone { width: 40mm; height: 80mm; border: 1.1mm solid var(--ink); border-radius: 5.5mm; background: var(--paper); position: relative; overflow: hidden; font-size: 5.3pt; line-height: 1.38; }
+  .phone .sb { display: flex; justify-content: space-between; padding: 1.6mm 3mm .6mm; font-size: 4.2pt; color: var(--muted); }
+  .phone .sb i { display: inline-block; width: 1.6mm; height: 2.2mm; background: var(--ink); border-radius: .4mm; }
+  .phone .bd { padding: 1.2mm 2.8mm; }
+  .phone .nav { display: flex; justify-content: space-between; align-items: center; height: 5mm; font-size: 6.5pt; }
+  .phone .mono { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 3.9pt; color: var(--muted); }
+  .phone .ttl { font-weight: 800; font-size: 8.2pt; line-height: 1.08; letter-spacing: -.01em; margin: 1mm 0 1.6mm; }
+  .phone .tx { color: #22211f; margin-bottom: 1.2mm; }
+  .phone .ln { height: 1mm; border-radius: .5mm; background: var(--rule); margin-bottom: 1.3mm; }
+  .phone .ln.s { width: 62%; }
+  .phone .pill { display: inline-flex; align-items: center; gap: 1mm; height: 5.2mm; padding: 0 2.2mm; border-radius: 3mm; border: .25mm solid rgb(17 17 17 / .18); font-weight: 600; font-size: 5.4pt; background: transparent; }
+  .phone .ink { display: flex; align-items: center; justify-content: center; gap: 1mm; height: 5.6mm; border-radius: 3mm; background: var(--ink); color: #fff; font-weight: 600; font-size: 5.4pt; padding: 0 2.4mm; }
+  .phone .ghost { text-align: center; color: var(--muted); font-weight: 600; font-size: 5.2pt; padding-top: 1.2mm; }
+  .phone .aic { background: var(--card); border-radius: 2.6mm; padding: 2mm 2.2mm; margin-bottom: 1.6mm; }
+  .phone .ail { display: flex; align-items: center; gap: .8mm; margin-bottom: 1.2mm; }
+  .phone .sum { font-family: "Bodoni Moda", "Noto Serif Devanagari", Georgia, serif; font-size: 5.9pt; line-height: 1.34; }
+  .phone .sum.hi { font-family: "Noto Sans Devanagari", sans-serif; font-size: 5.3pt; line-height: 1.5; }
+  .phone .dim { position: absolute; inset: 0; background: rgb(17 17 17 / .38); }
+  .phone .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--paper); border-radius: 4mm 4mm 0 0; padding: 1.6mm 2.8mm 2.6mm; }
+  .phone .grab { width: 7mm; height: .7mm; border-radius: 1mm; background: var(--rule); margin: 0 auto 1.6mm; }
+  .phone .sht { font-weight: 800; font-size: 7.4pt; letter-spacing: -.01em; margin-bottom: 1.2mm; }
+  .phone .me { margin: 0 0 1.2mm auto; width: fit-content; max-width: 86%; background: var(--ink); color: #fff; border-radius: 2.4mm 2.4mm .8mm 2.4mm; padding: 1mm 1.8mm; }
+  .phone .ai { background: var(--card); border-radius: 2.4mm 2.4mm 2.4mm .8mm; padding: 1.4mm 1.8mm; margin-bottom: 1.4mm; }
+  .phone .chip { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 3.7pt; text-transform: uppercase; padding: .3mm 1.1mm; border-radius: 2mm; background: var(--pdf-tint); color: var(--pdf-deep); vertical-align: middle; }
+  .phone .chip.n { background: var(--news-tint); color: var(--news-deep); }
+  .phone .inp { display: flex; gap: 1mm; align-items: center; }
+  .phone .inp span:first-child { flex: 1; height: 5.4mm; border-radius: 3mm; border: .25mm solid rgb(17 17 17 / .18); background: var(--card); padding: 1.3mm 2mm; color: var(--muted); }
+  .phone .srch { height: 5.8mm; border-radius: 3mm; background: var(--card); border: .25mm solid rgb(17 17 17 / .12); padding: 1.4mm 2.2mm; margin: 1.2mm 0 1.8mm; }
+  .phone .ask { display: flex; gap: 1.6mm; align-items: center; background: var(--card); border: .25mm solid rgb(17 17 17 / .18); border-radius: 2.6mm; padding: 1.6mm; margin-bottom: 1.6mm; }
+  .phone .ask .sq { width: 5.4mm; height: 5.4mm; border-radius: 1.6mm; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .phone .res { background: var(--card); border-radius: 2.2mm; padding: 1.4mm 1.8mm; margin-bottom: 1.2mm; }
+  .phone .tb { position: absolute; left: 0; right: 0; bottom: 0; height: 7mm; background: var(--card); border-top: .25mm solid var(--rule); display: flex; justify-content: space-around; align-items: center; }
+  .phone .toast { position: absolute; left: 2.4mm; right: 2.4mm; bottom: 9mm; background: var(--ink); color: #fff; border-radius: 3mm; padding: 1.4mm 2.2mm; display: flex; justify-content: space-between; font-weight: 600; }
+  .phone .pdfpg { background: #fff; padding: 2mm 2.2mm; font-family: Georgia, serif; font-size: 4.6pt; line-height: 1.45; height: 26mm; overflow: hidden; }
+  .phone .sw { width: 8mm; height: 4.6mm; border-radius: 3mm; background: var(--music); position: relative; flex-shrink: 0; }
+  .phone .sw::after { content: ""; position: absolute; right: .4mm; top: .4mm; width: 3.8mm; height: 3.8mm; border-radius: 50%; background: #fff; }
+  .phone .mic { width: 9mm; height: 9mm; border-radius: 50%; background: var(--music); color: #fff; display: flex; align-items: center; justify-content: center; margin: 1mm auto; }
+  .phone.plan { border-style: dashed; border-width: .7mm; height: 66mm; }
+  svg.ic { width: 2.6mm; height: 2.6mm; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; flex-shrink: 0; }
+  svg.ic.b { width: 3.4mm; height: 3.4mm; }
+  /* red ring: where to tap */
+  .tap { outline: .55mm solid var(--music); outline-offset: .7mm; position: relative; }
+  .tap.r { border-radius: 3mm; }
+  .cap { margin-top: 2.6mm; font-size: 7.9pt; line-height: 1.4; }
+  .cap h3 { font-size: 10.5pt; margin-bottom: .8mm; }
+  .cap .tag { margin-bottom: 1.4mm; }
+  .cap .kv { display: grid; grid-template-columns: 9mm 1fr; gap: .5mm 1mm; margin-top: 1.4mm; font-size: 7.3pt; line-height: 1.34; }
+  .cap .kv span:nth-child(odd) { font-family: "IBM Plex Mono", monospace; font-size: 5.8pt; text-transform: uppercase; color: var(--muted); padding-top: .4mm; }
+  .numb { display: inline-flex; width: 5.2mm; height: 5.2mm; border-radius: 1.6mm; background: var(--ink); color: #fff; align-items: center; justify-content: center; font-weight: 800; font-stretch: 75%; font-size: 8.5pt; flex-shrink: 0; }
+  .between { position: absolute; top: 37mm; width: 6mm; height: 4mm; }
+
+  /* ---------- Diagram canvas (positions in mm) ---------- */
+  .dg { position: relative; width: 184mm; }
+  .dg > svg { position: absolute; left: 0; top: 0; }
+  .dg .bx { position: absolute; border-radius: 3.5mm; padding: 3mm 3.4mm; font-size: 7.9pt; line-height: 1.4; }
+  .dg .bx h3 { margin-bottom: 1mm; }
+  .dg .lb { position: absolute; font-family: "IBM Plex Mono", monospace; font-size: 6pt; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); text-align: center; line-height: 1.3; }
+  .dg ol { margin: 1.4mm 0 0; padding: 0; list-style: none; }
+  .dg ol li { display: flex; gap: 1.8mm; margin-bottom: 1.5mm; }
+  .dg ol li .numb { width: 4.4mm; height: 4.4mm; font-size: 7pt; border-radius: 1.3mm; }
+  .lane { position: absolute; left: 0; width: 184mm; border-radius: 3mm; }
+  .lane .ln-t { position: absolute; left: 3mm; top: 50%; transform: translateY(-50%); width: 21mm; font-weight: 800; font-stretch: 80%; font-size: 8.6pt; line-height: 1.1; }
+  .lane .ln-t small { display: block; font-family: "IBM Plex Mono", monospace; font-weight: 400; font-stretch: 100%; font-size: 5.6pt; text-transform: uppercase; color: var(--muted); margin-top: .8mm; letter-spacing: .03em; }
+  .st { position: absolute; width: 21.5mm; height: 15mm; background: var(--card); border-radius: 2.4mm; padding: 1.4mm 1.7mm; font-size: 6.5pt; line-height: 1.26; }
+  .st .numb { position: absolute; left: -1.6mm; top: -1.6mm; width: 4.4mm; height: 4.4mm; font-size: 7pt; border-radius: 1.3mm; }
+  .st b { display: block; padding-left: 2.6mm; margin-bottom: .3mm; font-size: 6.8pt; }
+  .msg { background: var(--card); border-radius: 3mm; padding: 2.6mm 3.2mm; font-size: 8pt; line-height: 1.4; }
+  .msg .q { color: #c42a21; font-weight: 600; font-size: 8.6pt; margin-bottom: 1mm; }
+  .msg .label { font-size: 6pt; color: var(--muted); display: block; margin-bottom: 1mm; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+  <symbol id="spark" viewBox="0 0 24 24"><path d="M11 3l1.8 5.2L18 10l-5.2 1.8L11 17l-1.8-5.2L4 10l5.2-1.8z"/><path d="M18.5 15l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+  <symbol id="back" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+  <symbol id="font" viewBox="0 0 24 24"><path d="M5 19l6-14 6 14M7.6 13h6.8"/></symbol>
+  <symbol id="share" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></symbol>
+  <symbol id="mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></symbol>
+  <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#111"/></marker>
+  <marker id="ahg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#0A8A3A"/></marker>
+  <marker id="aho" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0l10 5-10 5z" fill="#C97A14"/></marker>
+</svg>
+
+<!-- ================= 01 COVER ================= -->
+<section class="page cover">
+  <div class="top"><svg width="34" height="34" fill="#fff"><use href="#logo"/></svg><span class="label">StackForge Labs · UI diagram · 01.10.2026</span></div>
+  <div style="position:absolute; left:13mm; right:13mm; top:50mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">Stack AI × Sarvam AI</div>
+    <div class="display" style="font-size:80pt">HOW THE<br>AI WORKS.</div>
+    <p class="serif" style="font-size:20pt; margin-top:8mm; line-height:1.2">The screens you tap, and what happens<br>behind them, drawn step by step.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(5,1fr); gap:2mm;">
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">01</div><div style="font-size:8pt; margin-top:1.5mm">The big picture</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">02</div><div style="font-size:8pt; margin-top:1.5mm">The four AI buttons</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">03</div><div style="font-size:8pt; margin-top:1.5mm">One tap, step by step</div></div>
+    <div style="background:var(--blue); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:6.5pt">04</div><div style="font-size:8pt; margin-top:1.5mm">Where Sarvam AI fits</div></div>
+    <div style="background:#fff; border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#6B6862; font-size:6.5pt">05</div><div style="font-size:8pt; margin-top:1.5mm">When it says no · what is live</div></div>
+  </div>
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 06</span></div>
+</section>
+
+<!-- ================= 02 BIG PICTURE ================= -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">01 · The big picture</span></div>
+  <h1 class="display">TWO NAMES, ONE PATH</h1>
+  <p class="intro"><b>Stack AI</b> is the feature inside your app: the buttons and Stack's own server. <b>Sarvam AI</b> is an engine, a company whose model writes the answer. The app never talks to an engine directly. Every request takes the same path.</p>
+
+  <div class="dg" style="height:90mm">
+    <svg width="184mm" height="98mm" viewBox="0 0 184 98" fill="none" stroke="#111" stroke-width=".45">
+      <path d="M43 30 H61" marker-end="url(#ah)"/>
+      <path d="M61 58 H43" marker-end="url(#ah)"/>
+      <path d="M119 24 H139" stroke="#0A8A3A" stroke-dasharray="1.6 1.2" marker-end="url(#ahg)"/>
+      <path d="M119 66 H139" stroke="#C97A14" marker-end="url(#aho)"/>
+    </svg>
+
+    <div class="phone" style="position:absolute; left:0; top:4mm">
+      <div class="sb"><span>9:41</span><i></i></div>
+      <div class="bd">
+        <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+        <div class="mono">Science · 6 min read</div>
+        <div class="ttl">Why sleep helps you remember</div>
+        <span class="pill tap r"><svg class="ic"><use href="#spark"/></svg>Summarize</span>
+        <div style="height:3mm"></div>
+        <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        <div style="height:1.4mm"></div>
+        <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        <div style="height:1.4mm"></div>
+        <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        <div style="height:1.4mm"></div>
+        <div class="ln"></div><div class="ln"></div><div class="ln"></div>
+      </div>
+    </div>
+    <div class="lb" style="left:0; top:86mm; width:40mm">Stack app on your phone</div>
+    <div class="lb" style="left:42mm; top:20mm; width:20mm">your text<br>+ sign-in</div>
+    <div class="lb" style="left:42mm; top:60mm; width:20mm">the answer</div>
+
+    <div class="bx" style="left:62mm; top:4mm; width:57mm; height:80mm; background:var(--ink); color:#fff">
+      <span class="tag label t-red">Stack AI · built</span>
+      <h3 style="margin-top:1.6mm; font-size:13pt">Stack's server</h3>
+      <div style="font-size:7.2pt; color:#BDBAB2">One small function on Supabase, named <span style="font-family:'IBM Plex Mono',monospace">ai</span></div>
+      <ol>
+        <li><span class="numb" style="background:#fff; color:#111">1</span><span><b>Are you signed in?</b><br>No account, no AI.</span></li>
+        <li><span class="numb" style="background:#fff; color:#111">2</span><span><b>Is today's limit left?</b><br>50 requests a day per person.</span></li>
+        <li><span class="numb" style="background:#fff; color:#111">3</span><span><b>Sends the job to an engine</b><br>with the right instructions.</span></li>
+        <li><span class="numb" style="background:#fff; color:#111">4</span><span><b>Passes the answer back</b><br>with links to pages and notes.</span></li>
+      </ol>
+      <div style="font-size:7pt; color:#BDBAB2; margin-top:1mm">The secret AI key is kept here. It is never inside the APK.</div>
+    </div>
+    <div class="lb" style="left:62mm; top:86mm; width:57mm">Checks, limit, key</div>
+
+    <div class="bx" style="left:140mm; top:4mm; width:44mm; height:38mm; background:var(--news-tint); color:#06321a; border:.3mm dashed var(--news)">
+      <span class="tag label" style="background:#fff">Not connected yet</span>
+      <h3 style="margin-top:1.4mm">Sarvam AI</h3>
+      Indian engine. Good for Hindi and nine more Indian languages, at about a third of the cost.
+    </div>
+    <div class="bx" style="left:140mm; top:46mm; width:44mm; height:38mm; background:var(--pdf-tint); color:#3d2200">
+      <span class="tag label" style="background:#fff; color:var(--pdf-deep)">Built in the code</span>
+      <h3 style="margin-top:1.4mm">OpenAI or Claude</h3>
+      One server setting picks which. Both can read a whole PDF file.
+    </div>
+    <div class="lb" style="left:140mm; top:86mm; width:44mm">Engines that write the answer</div>
+  </div>
+
+  <h2 class="display">WHAT EACH PART IS</h2>
+  <div class="grid3">
+    <div class="card"><span class="tag label t-ink">In the app</span><h3 style="margin-top:1.4mm">Stack AI buttons</h3>Summarize, Ask this PDF, Ask your Stack and Tidy. Each asks you once before it sends anything.</div>
+    <div class="card"><span class="tag label t-red">On Supabase</span><h3 style="margin-top:1.4mm">Stack's server</h3>The gatekeeper. It protects the paid key and stops one person from using up the budget.</div>
+    <div class="card"><span class="tag label">Outside</span><h3 style="margin-top:1.4mm">The engines</h3>They only write text. They can be swapped on the server without a new app release.</div>
+  </div>
+
+  <h2 class="display">STACK AI VS SARVAM AI</h2>
+  <table>
+    <tr><th style="width:36mm"></th><th style="width:72mm">Stack AI</th><th>Sarvam AI</th></tr>
+    <tr><td>What it is</td><td>A feature of your app</td><td>An AI company's model, used as an engine</td></tr>
+    <tr><td>Who owns it</td><td>You (StackForge Labs)</td><td>Sarvam, an Indian AI company</td></tr>
+    <tr><td>Where it runs</td><td>In the app and on your Supabase project</td><td>On Sarvam's servers</td></tr>
+    <tr><td>What the user sees</td><td>The sparkle buttons and the answers</td><td>Nothing new. Only the name in the "ask first" sheet</td></tr>
+    <tr><td>Status</td><td><span class="ok">Built</span>, not switched on</td><td><span class="no">Not connected yet</span></td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">Checked today, 01.10.2026</span><br><b>None of this is live yet.</b> The <span style="font-family:'IBM Plex Mono',monospace; font-size:8pt">ai</span> function is not deployed (its address answers 404) and the app has no AI address, so the AI buttons are hidden in today's APK. Sarvam AI is not in the code. Page 6 shows how to switch it on.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · UI diagram</span><span class="label">02 / 06</span></div>
+</section>
+
+<!-- ================= 03 FOUR BUTTONS ================= -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">02 · Where the AI lives in the app</span></div>
+  <h1 class="display">THE FOUR AI BUTTONS</h1>
+  <p class="intro">Stack AI has four jobs, each on a different screen. The red ring marks what you tap. Every AI button carries the same sparkle icon <svg class="ic" style="vertical-align:-.4mm"><use href="#spark"/></svg>.</p>
+
+  <div class="phones">
+    <!-- A · Summarize -->
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="mono">Science · 6 min read</div>
+          <div class="ttl">Why sleep helps you remember</div>
+          <div class="aic tap" style="border-radius:2.6mm">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Summary · Stack AI</div>
+            <div class="sum">- Deep sleep moves the day's learning into long-term memory.<br>- Too little sleep makes new facts harder to keep.<br>- Sleep after study beats an all-night session.<br>Takeaway: sleep well before an exam.</div>
+            <div style="display:flex; gap:1.6mm; align-items:center; margin-top:1.6mm"><span class="ink" style="height:5mm">Save to Notes</span><span style="color:var(--muted); font-weight:600">Redo</span></div>
+          </div>
+          <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label">Article reader</span>
+        <h3>Summarize</h3>
+        Three short points and one takeaway, at the top of the article.
+        <div class="kv"><span>Sends</span><span>The article's text</span><span>Gets</span><span>A summary you can save as a note</span></div>
+      </div>
+    </div>
+
+    <!-- B · Ask this PDF -->
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd" style="padding-bottom:0">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg><span class="mono">Semester notes · p. 1</span><span class="tap r" style="display:inline-flex; padding:.5mm"><svg class="ic b"><use href="#spark"/></svg></span></div>
+        </div>
+        <div class="pdfpg"><b style="font-size:6pt">Design Notes</b><br>Signifiers tell you where the action should happen. A handle does not need a label when its shape already says pull.</div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sht">Ask this PDF</div>
+          <div class="me">What is a signifier?</div>
+          <div class="ai">A sign that shows where to act, like a handle that says "pull". <span class="chip">p. 1</span> <span class="chip">p. 4</span></div>
+          <div class="inp"><span>Ask a question…</span><span class="ink">Ask</span></div>
+          <div class="ail mono" style="margin:1.4mm 0 0"><svg class="ic"><use href="#spark"/></svg>The AI reads the whole PDF</div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label t-org">PDF reader</span>
+        <h3>Ask this PDF</h3>
+        A chat about the open PDF. Tap a page chip to jump to that page.
+        <div class="kv"><span>Sends</span><span>The PDF file (up to about 22 MB) and your question</span><span>Gets</span><span>An answer with page links</span></div>
+      </div>
+    </div>
+
+    <!-- C · Ask your Stack -->
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="srch">what did I save about focus?</div>
+          <div class="ask tap" style="border-radius:2.6mm">
+            <span class="sq"><svg class="ic b"><use href="#spark"/></svg></span>
+            <span><b style="font-size:5.8pt">Ask your Stack</b><br><span style="color:var(--muted)">"what did I save about focus?"</span></span>
+          </div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Answer from your Stack · 6 items read</div>
+            You noted that focus works best with one PDF, one playlist and one timer. <span class="chip n">Focus mode</span><br>A highlight adds that every module needs one clear action. <span class="chip n">Semester notes</span>
+          </div>
+          <div class="res"><span class="mono">Note</span><br><b>Focus mode: one PDF, one playlist</b></div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label t-blue">Search</span>
+        <h3>Ask your Stack</h3>
+        Answers a question from your own notes and highlights, and links to each one it used.
+        <div class="kv"><span>Sends</span><span>Your question and up to 30 matching notes</span><span>Gets</span><span>A short answer with note links</span></div>
+      </div>
+    </div>
+
+    <!-- D · Tidy -->
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="ttl" style="margin-top:2mm">Exam week plan</div>
+          <div class="tx">- Revise two chapters a day<br>- Sleep by 11<br>- Phone stays outside the room</div>
+          <div class="tx">☐ Print the timetable<br>☐ Ask Ravi for the notes</div>
+        </div>
+        <div class="toast"><span>Note tidied</span><span style="text-decoration:underline">Undo</span></div>
+        <div class="tb"><svg class="ic b"><use href="#list"/></svg><svg class="ic b"><use href="#font"/></svg><span class="mono">Edited 13:35</span><span class="tap r" style="display:inline-flex; padding:.4mm"><svg class="ic b"><use href="#spark"/></svg></span><svg class="ic b"><use href="#share"/></svg></div>
+      </div>
+      <div class="cap">
+        <span class="tag label t-ink">Note editor</span>
+        <h3>Tidy</h3>
+        The sparkle in the bottom bar. Fixes spelling, adds a title, bullets or a checklist. Undo puts the old note back.
+        <div class="kv"><span>Sends</span><span>This note's text</span><span>Gets</span><span>The same note, cleaned up</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="display" style="margin-top:7mm">ONE SWITCH FOR ALL FOUR</h2>
+  <div style="display:grid; grid-template-columns: 62mm 1fr; gap:4mm; align-items:stretch">
+    <div class="card" style="padding:3.6mm 4mm">
+      <div class="label" style="font-size:6.4pt; color:var(--muted); margin-bottom:2mm">06 — Stack AI</div>
+      <div style="display:flex; justify-content:space-between; gap:3mm; align-items:center">
+        <div><b style="font-size:10pt">Stack AI</b><div style="font-size:7.4pt; color:var(--muted); line-height:1.35; margin-top:.6mm">Summaries, PDF questions, Ask your Stack and Tidy note. Asks before sending anything.</div></div>
+        <div class="phone" style="all:unset"><div class="sw" style="width:11mm; height:6.4mm; border-radius:4mm; background:var(--music); position:relative"><span style="position:absolute; right:.6mm; top:.6mm; width:5.2mm; height:5.2mm; border-radius:50%; background:#fff"></span></div></div>
+      </div>
+      <div style="font-size:6.8pt; color:var(--muted); margin-top:2mm; line-height:1.35">Runs on OpenAI through Stack's server, only when you tap an AI button.</div>
+    </div>
+    <div class="card" style="display:flex; flex-direction:column; justify-content:center"><span class="tag label t-ink" style="align-self:flex-start; margin-bottom:1.4mm">Settings → 06 Stack AI</span><b>Off means off.</b> Every AI button disappears from all four screens and nothing is sent. Nothing ever runs by itself: the AI works only when you tap one of these buttons. The last line names the engine in use; today's build says OpenAI.</div>
+  </div>
+
+  <p class="note" style="margin-top:3mm">The phone drawings follow the app's own code (<code>src/components/ai-*.tsx</code>). The article, note and answer text inside them is sample text.</p>
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · UI diagram</span><span class="label">03 / 06</span></div>
+</section>
+
+<!-- ================= 04 STEP BY STEP ================= -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">03 · Stack AI, one request</span></div>
+  <h1 class="display">ONE TAP, STEP BY STEP</h1>
+  <p class="intro">What you see when you tap <b>Summarize</b>, and what happens behind the screen. The other three buttons work the same way.</p>
+
+  <div class="sub label">What you see</div>
+  <div class="phones" style="position:relative">
+    <svg class="between" style="left:41mm" viewBox="0 0 12 8" fill="none" stroke="#D62F26" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h10M7.5 1l3.5 3-3.5 3"/></svg><svg class="between" style="left:89mm" viewBox="0 0 12 8" fill="none" stroke="#D62F26" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h10M7.5 1l3.5 3-3.5 3"/></svg><svg class="between" style="left:137mm" viewBox="0 0 12 8" fill="none" stroke="#D62F26" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4h10M7.5 1l3.5 3-3.5 3"/></svg>
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="mono">Science · 6 min read</div>
+          <div class="ttl">Why sleep helps you remember</div>
+          <span class="pill tap r"><svg class="ic"><use href="#spark"/></svg>Summarize</span>
+          <div style="height:3mm"></div>
+          <div class="ln"></div><div class="ln"></div><div class="ln s"></div><div style="height:1.4mm"></div>
+          <div class="ln"></div><div class="ln"></div><div class="ln"></div><div class="ln s"></div><div style="height:1.4mm"></div>
+          <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        </div>
+      </div>
+      <div class="cap"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1mm"><span class="numb">1</span><h3>You tap</h3></div>The button sits under the article's title.</div>
+    </div>
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="mono">Science · 6 min read</div>
+          <div class="ttl">Why sleep helps you remember</div>
+        </div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sht">Use Stack AI?</div>
+          <div class="tx">To do this, Stack sends <b>the article's text</b> to <b>OpenAI</b> through Stack's server. It's used only to write your answer.</div>
+          <div class="tx" style="color:var(--muted); font-size:4.8pt">AI answers can be wrong: check anything important. You'll only be asked once for this feature.</div>
+          <div class="ink tap r"><svg class="ic"><use href="#spark"/></svg>Continue</div>
+          <div class="ghost">Not now</div>
+        </div>
+      </div>
+      <div class="cap"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1mm"><span class="numb">2</span><h3>Stack asks first</h3></div>Once for each of the four features. It names what is sent and to whom.</div>
+    </div>
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="mono">Science · 6 min read</div>
+          <div class="ttl">Why sleep helps you remember</div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Summary · Stack AI</div>
+            <div class="sum" style="color:var(--muted)">Thinking…</div>
+            <div style="margin-top:1.6mm; color:var(--muted); font-weight:600"><span class="tap r" style="padding:.3mm 1mm">Stop</span></div>
+          </div>
+          <div class="ln"></div><div class="ln"></div><div class="ln s"></div><div style="height:1.4mm"></div>
+          <div class="ln"></div><div class="ln"></div><div class="ln"></div>
+        </div>
+      </div>
+      <div class="cap"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1mm"><span class="numb">3</span><h3>It works</h3></div>"Thinking…" shows while the request is away. Stop cancels it.</div>
+    </div>
+    <div class="pcol">
+      <div class="phone">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="mono">Science · 6 min read</div>
+          <div class="ttl">Why sleep helps you remember</div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Summary · Stack AI</div>
+            <div class="sum">- Deep sleep moves the day's learning into long-term memory.<br>- Too little sleep makes new facts harder to keep.<br>- Sleep after study beats an all-night session.<br>Takeaway: sleep well before an exam.</div>
+            <div style="display:flex; gap:1.6mm; align-items:center; margin-top:1.6mm"><span class="ink tap r" style="height:5mm">Save to Notes</span><span style="color:var(--muted); font-weight:600">Redo</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1mm"><span class="numb">4</span><h3>The answer</h3></div>Save it as a note linked to the article, or tap Redo.</div>
+    </div>
+  </div>
+
+  <div class="sub label" style="margin-top:6mm">What happens behind the screen</div>
+  <div class="dg" style="height:71mm">
+    <div class="lane" style="top:0; height:21mm; background:var(--paper-2)"><div class="ln-t">Your phone<small>Stack app</small></div></div>
+    <div class="lane" style="top:25mm; height:21mm; background:var(--music-tint)"><div class="ln-t">Stack's server<small>Supabase · ai</small></div></div>
+    <div class="lane" style="top:50mm; height:21mm; background:var(--news-tint)"><div class="ln-t">AI engine<small>OpenAI / Claude</small></div></div>
+    <svg width="184mm" height="71mm" viewBox="0 0 184 71" fill="none" stroke="#111" stroke-width=".4">
+      <path d="M49.5 10.5 H52" marker-end="url(#ah)"/>
+      <path d="M64 18 V27.5" marker-end="url(#ah)"/>
+      <path d="M75.5 35.5 H78.5" marker-end="url(#ah)"/>
+      <path d="M100.5 35.5 H103.5" marker-end="url(#ah)"/>
+      <path d="M115 43 V52.5" marker-end="url(#ah)"/>
+      <path d="M126 60.5 H142 V44" marker-end="url(#ah)"/>
+      <path d="M142 28 V19" marker-end="url(#ah)"/>
+      <path d="M153 10.5 H156" marker-end="url(#ah)"/>
+    </svg>
+    <div class="st" style="left:28mm; top:3mm"><span class="numb">1</span><b>Tap</b>You tap Summarize and say yes.</div>
+    <div class="st" style="left:53mm; top:3mm"><span class="numb">2</span><b>Send</b>The app sends the text with your sign-in.</div>
+    <div class="st" style="left:53mm; top:28mm"><span class="numb">3</span><b>Who is it?</b>Not signed in: stop, "Sign in to use Stack AI."</div>
+    <div class="st" style="left:79mm; top:28mm"><span class="numb">4</span><b>Count it</b>Adds 1 to today's count. Over 50: stop.</div>
+    <div class="st" style="left:104mm; top:28mm"><span class="numb">5</span><b>Ask engine</b>Adds the instructions and the secret key.</div>
+    <div class="st" style="left:104mm; top:53mm"><span class="numb">6</span><b>Write</b>The engine writes three points and a takeaway.</div>
+    <div class="st" style="left:131mm; top:28mm; width:22mm"><span class="numb">7</span><b>Pass back</b>Sends the text back, with page or note links.</div>
+    <div class="st" style="left:131mm; top:3mm; width:22mm"><span class="numb">8</span><b>Show</b>The summary appears on the article.</div>
+    <div class="st" style="left:157mm; top:3mm; width:24mm"><span class="numb">9</span><b>Save</b>Save to Notes keeps it on the phone and in sync.</div>
+  </div>
+
+  <div class="grid3" style="margin-top:4mm">
+    <div class="card"><b>The key never leaves the server.</b> Anyone can open an APK and read what is inside, so the paid AI key is kept on Supabase only.</div>
+    <div class="card"><b>The count is in the database.</b> 50 a day per person by default. It resets at 00:00 UTC, which is 5:30 AM in India.</div>
+    <div class="card"><b>The engine is told how to answer.</b> For a summary: exactly three short points, one takeaway line, in the article's language.</div>
+  </div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · UI diagram</span><span class="label">04 / 06</span></div>
+</section>
+
+<!-- ================= 05 SARVAM ================= -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">04 · Sarvam AI · planned, not built</span></div>
+  <h1 class="display">WHERE SARVAM AI FITS</h1>
+  <p class="intro">Sarvam AI goes in as a <b>third engine on the server</b>. The app's screens stay the same. The server sends each job to the engine that does it well for the least money.</p>
+
+  <div class="dg" style="height:66mm">
+    <svg width="184mm" height="66mm" viewBox="0 0 184 66" fill="none" stroke-width=".5">
+      <path d="M44 7 C56 7 56 26 68 26" stroke="#0A8A3A"/>
+      <path d="M44 23 C56 23 56 30 68 30" stroke="#0A8A3A"/>
+      <path d="M44 39 C56 39 56 34 68 34" stroke="#0A8A3A"/>
+      <path d="M44 55 C56 55 56 40 68 40" stroke="#C97A14"/>
+      <path d="M112 26 C124 26 122 16 133 16" stroke="#0A8A3A" stroke-width=".6" marker-end="url(#ahg)" stroke-dasharray="1.6 1.2"/>
+      <path d="M112 40 C124 40 122 50 133 50" stroke="#C97A14" marker-end="url(#aho)"/>
+    </svg>
+    <div class="bx" style="left:0; top:1mm; width:44mm; height:12mm; background:var(--card); padding:2mm 3mm"><b>Summarize</b><br><span style="font-size:6.8pt; color:var(--muted)">text only</span></div>
+    <div class="bx" style="left:0; top:17mm; width:44mm; height:12mm; background:var(--card); padding:2mm 3mm"><b>Tidy a note</b><br><span style="font-size:6.8pt; color:var(--muted)">text only</span></div>
+    <div class="bx" style="left:0; top:33mm; width:44mm; height:12mm; background:var(--card); padding:2mm 3mm"><b>Ask your Stack</b><br><span style="font-size:6.8pt; color:var(--muted)">text only</span></div>
+    <div class="bx" style="left:0; top:49mm; width:44mm; height:12mm; background:var(--card); padding:2mm 3mm"><b>Ask this PDF</b><br><span style="font-size:6.8pt; color:var(--muted)">sends the PDF file itself</span></div>
+
+    <div class="bx" style="left:68mm; top:14mm; width:44mm; height:34mm; background:var(--ink); color:#fff">
+      <span class="tag label t-red">Stack's server</span>
+      <h3 style="margin-top:1.4mm">Picks the engine</h3>
+      <span style="font-size:7.2pt; color:#BDBAB2">One setting for each job. No app update needed to change it.</span>
+    </div>
+
+    <div class="bx" style="left:134mm; top:1mm; width:50mm; height:30mm; background:var(--news-tint); color:#06321a; border:.3mm dashed var(--news)">
+      <span class="tag label" style="background:#fff">To build · about half a day</span>
+      <h3 style="margin-top:1.2mm">Sarvam-105B</h3>
+      Three of four jobs. Reads text only. Answers in Hindi and nine more Indian languages.
+    </div>
+    <div class="bx" style="left:134mm; top:35mm; width:50mm; height:28mm; background:var(--pdf-tint); color:#3d2200">
+      <span class="tag label" style="background:#fff; color:var(--pdf-deep)">Built</span>
+      <h3 style="margin-top:1.2mm">OpenAI or Claude</h3>
+      PDF chat stays here, because these engines can read a PDF file.
+    </div>
+  </div>
+
+  <h2 class="display">NEW SCREENS SARVAM MAKES POSSIBLE</h2>
+  <div class="sub label">Dashed frames are ideas. None of these four exists in the app today</div>
+
+  <div class="phones">
+    <div class="pcol">
+      <div class="phone plan">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="ttl" style="margin-top:.6mm">Why sleep helps you remember</div>
+          <div style="display:flex; gap:1mm; margin-bottom:1.6mm"><span class="pill" style="height:4.4mm; font-size:4.8pt">English</span><span class="pill tap r hi" style="height:4.4mm; font-size:4.8pt; background:var(--ink); color:#fff">हिंदी</span></div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Summary · Stack AI</div>
+            <div class="sum hi">- गहरी नींद में दिमाग दिन भर की सीख को पक्की याद में बदलता है।<br>- कम नींद से नई बातें याद रखना मुश्किल होता है।<br>- पढ़ाई के बाद सोना, रात भर जागने से बेहतर है।<br>सार: परीक्षा से पहले पूरी नींद लें।</div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label">Sarvam-105B · chat</span>
+        <h3>Summary in Hindi</h3>
+        An English article, with the points in the reader's language.
+      </div>
+    </div>
+    <div class="pcol">
+      <div class="phone plan">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="tx" style="margin-top:1mm">During slow-wave sleep the brain replays the day. <span style="background:var(--pdf-tint)">The hippocampus hands memories to the cortex for long-term storage.</span></div>
+          <div style="display:inline-flex; gap:1.6mm; background:var(--ink); color:#fff; border-radius:2.4mm; padding:1.2mm 1.8mm; font-weight:600; font-size:4.8pt; margin-bottom:1.6mm"><span>Highlight</span><span>Note</span><span class="tap r" style="outline-offset:.5mm; white-space:nowrap">Explain simply</span></div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Explained · Stack AI</div>
+            <div class="sum hi">सोते समय दिमाग दिन की बातों को एक जगह से उठाकर लंबे समय वाली याद में रख देता है।</div>
+            <div style="margin-top:1.4mm"><span class="ink" style="height:4.8mm; display:inline-flex">Save to Notes</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label">Sarvam-105B · chat</span>
+        <h3>Explain this line</h3>
+        Select a hard sentence. Stack explains it in plain Hindi, Hinglish or English.
+      </div>
+    </div>
+    <div class="pcol">
+      <div class="phone plan">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg><span class="mono">New note</span></div>
+          <div class="ttl" style="margin-top:2mm; color:var(--muted)">Voice note</div>
+          <div class="tx" style="font-size:5.6pt">Kal chemistry ka chapter 4 revise karna hai, aur Ravi se notes lene hain…</div>
+          <div style="height:4mm"></div>
+          <div class="mic tap" style="border-radius:50%"><svg class="ic b" style="width:4.4mm; height:4.4mm"><use href="#mic"/></svg></div>
+          <div class="mono" style="text-align:center; margin-top:1.6mm">Listening · 0:12</div>
+          <div style="display:flex; gap:.7mm; justify-content:center; align-items:center; height:7mm; margin-top:1mm">
+            <i style="width:.8mm; height:2mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:5mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:3mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:6mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:4mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:2.4mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:5.4mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:3.2mm; background:#111; border-radius:1mm"></i><i style="width:.8mm; height:1.8mm; background:#111; border-radius:1mm"></i>
+          </div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label t-red">Saaras · speech to text</span>
+        <h3>Voice notes</h3>
+        Speak in Hindi or Hinglish. Sarvam writes it down, then Tidy cleans it.
+      </div>
+    </div>
+    <div class="pcol">
+      <div class="phone plan">
+        <div class="sb"><span>9:41</span><i></i></div>
+        <div class="bd">
+          <div class="nav"><svg class="ic b"><use href="#back"/></svg></div>
+          <div class="ttl" style="margin-top:.6mm">Why sleep helps you remember</div>
+          <div class="aic">
+            <div class="ail mono"><svg class="ic"><use href="#spark"/></svg>Summary · Stack AI</div>
+            <div class="sum hi">- गहरी नींद में दिमाग दिन भर की सीख को पक्की याद में बदलता है।<br>- कम नींद से नई बातें याद रखना मुश्किल होता है।</div>
+            <div style="display:flex; gap:1.6mm; align-items:center; margin-top:1.8mm">
+              <span class="ink tap r" style="height:5mm"><svg class="ic" style="fill:#fff; stroke:none"><use href="#play"/></svg>Listen</span>
+              <span style="flex:1; height:.8mm; background:var(--rule); border-radius:1mm; position:relative"><i style="position:absolute; left:0; top:0; bottom:0; width:35%; background:var(--ink); border-radius:1mm"></i></span>
+              <span class="mono">0:09</span>
+            </div>
+          </div>
+          <div class="ln"></div><div class="ln"></div><div class="ln s"></div>
+        </div>
+      </div>
+      <div class="cap">
+        <span class="tag label t-org">Bulbul · text to speech</span>
+        <h3>Listen in an Indian voice</h3>
+        Reads the summary aloud. Long articles keep the phone's free voice.
+      </div>
+    </div>
+  </div>
+
+  <div class="inked" style="margin-top:4mm"><span class="label">In short</span><br><b>Stack AI is the door; Sarvam AI is one of the rooms behind it.</b> Sarvam also reads scanned pages into text (Sarvam Vision) and translates. Costs, prices and the build order are in <span style="font-family:'IBM Plex Mono',monospace; font-size:8pt">Stack_AI_and_Sarvam_AI.pdf</span>, in the same folder.</div>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · UI diagram</span><span class="label">05 / 06</span></div>
+</section>
+
+<!-- ================= 06 ERRORS + STATUS ================= -->
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">05 · Stops along the path · status</span></div>
+  <h1 class="display">WHEN IT SAYS NO</h1>
+  <p class="intro">Each check on the path can stop a request. The app then shows one short line in red where the answer would be. These are the exact messages in the code.</p>
+
+  <div class="grid3">
+    <div class="msg"><span class="label">Step 3 · not signed in</span><div class="q">Sign in to use Stack AI. <u>Sign in</u></div>The link opens the Account screen.</div>
+    <div class="msg"><span class="label">Step 4 · limit reached</span><div class="q">You've used today's 50 Stack AI requests. They reset at midnight (UTC).</div>That is 5:30 AM in India.</div>
+    <div class="msg"><span class="label">Step 2 · no internet</span><div class="q">Couldn't reach Stack AI. Check your connection.</div>The rest of Stack works offline.</div>
+    <div class="msg"><span class="label">Step 5 · engine out of credit</span><div class="q">Stack AI is paused: the AI account is out of credit.</div>Top up the engine's account.</div>
+    <div class="msg"><span class="label">Step 5 · engine busy</span><div class="q">Stack AI is busy. Try again in a minute.</div>Too many requests at once.</div>
+    <div class="msg"><span class="label">Ask this PDF · file too big</span><div class="q">This PDF is too big to send (the limit is about 22 MB).</div>Smaller PDFs work.</div>
+  </div>
+
+  <h2 class="display" style="margin-top:7mm">WHAT IS LIVE TODAY</h2>
+  <div class="sub label">Checked 01.10.2026 against the project folder and the Supabase address</div>
+  <table>
+    <tr><th style="width:52mm">Part</th><th style="width:30mm">Status</th><th>What it means</th></tr>
+    <tr><td>The four AI screens</td><td class="ok">Built</td><td>Summarize, Ask this PDF, Ask your Stack and Tidy are in the app's code</td></tr>
+    <tr><td>Stack's server (the <code>ai</code> function)</td><td class="ok">Written</td><td>Sign-in check, daily limit, OpenAI and Claude engines</td></tr>
+    <tr><td>The function on Supabase</td><td class="no">Not deployed</td><td>Its address answers 404, so nothing can reach it</td></tr>
+    <tr><td>AI address in the app</td><td class="no">Empty</td><td><code>NEXT_PUBLIC_AI_URL</code> is blank, so the AI buttons are hidden in today's APK</td></tr>
+    <tr><td>Sarvam AI engine</td><td class="no">Not built</td><td>No Sarvam code in the project yet</td></tr>
+    <tr><td>Hindi summary, voice, listen</td><td class="no">Ideas</td><td>The dashed screens on page 5</td></tr>
+  </table>
+
+  <h2 class="display" style="margin-top:6mm">THREE STEPS TO SWITCH IT ON</h2>
+  <div class="grid3">
+    <div class="card"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1.4mm"><span class="numb">1</span><h3>Deploy the function</h3></div>Put the <code>ai</code> function on Supabase and give it one engine key and a low daily limit.<div class="note" style="margin-top:1.2mm">You · about 20 minutes</div></div>
+    <div class="card"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1.4mm"><span class="numb">2</span><h3>Tell the app</h3></div>Put the function's address in <code>.env.local</code> and rebuild the APK. The AI buttons appear.<div class="note" style="margin-top:1.2mm">You · one rebuild</div></div>
+    <div class="card"><div style="display:flex; gap:2mm; align-items:center; margin-bottom:1.4mm"><span class="numb">3</span><h3>Add Sarvam</h3></div>Add the Sarvam engine to the function, plus a setting for each job so PDF chat stays on OpenAI or Claude.<div class="note" style="margin-top:1.2mm">Code · about half a day</div></div>
+  </div>
+
+  <p class="note" style="margin-top:4mm">Sources: <code>src/lib/ai.ts</code>, <code>src/components/ai-*.tsx</code>, <code>supabase/functions/ai/index.ts</code>, <code>supabase/schema.sql</code>. Sarvam's model names and abilities are taken from Stack_AI_and_Sarvam_AI.pdf (read from Sarvam's site on 01.10.2026) and were not checked again for this diagram. The exact commands for steps 1 and 2 are on page 7 of that guide.</p>
+
+  <div class="foot"><span class="label">Stack AI × Sarvam AI · UI diagram</span><span class="label">06 / 06</span></div>
+</section>
+</body>
+</html>

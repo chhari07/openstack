@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stack and India: language, culture, identity</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Bodoni+Moda:ital,wght@1,500&display=block" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --paper: #F7F5F0; --paper-2: #EEECE8; --card: #FFFFFF; --ink: #111111; --muted: #6B6862; --rule: #E2DFD8;
+    --news: #0A8A3A; --news-tint: #D6EEDC; --news-deep: #065C27;
+    --music: #D62F26; --music-tint: #F8D8D5; --music-deep: #A3221B;
+    --pdf: #F2A246; --pdf-tint: #FCE3C4; --pdf-deep: #8A4B00;
+    --blue: #4E9EE6; --blue-tint: #D7E8F8; --blue-deep: #1F5796;
+    --violet-tint: #E5DBFF; --violet: #6741D9; --yellow-tint: #FFF3BF; --yellow-deep: #8A5A00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Archivo", sans-serif; }
+  .label { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .display { font-weight: 800; font-stretch: 75%; letter-spacing: -0.04em; line-height: .84; }
+  .serif { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 500; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 13mm 16mm; position: relative; overflow: hidden; }
+  .page + .page { break-before: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .top .label { font-size: 7.5pt; color: var(--muted); }
+  .foot { position: absolute; left: 13mm; right: 13mm; bottom: 7mm; display: flex; justify-content: space-between; font-size: 7pt; color: var(--muted); }
+  h1 { margin: 5mm 0 0 -1mm; font-size: 46pt; }
+  h2 { margin: 6mm 0 1.5mm; font-size: 22pt; }
+  h3 { margin: 0; font-size: 13pt; font-weight: 800; font-stretch: 80%; letter-spacing: -.01em; }
+  .intro { margin: 4mm 0 4mm; font-size: 10pt; line-height: 1.5; max-width: 176mm; }
+  .sub { font-size: 7.5pt; color: var(--muted); margin-bottom: 3mm; }
+  p { margin: 0 0 2mm; }
+  b { font-weight: 700; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0 1.3mm; font-size: 8.3pt; }
+  th { text-align: left; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .04em; font-size: 6.8pt; font-weight: 500; color: var(--muted); padding: 0 2.6mm .4mm; }
+  td { background: var(--card); padding: 1.9mm 2.6mm; line-height: 1.36; vertical-align: top; }
+  td:first-child { border-radius: 3mm 0 0 3mm; font-weight: 700; }
+  td:last-child { border-radius: 0 3mm 3mm 0; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.8mm; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.6mm; }
+  .card { background: var(--card); border-radius: 3.5mm; padding: 3.4mm 3.8mm; font-size: 8.4pt; line-height: 1.45; }
+  .card ul { margin: 1.6mm 0 0; padding-left: 3.6mm; }
+  .card li { margin-bottom: .6mm; }
+  .tag { display: inline-block; font-size: 6.3pt; padding: .8mm 2.2mm; border-radius: 3mm; background: var(--news-tint); color: var(--news-deep); }
+  .t-red { background: var(--music-tint); color: var(--music-deep); }
+  .t-org { background: var(--pdf-tint); color: var(--pdf-deep); }
+  .t-blue { background: var(--blue-tint); color: var(--blue-deep); }
+  .t-vio { background: var(--violet-tint); color: var(--violet); }
+  .t-ink { background: var(--ink); color: #fff; }
+
+  .stat { background: var(--card); border-radius: 3.5mm; padding: 3.2mm 3.6mm 3mm; }
+  .stat .n { font-size: 25pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.03em; line-height: .95; }
+  .stat .d { font-size: 7.6pt; line-height: 1.35; margin-top: 1.2mm; }
+  .stat .s { font-size: 6.2pt; color: var(--muted); margin-top: 1.4mm; }
+  .g { color: var(--news); } .r { color: var(--music); } .o { color: var(--pdf-deep); } .bl { color: var(--blue-deep); } .v { color: var(--violet); }
+
+  .band { border-radius: 4mm; padding: 4mm 5mm; margin-bottom: 3mm; font-size: 8.8pt; line-height: 1.48; }
+  .band .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.4mm; }
+  .band ul { list-style: none; margin: 1.6mm 0 0; padding: 0; }
+  .band li { display: flex; gap: 2.4mm; margin-bottom: 1.1mm; }
+  .band li::before { content: ""; flex-shrink: 0; width: 3mm; height: 3mm; margin-top: .7mm; border: 1.2px solid currentColor; border-radius: 1mm; opacity: .7; }
+  .b1 { background: var(--yellow-tint); color: #3a2a00; }
+  .b2 { background: var(--pdf-tint); color: #3d2200; }
+  .b3 { background: var(--blue-tint); color: #0e2a4a; }
+  .b4 { background: var(--violet-tint); color: #2a1a66; }
+  .b5 { background: var(--news-tint); color: #06321a; }
+  .b6 { background: var(--music-tint); color: #4a1210; }
+  .inked { background: var(--ink); color: #fff; border-radius: 4mm; padding: 4.2mm 5mm; font-size: 9pt; line-height: 1.55; }
+  .inked .label { font-size: 7pt; color: #BDBAB2; }
+
+  .verdict { display: grid; grid-template-columns: 30mm 1fr; gap: 0; background: var(--card); border-radius: 3.5mm; margin-bottom: 2.4mm; overflow: hidden; }
+  .verdict .v1 { padding: 3.4mm; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1mm; }
+  .verdict .v1 .big { font-size: 17pt; font-weight: 800; font-stretch: 75%; letter-spacing: -.02em; line-height: .9; }
+  .verdict .v2 { padding: 3.4mm 4mm; font-size: 8.8pt; line-height: 1.48; border-left: 1px solid var(--rule); }
+
+  .meter { display: inline-flex; gap: .7mm; vertical-align: middle; }
+  .meter i { display: block; width: 2.4mm; height: 2.4mm; border-radius: .6mm; background: var(--rule); }
+  .meter.m1 i:nth-child(-n+1), .meter.m2 i:nth-child(-n+2), .meter.m3 i:nth-child(-n+3), .meter.m4 i:nth-child(-n+4), .meter.m5 i:nth-child(-n+5) { background: var(--ink); }
+
+  .quad { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2.6mm; height: 118mm; position: relative; }
+  .quad > div { border-radius: 4mm; padding: 3.6mm 4mm; font-size: 8.4pt; line-height: 1.4; }
+  .chip { display: inline-block; background: var(--card); border-radius: 2.4mm; padding: 1.2mm 2.4mm; margin: 0 1.2mm 1.4mm 0; font-size: 8pt; font-weight: 600; }
+  .chip small { font-weight: 400; color: var(--muted); }
+
+  .cover { background: var(--ink); color: #fff; }
+  .cover .label { color: #BDBAB2; }
+  .src { font-size: 7.2pt; line-height: 1.45; columns: 2; column-gap: 7mm; }
+  .src p { break-inside: avoid; margin-bottom: 1.4mm; }
+  .src a { color: var(--blue-deep); text-decoration: none; word-break: break-all; }
+  .note { font-size: 7.2pt; color: var(--muted); line-height: 1.4; }
+</style>
+<style>
+  .step { display:grid; grid-template-columns: 9mm 1fr; gap: 2.4mm; background: var(--card); border-radius: 3.2mm; padding: 2.6mm 3.4mm; margin-bottom: 1.8mm; font-size: 8.5pt; line-height: 1.42; }
+  .step .num { width: 7mm; height: 7mm; border-radius: 2mm; background: var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-stretch:75%; font-size: 10pt; }
+  .step b.t { display:block; font-size: 9.2pt; margin-bottom: .4mm; }
+  .step code, .cmd code { font-family: "IBM Plex Mono", monospace; font-size: 7.4pt; background: var(--paper-2); padding: .2mm 1mm; border-radius: 1mm; }
+  .cmd { background: #1b1b1a; color: #e9e6df; border-radius: 3mm; padding: 3mm 4mm; font-family: "IBM Plex Mono", monospace; font-size: 7.3pt; line-height: 1.55; margin: 1.6mm 0 2.4mm; white-space: pre-wrap; }
+  .cmd .c { color: #8f8b83; }
+  .who { float:right; font-size: 6.2pt; }
+  .ok { color: var(--news-deep); font-weight: 700; } .no { color: var(--music-deep); font-weight: 700; }
+  .stage { display:flex; gap: 3mm; align-items: baseline; }
+  .stage .sn { font-size: 30pt; font-weight: 800; font-stretch: 75%; line-height: .8; }
+  .tick { list-style:none; padding:0; margin: 0; columns: 2; column-gap: 6mm; font-size: 8.2pt; line-height: 1.4; }
+  .tick li { break-inside: avoid; display:flex; gap: 2mm; margin-bottom: 1.3mm; }
+  .tick li::before { content:""; flex-shrink:0; width: 3.2mm; height: 3.2mm; margin-top: .5mm; border: 1.2px solid #111; border-radius: 1mm; }
+  .tick h4 { column-span: all; margin: 2.4mm 0 1.4mm; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: 7pt; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
+</style>
+<style>
+  html, body { font-family: "Archivo", "Noto Sans Devanagari", sans-serif; }
+  .hi { font-family: "Noto Sans Devanagari", sans-serif; letter-spacing: 0; }
+  td.c, th.c { text-align: center; }
+  .lead { font-size: 9pt; line-height: 1.5; margin: 0 0 3mm; max-width: 180mm; }
+  .card h3 { margin-bottom: 1.2mm; }
+  .card .tag { margin-bottom: 1.6mm; }
+  .meta { font-size: 7.2pt; color: var(--muted); margin-top: 1.4mm; line-height: 1.4; }
+  .band h3 { font-size: 11.5pt; }
+  .kv { display: grid; grid-template-columns: 34mm 1fr; gap: 1mm 3mm; font-size: 8.4pt; line-height: 1.42; }
+  .kv b { font-weight: 700; }
+  .ok { white-space: nowrap; } .no { white-space: nowrap; }
+  .mid { color: var(--pdf-deep); font-weight: 700; white-space: nowrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="logo" viewBox="242.5 130 124 124">
+    <rect x="272.2" y="236" width="65" height="18" rx="2"/>
+    <rect x="273.9" y="194.8" width="60" height="18" rx="2" transform="rotate(-26.6 303.9 203.8)"/>
+    <rect x="274.7" y="167.9" width="38" height="18" rx="2" transform="rotate(-32 293.7 176.9)"/>
+    <rect x="272.5" y="130.5" width="18" height="29" rx="2"/>
+  </symbol>
+</svg>
+
+<section class="page cover">
+  <div class="top"><svg width="34" height="34" fill="#fff"><use href="#logo"/></svg><span class="label">StackForge Labs · India guide · 01.10.2026</span></div>
+  <div style="position:absolute; left:13mm; right:13mm; top:54mm;">
+    <div class="label" style="font-size:9pt; margin-bottom:6mm">Stack × India</div>
+    <div class="display" style="font-size:88pt">MADE FOR<br>BHARAT.</div>
+    <p class="hi" style="font-size:19pt; margin-top:8mm; font-weight:700">पढ़ो। सहेजो। याद रखो।</p>
+    <p class="serif" style="font-size:19pt; margin-top:3mm; line-height:1.2">How Stack can speak India's languages, fit its study<br>habits and look like it belongs here.</p>
+  </div>
+  <div style="position:absolute; left:13mm; right:13mm; bottom:24mm; display:grid; grid-template-columns:repeat(6,1fr); gap:2mm;">
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">01</div><div style="font-size:8pt; margin-top:1.5mm">Why it matters</div></div>
+    <div style="background:var(--news); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">02</div><div style="font-size:8pt; margin-top:1.5mm">Language first</div></div>
+    <div style="background:var(--music); border-radius:3mm; padding:3mm; height:26mm"><div class="label" style="color:#fff; font-size:6.5pt">03</div><div style="font-size:8pt; margin-top:1.5mm">How India studies</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">04</div><div style="font-size:8pt; margin-top:1.5mm">Look and feel</div></div>
+    <div style="background:var(--pdf); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#3d2200; font-size:6.5pt">05</div><div style="font-size:8pt; margin-top:1.5mm">Reach and price</div></div>
+    <div style="background:var(--blue); border-radius:3mm; padding:3mm; height:26mm; color:#111"><div class="label" style="color:#0e2a4a; font-size:6.5pt">06</div><div style="font-size:8pt; margin-top:1.5mm">What to avoid · order of work</div></div>
+  </div>
+
+  <div class="foot"><span class="label">Prepared for Aman Kumar Chhari</span><span class="label">01 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">01 · Why it matters</span></div>
+  <h1 class="display">WHY IT MATTERS</h1>
+  <p class="intro">Stack was built in English, for readers of English tech news. Most Indians read, listen and study in more than one language. The app that respects that has far more people it can serve.</p>
+
+  <div class="grid4">
+    <div class="stat"><div class="n g">98%</div><div class="d">of India's internet users went online in an Indian language in 2024. That is about 870 million people</div><div class="s">IAMAI-Kantar, Internet in India 2024</div></div>
+    <div class="stat"><div class="n o">57%</div><div class="d">of urban internet users say they prefer content in an Indian language</div><div class="s">IAMAI-Kantar, 2024</div></div>
+    <div class="stat"><div class="n bl">140M</div><div class="d">people use voice commands online. More than half of them live in rural India</div><div class="s">IAMAI-Kantar, 2024</div></div>
+    <div class="stat"><div class="n v">22</div><div class="d">Indian languages are covered by Sarvam's speech and translation models, and by the government's Bhashini</div><div class="s">docs.sarvam.ai · Bhashini</div></div>
+  </div>
+
+  <h2 class="display">STACK TODAY, SEEN FROM INDIA</h2>
+  <table>
+    <tr><th style="width:44mm">Part</th><th style="width:24mm">Today</th><th>What I found in the app</th></tr>
+    <tr><td>Indian news sources</td><td class="ok">Good</td><td>The Hindu, Times of India, Indian Express, Mint, NDTV, WION and India Today, with an India topic. All in English</td></tr>
+    <tr><td>How Indians share files</td><td class="ok">Good</td><td>Share to Stack works from WhatsApp, and "Import from Telegram" brings in forwarded PDFs</td></tr>
+    <tr><td>Weak networks</td><td class="ok">Good</td><td>Offline reading, local-first storage, and it works without an account</td></tr>
+    <tr><td>Listening in Hindi</td><td class="mid">Partly</td><td>Listen mode already picks a Hindi voice for Devanagari text, if the phone has one</td></tr>
+    <tr><td>App language</td><td class="no">English only</td><td>Every button and message is in English, and the app tells Android it is an English app</td></tr>
+    <tr><td>Indian-language news</td><td class="no">None built in</td><td>A reader can add a Hindi feed by hand under "My feeds", but nothing is offered</td></tr>
+    <tr><td>AI in Indian languages</td><td class="no">Not yet</td><td>Stack AI is not live, and Sarvam is not in the code (see Stack_AI_and_Sarvam_AI.pdf)</td></tr>
+    <tr><td>Indian time</td><td class="no">UTC</td><td>The AI limit resets at 5:30 AM IST, because the day is counted in UTC</td></tr>
+    <tr><td>Look and identity</td><td class="mid">Neutral</td><td>A clean international design. Nothing in it says where Stack is from</td></tr>
+  </table>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">The idea in one line</span><br><b>Read in any language, think in your own.</b> A student saves an English article or a coaching PDF, reads the points in Hindi, speaks a note in Hinglish, and revises it next morning. No big English-first reading app does this well, and that is Stack's opening.</div>
+
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">02 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">02 · Language first</span></div>
+  <h1 class="display">LANGUAGE FIRST</h1>
+  <p class="intro">Language is the largest single change. Do it in this order, because each step makes the next one worth more.</p>
+
+  <div class="step"><div class="num">1</div><div><span class="tag label who">Code · about a week</span><b class="t">The app itself in Hindi</b>Move every button and message into one text file per language, then add Hindi. The app follows the phone's language, with a choice in Settings. Keep words people already use in English: PDF, note, highlight, playlist.</div></div>
+  <div class="step"><div class="num">2</div><div><span class="tag label who">Code · 1 to 2 days</span><b class="t">AI answers in the reader's language</b>One "AI language" setting. Summaries, "Explain simply" and Ask your Stack then answer in that language, whatever language the article is in. This is Sarvam's main strength.</div></div>
+  <div class="step"><div class="num">3</div><div><span class="tag label t-org who">Code · 2 to 3 days</span><b class="t">News in Indian languages</b>Offer ready feed packs at first launch: Hindi, Tamil, Telugu, Bengali, Marathi. "My feeds" already reads any RSS feed, so this is a list of feeds, not new machinery. Check that each publisher offers a public feed and allows it.</div></div>
+  <div class="step"><div class="num">4</div><div><span class="tag label t-org who">Code · 1 day</span><b class="t">Type that suits Indian scripts</b>Archivo has no Devanagari or Tamil letters, so the phone swaps in its own font. Choose one on purpose. <b>Anek</b> is an open-source family for ten Indian scripts and has the same wide-to-narrow range as Archivo. Indian scripts need more line height and no negative letter spacing.</div></div>
+  <div class="step"><div class="num">5</div><div><span class="tag label t-blue who">Code · 2 to 3 days</span><b class="t">Hinglish is normal</b>People type Hindi in English letters. Tidy must keep it as it is, and search should find <span class="hi">"ज्ञान"</span> when someone types "gyaan". Sarvam's speech model has modes for mixed and romanised speech.</div></div>
+  <div class="step"><div class="num">6</div><div><span class="tag label t-blue who">Code · about a week</span><b class="t">Voice in, voice out</b>Speak a note or a question; hear the summary in an Indian voice. Costs are in Stack_AI_and_Sarvam_AI.pdf, page 4.</div></div>
+
+  <h2 class="display">WHICH LANGUAGES, IN WHAT ORDER</h2>
+  <table>
+    <tr><th style="width:26mm">Wave</th><th style="width:60mm">Languages</th><th>Why</th></tr>
+    <tr><td>1</td><td>Hindi and Hinglish</td><td>The largest group, and the one you can check yourself</td></tr>
+    <tr><td>2</td><td>Tamil, Telugu, Bengali, Marathi</td><td>Large reading and exam audiences. IAMAI-Kantar names Tamil and Telugu among the most used Indian languages online</td></tr>
+    <tr><td>3</td><td>Gujarati, Kannada, Malayalam, Odia, Punjabi</td><td>The rest of the ten languages Sarvam's chat model supports</td></tr>
+  </table>
+  <div class="inked" style="margin-top:2mm"><span class="label">One rule</span><br><b>Never ship a language nobody has checked.</b> A machine translation of the app's buttons reads as careless, and that does more harm than staying in English. For each language, find one reader among your testers who goes through every screen.</div>
+
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">03 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">03 · How India studies</span></div>
+  <h1 class="display">HOW INDIA STUDIES</h1>
+  <p class="intro">Culture is habits as well as language. Indian students already have strong reading and revision habits. Stack should fit into them instead of asking for new ones.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="tag label">Fits what is built</span><h3>PDFs arrive on Telegram and WhatsApp</h3>Coaching notes, question papers and newspaper PDFs move through Telegram channels and WhatsApp groups. Stack already imports from both. Put this at the front of the first-run screens: "Forward your study PDFs to Stack".</div>
+    <div class="card"><span class="tag label">Small job</span><h3>Exam shelves</h3>Ready shelf sets for UPSC, SSC, banking, JEE, NEET, CUET, CA and state exams, with the right subjects as shelves. The reader picks an exam at first launch, as they pick interests today.</div>
+    <div class="card"><span class="tag label t-org">Small job</span><h3>An exam date and a countdown</h3>Enter the exam date once. Today shows the days left, and the daily review brings back more highlights as the date gets closer.</div>
+    <div class="card"><span class="tag label t-org">Medium job</span><h3>Current affairs as a daily habit</h3>Many aspirants read an editorial every morning and make notes. A "Today's editorial" card, highlight, then the morning review and the quiz from highlights turn that into one flow.</div>
+    <div class="card"><span class="tag label t-blue">Small job</span><h3>Revision words people use</h3>In the Hindi version call the daily review <span class="hi">रिवीज़न</span> and the focus session <span class="hi">अभ्यास</span> (practice). Keep "Pomodoro" as a timer choice. Test the words with readers before fixing them.</div>
+    <div class="card"><span class="tag label t-blue">Medium job</span><h3>School books, the legal way</h3>NCERT textbooks are free to download from NCERT's own site. Link to them from a "Textbooks" shelf so the reader downloads them into Stack. Do not put the files inside the app.</div>
+    <div class="card"><span class="tag label t-vio">Later · Stack for Teams</span><h3>The coaching batch</h3>A teacher shares PDFs to a batch, students highlight and get quizzed, and the teacher sees progress. This is the Teams plan in the business plan, and coaching centres are its natural first buyers.</div>
+    <div class="card"><span class="tag label t-vio">Small job</span><h3>Study together</h3>Share a highlight as a picture card to WhatsApp, with the source and the Stack mark. Students already send each other notes; this makes each share bring a new reader.</div>
+  </div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">Who this points to</span><br>The business plan picked "students, developers and self-learners in India who save articles and PDFs and forget them". Exam aspirants are the part of that group with the strongest daily habit and the clearest reason to revise. <b>Pick one exam for the soft launch and make Stack right for it</b>, then widen.</div>
+
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">04 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">04 · Look and feel</span></div>
+  <h1 class="display">LOOK &amp; FEEL</h1>
+  <p class="intro">Identity should be felt, not shouted. Keep Stack's clean paper-and-ink design and add a few things that an Indian reader recognises as their own.</p>
+
+  <div class="grid2">
+    <div class="card"><span class="tag label">Brand</span><h3>The line, in two languages</h3>"Read it. Keep it. Build on it." next to <span class="hi"><b>पढ़ो। सहेजो। याद रखो।</b></span> on the splash, the store listing and the website. One short line per language, checked by a native reader.</div>
+    <div class="card"><span class="tag label">Brand</span><h3>Patterns from the Stack blocks</h3>The logo is four stacked blocks. Use the same blocks to draw kolam and rangoli style dot patterns for empty screens, streak cards and share cards. It stays Stack's own shape and reads as Indian.</div>
+    <div class="card"><span class="tag label t-org">Everyday</span><h3>Indian time, dates and numbers</h3>Count the day in IST so limits and streaks turn over at midnight in India. Show dates as 1 Oct 2026, and numbers in lakh and crore: ₹1,00,000, not ₹100,000.</div>
+    <div class="card"><span class="tag label t-org">Everyday</span><h3>A calendar that knows India</h3>A quiet card on festival days, and a "do not break my streak" pause for them. Add exam seasons: board exams early in the year, entrance exams after. Cover festivals of all communities, and let people switch the cards off.</div>
+    <div class="card"><span class="tag label t-blue">Content</span><h3>A starter shelf of Indian classics</h3>A few public-domain works offered at first launch in old translations whose copyright has ended, for example the Thirukkural and the Arthashastra. Readers start with something on the shelf. Check each edition's copyright.</div>
+    <div class="card"><span class="tag label t-blue">Content</span><h3>Badges with Indian names</h3>Stack has 12 badges. Name some after ideas people know, for example <span class="hi">अभ्यास</span> for a 7-day streak and <span class="hi">एकाग्र</span> for a full focus session. Avoid the names of gods and religious figures.</div>
+    <div class="card"><span class="tag label t-vio">Sound</span><h3>Focus sound that suits study</h3>Offer simple study sounds made for Stack or released free to use, such as a tanpura drone or rain. Do not bundle film songs: they are copyrighted. The reader's own music stays as it is.</div>
+    <div class="card"><span class="tag label t-vio">Story</span><h3>Say where it is from</h3>"Made in India by StackForge Labs. Open source. Works without an account." This is already true, and trust matters when 28 lakh cyber-fraud cases are reported in a year.</div>
+  </div>
+
+  <div class="inked" style="margin-top:3mm"><span class="label">A caution on colours and symbols</span><br>Stack's green and orange already sit close to the national colours. Do not arrange them as the flag, and do not use the national flag or emblem in the icon or the logo: Indian law restricts their use by businesses. Patterns, language and names carry identity safely.</div>
+
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">05 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">05 · Reach and price</span></div>
+  <h1 class="display">REACH &amp; PRICE</h1>
+  <p class="intro">Being Indian in practice means working on the phones, networks and budgets that people have.</p>
+
+  <table>
+    <tr><th style="width:40mm">Area</th><th style="width:66mm">What to do</th><th>Why</th></tr>
+    <tr><td>Phones</td><td>Test on a phone with 3 to 4 GB of memory. Keep the download small: the debug APK is about 15 MB today</td><td>Many students use low-cost Android phones with little free storage</td></tr>
+    <tr><td>Network</td><td>Add a "light mode" that skips images and video on mobile data. Offline reading is already built</td><td>Data is cheap in India but coverage is patchy</td></tr>
+    <tr><td>Price</td><td>Keep ₹99 a month, ₹799 a year and ₹499 a year for students, as in the business plan</td><td>Readwise costs $9.99 a month, which is too much for most Indian students</td></tr>
+    <tr><td>Paying</td><td>Use Google Play Billing, where people in India can pay with UPI. Offer the yearly plan first</td><td>Many students have no card</td></tr>
+    <tr><td>Store listing</td><td>Add a Hindi listing, then one per language as it ships</td><td>Play shows a translated listing to phones set to that language</td></tr>
+    <tr><td>Privacy</td><td>Keep the consent screen before AI, the export, and delete-account. Translate them too</td><td>The DPDP Act's full rules apply from 13 May 2027</td></tr>
+  </table>
+
+  <h2 class="display">WHERE TO FIND PEOPLE</h2>
+  <div class="grid3">
+    <div class="card"><span class="tag label">Study groups</span><h3>Telegram and WhatsApp</h3>Exam groups already pass PDFs around. Offer a short guide: "Forward this PDF to Stack and revise it tomorrow". Follow each group's rules about promotion.</div>
+    <div class="card"><span class="tag label t-org">Campuses</span><h3>Student ambassadors</h3>One student per college or coaching centre, with free Stack Plus and a referral link. Start with your own college and two more.</div>
+    <div class="card"><span class="tag label t-blue">Creators</span><h3>Teachers who post in Hindi</h3>Small study channels in Indian languages reach the right people. Give them the app and ask for an honest look, not a paid review.</div>
+  </div>
+
+  <h2 class="display">TWO ENGINES FOR INDIAN LANGUAGES</h2>
+  <div class="grid2">
+    <div class="card"><span class="tag label">Paid · fast to start</span><h3>Sarvam AI</h3>Chat in 10 Indian languages, speech and translation in 22. ₹100 free credit, then pay as you go. This is the engine planned for Stack AI.</div>
+    <div class="card"><span class="tag label t-ink">Government · listed as free</span><h3>Bhashini</h3>India's public language platform offers translation, speech to text and text to speech for 22 languages, and is described as free for developers. It is worth testing as a backup for translation and reading aloud. I did not check its sign-up terms, limits or quality.</div>
+  </div>
+
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">06 / 07</span></div>
+</section>
+
+<section class="page">
+  <div class="top"><svg width="30" height="30" fill="#111"><use href="#logo"/></svg><span class="label">06 · What to avoid · order of work</span></div>
+  <h1 class="display">DO IT WELL</h1>
+  <table>
+    <tr><th style="width:42mm">Avoid</th><th style="width:62mm">Why it hurts</th><th>Do this instead</th></tr>
+    <tr><td>Unchecked translations</td><td>Wrong or stiff Hindi looks careless</td><td>One native reader checks every screen before a language ships</td></tr>
+    <tr><td>Religion and politics in the brand</td><td>India is many communities; taking a side loses the rest</td><td>Stay neutral. Celebrate every community's festivals or none</td></tr>
+    <tr><td>Stereotypes as decoration</td><td>Elephants, turbans and "namaste" everywhere read as a tourist's India</td><td>Language, habits and small patterns</td></tr>
+    <tr><td>The national flag or emblem in the logo</td><td>Their use by businesses is restricted by law</td><td>Stack's own blocks and colours</td></tr>
+    <tr><td>Bundling books, songs or coaching PDFs</td><td>Copyright complaints and Play removals</td><td>Link to the legal source; bundle only public-domain works</td></tr>
+    <tr><td>Showing whole news articles from publishers</td><td>The same copyright risk, in every language</td><td>Headline, summary and a link; full reader only for what the reader saved</td></tr>
+    <tr><td>Ten languages at once</td><td>Ten half-finished versions and nobody to check them</td><td>Hindi first, then one wave at a time</td></tr>
+    <tr><td>Trusting AI in every language equally</td><td>Quality differs by language, and a wrong summary costs trust</td><td>Test 20 real articles per language and keep the report button</td></tr>
+  </table>
+
+  <h2 class="display">ORDER OF WORK</h2>
+  <div class="sub label">Largest effect for the least work first. Effort is my estimate</div>
+  <table>
+    <tr><th style="width:9mm">#</th><th>Change</th><th style="width:27mm">Effort</th><th class="c" style="width:22mm">Effect</th><th style="width:38mm">When</th></tr>
+    <tr><td>1</td><td>Count the day in IST for limits and streaks</td><td>An hour</td><td class="c"><span class="meter m2"><i></i><i></i><i></i><i></i><i></i></span></td><td>Before the soft launch</td></tr>
+    <tr><td>2</td><td>AI answers in the reader's language (Sarvam)</td><td>1 to 2 days</td><td class="c"><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td>Before the soft launch</td></tr>
+    <tr><td>3</td><td>Hindi store listing and the two-language line</td><td>A day</td><td class="c"><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td>Before the soft launch</td></tr>
+    <tr><td>4</td><td>Exam shelves and "forward your PDFs" at first launch</td><td>2 to 3 days</td><td class="c"><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td>During the soft launch</td></tr>
+    <tr><td>5</td><td>The app in Hindi, with a chosen Indian-script font</td><td>About a week</td><td class="c"><span class="meter m5"><i></i><i></i><i></i><i></i><i></i></span></td><td>During the soft launch</td></tr>
+    <tr><td>6</td><td>Indian-language feed packs</td><td>2 to 3 days</td><td class="c"><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td>During the soft launch</td></tr>
+    <tr><td>7</td><td>Voice notes and the Indian voice for summaries</td><td>About a week</td><td class="c"><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td>Before the public launch</td></tr>
+    <tr><td>8</td><td>Patterns, badges, festival and exam calendar</td><td>About a week</td><td class="c"><span class="meter m3"><i></i><i></i><i></i><i></i><i></i></span></td><td>Before the public launch</td></tr>
+    <tr><td>9</td><td>Second wave of languages; scanned PDFs to text</td><td>2 to 3 weeks</td><td class="c"><span class="meter m4"><i></i><i></i><i></i><i></i><i></i></span></td><td>After the public launch</td></tr>
+  </table>
+
+  <p class="note" style="margin-top:2mm"><b>Sources.</b> IAMAI-Kantar, Internet in India 2024 (iamai.in; reported by medianama.com and ibef.org) · Sarvam models and prices (docs.sarvam.ai, sarvam.ai/api-pricing, read 01.10.2026) · Bhashini, as described by third-party guides (schemesinindia.in, aistartupimpact.com) · StackForge_Stack_Plan.pdf for pricing, the DPDP date and the cyber-fraud figure · Stack's own code for "Stack today". <b>Not checked:</b> each publisher's feed terms, each classic's copyright status, Bhashini's terms, and the exact legal limits on national symbols. Get advice before relying on those.</p>
+  <div class="foot"><span class="label">Stack × India · StackForge Labs</span><span class="label">07 / 07</span></div>
+</section>
+</body>
+</html>

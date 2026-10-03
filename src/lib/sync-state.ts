@@ -2,7 +2,7 @@
 
 // Change tracking for cloud sync. Every local write marks "collection/id" as
 // changed (or deleted); the sync engine (lib/sync.ts) uploads those and clears
-// them. Kept separate from sync.ts so the storage layer doesn't load Firebase.
+// them. Kept separate from sync.ts so the storage layer doesn't load Supabase.
 import { get, update } from "idb-keyval";
 
 export type Collection = "notes" | "saved" | "pdfs" | "playlists" | "focus" | "profile" | "feeds";

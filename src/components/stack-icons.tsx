@@ -144,6 +144,9 @@ export const ImageIcon = (p: P) => (
 export const TrendingIcon = (p: P) => (
   <svg {...glyph(p)}><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
 );
+export const ContrastIcon = (p: P) => (
+  <svg {...glyph(p)}><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+);
 export const FlagIcon = (p: P) => (
   <svg {...glyph(p)}><path d="M5 21V4"/><path d="M5 4h13l-2.5 4.5L18 13H5"/></svg>
 );

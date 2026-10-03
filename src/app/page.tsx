@@ -216,7 +216,7 @@ export default function Today() {
                   href={`/library/read?id=${p.id}`}
                   className="flex w-[112px] flex-col gap-1.5"
                 >
-                  <PdfCover id={p.id} title={p.title} className="h-[152px] w-[112px]" />
+                  <PdfCover id={p.id} title={p.title} plain={p.coverStyle === "stack"} marked={!!p.bookmarks?.length} progress={p.lastPage > 1 ? p.lastPage / p.pages : 0} className="h-[152px] w-[112px]" />
                   <span className="line-clamp-2 font-serif text-[14px] leading-[1.15] font-semibold">
                     {p.title}
                   </span>

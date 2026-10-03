@@ -154,6 +154,12 @@ export const PaletteIcon = (p: P) => (
     <circle cx="14.5" cy="7" r="1" fill="currentColor" />
   </svg>
 );
+export const FontIcon = (p: P) => (
+  <svg {...stroke(p)}>
+    <path d="M3 18L8 6l5 12M4.7 14h6.6" />
+    <path d="M20.5 18v-5.2a2.6 2.6 0 0 0-5-.9M20.5 15.4a2.6 2.6 0 1 1-2.6-2.6c1 0 1.9.4 2.6 1.2" />
+  </svg>
+);
 export const ListIcon = (p: P) => (
   <svg {...stroke(p)}>
     <rect x="3.5" y="4.5" width="5" height="5" rx="1" />

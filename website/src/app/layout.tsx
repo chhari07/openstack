@@ -7,7 +7,7 @@ import "./globals.css";
 // Same fonts as the app. next/font downloads them at build time and serves
 // them from this site, so no request goes to Google and the CSP stays 'self'.
 const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], axes: ["wdth"] });
-const bodoni = Bodoni_Moda({ variable: "--font-bodoni", subsets: ["latin"], style: ["italic"], axes: ["opsz"] });
+const bodoni = Bodoni_Moda({ variable: "--font-bodoni", subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"] });
 const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500"] });
 
 export const metadata: Metadata = {
